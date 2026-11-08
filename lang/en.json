@@ -1,0 +1,194 @@
+{
+  "ATLASFOUNDRY": {
+    "Module": {
+      "Title": "Atlas"
+    },
+    "Controls": {
+      "OpenSearch": "Atlas Search"
+    },
+    "Settings": {
+      "MenuButton": "Atlas Settings",
+      "Title": "Atlas Settings",
+      "Save": "Save",
+      "GmOnly": "Only GMs can configure Atlas.",
+      "TestConnection": "Test connection",
+      "TestingConnection": "Testing connection…",
+      "BaseUrl": {
+        "Name": "Atlas base URL",
+        "Hint": "The address you open Atlas at in your browser (frontend URL), e.g. https://atlas.example.com. Both /api/v1 and /socket.io must be reachable from there."
+      },
+      "BaseUrlMissingScheme": "The base URL is missing http:// or https:// — connections will fail until it's added.",
+      "ShowSceneLinks": {
+        "Name": "Show scene links bar",
+        "Hint": "Toggles the Atlas links bar at the top of the canvas."
+      },
+      "QuietMode": {
+        "Name": "Quiet notifications",
+        "Hint": "Suppresses only the new-notification toast — the bell badge stays accurate."
+      },
+      "AutoOpenGmSuggestions": {
+        "Name": "Auto-open GM suggestions",
+        "Hint": "Opens the viewer automatically when the GM wants to show you a document, instead of a confirmation toast."
+      },
+      "ShowBell": {
+        "Name": "Show bell",
+        "Hint": "Toggles the notification bell next to the player list. The center stays reachable via the scene controls."
+      },
+      "CampaignId": {
+        "Name": "Atlas campaign ID",
+        "Hint": "Set automatically once a GM signs in through the login flow below. You can also paste it manually."
+      },
+      "LegacyTokenMigrated": "An old Atlas integration token was found and removed for security reasons. Please revoke it in Atlas and sign in again using the login flow below.",
+      "Login": "Connect to Atlas",
+      "Logout": "Disconnect"
+    },
+    "ConnectionTest": {
+      "MissingBaseUrl": "Enter an Atlas base URL first.",
+      "Success": "Connected — Atlas responded successfully.",
+      "NotFound": "Got a 404. Check that /api/v1 is forwarded to the Atlas backend by your reverse proxy.",
+      "HttpError": "Atlas responded with HTTP {status}.",
+      "UnexpectedResponse": "Atlas responded, but not with the expected health status.",
+      "Timeout": "The request timed out after 5 seconds. Check the URL and that the server is reachable.",
+      "NetworkOrCors": "Could not reach Atlas. This is usually either a wrong URL, or a CORS error — add this Foundry server's URL to ALLOWED_ORIGINS in the Atlas backend. ({detail})",
+      "UnexpectedError": "The connection test failed unexpectedly. See the browser console for details."
+    },
+    "Search": {
+      "Title": "Atlas Search",
+      "Placeholder": "Search Atlas documents…",
+      "NameOnly": "Names only",
+      "MinLength": "Type at least 2 characters to search.",
+      "Searching": "Searching…",
+      "NoResults": "Nothing found — you may not have access to matching documents.",
+      "ResultCount": "{count} result(s)",
+      "PermissionHint": "Results match your Atlas permissions.",
+      "CustomModule": "Custom module",
+      "LinkAction": "Attach to a Foundry object…",
+      "KeybindingName": "Open Atlas Search"
+    },
+    "Viewer": {
+      "Title": "Atlas Document",
+      "Loading": "Loading…",
+      "Unavailable": "This document is not available.",
+      "Retry": "Retry",
+      "Refresh": "Refresh",
+      "OpenInAtlas": "Open in Atlas",
+      "RestrictedBadge": "Restricted",
+      "UpdatedAt": "Last updated {date}"
+    },
+    "Entry": {
+      "ImageUnavailable": "Image unavailable — check MINIO_ENDPOINT/firewall."
+    },
+    "ApiError": {
+      "Auth": "You need to sign in to Atlas again.",
+      "Forbidden": "You don't have permission for this in Atlas.",
+      "NotFound": "This content no longer exists or isn't shared with you.",
+      "Server": "Atlas reported an internal error. Please try again later.",
+      "Network": "Could not reach Atlas. Check your connection and the base URL in the settings.",
+      "Unknown": "Something went wrong talking to Atlas."
+    },
+    "NotConnected": {
+      "Message": "Not connected to Atlas.",
+      "ConnectButton": "Connect to Atlas"
+    },
+    "Auth": {
+      "LogoutOfflineHint": "Could not reach Atlas to revoke the link on the server. You've been signed out here — revoke the token in Atlas' settings too if you want to fully disable it.",
+      "CampaignMismatch": "Your Atlas login belongs to a different campaign than the one linked to this world ({campaignName}). Sign out and sign in again with the right account, or ask your GM to check the world's campaign link."
+    },
+    "Status": {
+      "LoggedOut": "Not connected — sign-in required.",
+      "Linking": "Connecting…",
+      "Connected": "Connected as {displayName} ({campaignName})",
+      "Reconnecting": "Reconnecting…",
+      "Revoked": "Link expired or revoked — sign in again.",
+      "WorldMismatch": "This link belongs to a different Foundry world — sign in again."
+    },
+    "Login": {
+      "Title": "Connect to Atlas",
+      "Instructions": "Enter this code on the Atlas page that just opened (or use the link below), then sign in and confirm.",
+      "OpenAtlas": "Open Atlas",
+      "FallbackLinkHint": "If a new tab didn't open (popup blocked), copy this link instead:",
+      "Waiting": "Waiting for confirmation…",
+      "Cancel": "Cancel",
+      "PopupBlocked": "Your browser blocked the popup — copy the link from the dialog instead.",
+      "StartFailed": "Could not start the Atlas login. Check the base URL in the settings and try again.",
+      "PollFailed": "Something went wrong while waiting for confirmation. Please try again.",
+      "Denied": "The login was declined in Atlas.",
+      "Expired": "The code expired before it was confirmed. Try connecting again.",
+      "CampaignMismatch": "You confirmed a different campaign than the one already linked to this world. The token was discarded and revoked — ask your GM if this world should be relinked.",
+      "ExchangeFailed": "The login was confirmed, but Atlas rejected the resulting token. Please try again.",
+      "Success": "Connected as {displayName} ({campaignName}).",
+      "PlayerWaitingForGm": "Your GM needs to link this world to an Atlas campaign first (sign in as GM) before players can connect."
+    },
+    "Links": {
+      "HeaderButton": "Atlas Links",
+      "ManagerTitle": "Manage Atlas Links",
+      "PrivacyHint": "The link's name and label are visible to every player who can see this Foundry object — the content itself stays protected.",
+      "CheckFailed": "Visibility check failed — is Atlas reachable?",
+      "Empty": "No links yet.",
+      "AddButton": "Add…",
+      "PickTitle": "Choose an Atlas document",
+      "Broken": "Target not found",
+      "Remove": "Remove",
+      "LabelPlaceholder": "Label (optional)",
+      "NoneVisible": "No links you have access to.",
+      "ViewButton": "Show Atlas links",
+      "EditButton": "Edit Atlas links",
+      "PickTargetScene": "Active scene: {name}",
+      "PickTargetToken": "Selected token: {name}",
+      "PickTargetSheet": "Open window: {name}",
+      "NoTargets": "No target available — select a scene, a token, or open a sheet.",
+      "Added": "\"{name}\" was linked.",
+      "SceneControlTool": "Scene's Atlas Links"
+    },
+    "Quests": {
+      "Title": "Atlas Quests",
+      "ControlTool": "Atlas Quests",
+      "KeybindingName": "Open Atlas Quests",
+      "Filter": {
+        "open": "Open",
+        "completed": "Completed",
+        "failed": "Failed",
+        "all": "All"
+      },
+      "Empty": "No quests in this campaign.",
+      "GmOnlyHint": "Not visible to players"
+    },
+    "Notifications": {
+      "Title": "Atlas Notifications",
+      "ControlTool": "Atlas Notifications",
+      "Filter": {
+        "unread": "Unread",
+        "all": "All"
+      },
+      "MarkAllRead": "Mark all read",
+      "MarkAllReadManyHint": "Marking {count} notifications read one by one — this may take a moment.",
+      "Empty": "No notifications.",
+      "NoSubject": "Notification",
+      "MarkRead": "Mark as read",
+      "Broadcast": "Show to all players",
+      "BroadcastSent": "Suggestion sent to all players.",
+      "SuggestOpenToast": "The GM wants to show you \"{name}\".",
+      "SuggestOpenButton": "Open",
+      "NewToast": "New Atlas notification: {subject}",
+      "ActionFailed": "Action failed — please try again.",
+      "JustNow": "just now",
+      "MinutesAgo": "{count}m ago",
+      "HoursAgo": "{count}h ago",
+      "DaysAgo": "{count}d ago"
+    },
+    "ModuleTypes": {
+      "characters": "Characters",
+      "locations": "Locations",
+      "creatures": "Creatures",
+      "items": "Items",
+      "lore": "Lore",
+      "notes": "Notes",
+      "quests": "Quests",
+      "organizations": "Organizations",
+      "cultures": "Cultures",
+      "session-logs": "Session Logs",
+      "chronicles": "Chronicles",
+      "calendars": "Calendars"
+    }
+  }
+}

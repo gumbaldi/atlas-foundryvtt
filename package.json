@@ -1,0 +1,33 @@
+{
+  "name": "atlas-foundry",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "typecheck:contract": "tsc --noEmit -p contract/tsconfig.json",
+    "test": "vitest run",
+    "test:contract": "vitest run --config contract/vitest.config.ts",
+    "test:contract:record": "ATLAS_CONTRACT_RECORD=true vitest run --config contract/vitest.config.ts",
+    "package": "node scripts/package.mjs"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.64.0",
+    "@typescript-eslint/parser": "^8.64.0",
+    "eslint": "^10.7.0",
+    "jsdom": "^29.1.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.5",
+    "vite-plugin-static-copy": "^4.1.1",
+    "vitest": "^4.1.10",
+    "zod": "^4.4.3"
+  }
+}

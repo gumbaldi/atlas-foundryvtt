@@ -1,0 +1,8 @@
+{
+  "deviceCode": "FAKE_PLACEHOLDER_DEVICE_CODE_0000000000000000000000000",
+  "userCode": "FAKE-CODE",
+  "verificationUri": "https://atlas.example.com/link-foundry",
+  "verificationUriComplete": "https://atlas.example.com/link-foundry?code=FAKE-CODE",
+  "expiresIn": 600,
+  "interval": 5
+}

@@ -1,0 +1,11 @@
+{
+  "accessToken": "eyJFAKE.PLACEHOLDER.JWTVALUE_NOT_A_REAL_TOKEN_0000000000000",
+  "tokenType": "Bearer",
+  "expiresIn": 900,
+  "scopes": [
+    "read:user",
+    "notify:user"
+  ],
+  "campaignId": "000000000000000000000002",
+  "worldId": "contract-exchange-fake"
+}

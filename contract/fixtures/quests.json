@@ -1,0 +1,22 @@
+{
+  "quests": [
+    {
+      "id": "000000000000000000000004",
+      "name": "Contract Quest",
+      "status": "open",
+      "category": null,
+      "parentId": null,
+      "tags": [],
+      "entryPlainText": "",
+      "isGmOnly": false,
+      "characterIds": [],
+      "locationIds": [],
+      "updatedAt": "2026-07-21T07:34:44.667Z",
+      "createdAt": "2026-07-21T07:34:44.667Z"
+    }
+  ],
+  "refs": {
+    "characters": [],
+    "locations": []
+  }
+}

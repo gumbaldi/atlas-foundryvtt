@@ -1,0 +1,49 @@
+{
+  "data": [
+    {
+      "_id": "000000000000000000000003",
+      "name": "Contract Char",
+      "entryPlainText": "Contract fixture",
+      "readAccess": [
+        "all"
+      ],
+      "writeAccess": [
+        "all"
+      ],
+      "tags": [],
+      "isPinned": false,
+      "mapMode": false,
+      "vttMode": false,
+      "parentId": null,
+      "mapMarkers": [],
+      "updatedAt": "2026-07-21T07:34:44.661Z",
+      "moduleType": "characters",
+      "id": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000004",
+      "name": "Contract Quest",
+      "entryPlainText": "",
+      "readAccess": [
+        "all"
+      ],
+      "writeAccess": [
+        "all"
+      ],
+      "tags": [],
+      "isPinned": false,
+      "mapMode": false,
+      "vttMode": false,
+      "parentId": null,
+      "status": "open",
+      "mapMarkers": [],
+      "updatedAt": "2026-07-21T07:34:44.667Z",
+      "moduleType": "quests",
+      "id": "000000000000000000000004"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 1
+}

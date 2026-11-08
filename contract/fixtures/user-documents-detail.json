@@ -1,0 +1,13 @@
+{
+  "id": "000000000000000000000003",
+  "campaignId": "000000000000000000000002",
+  "moduleType": "characters",
+  "name": "Contract Char",
+  "entry": "<p>Contract fixture</p>",
+  "readAccess": [
+    "all"
+  ],
+  "tags": [],
+  "createdAt": "2026-07-21T07:34:44.661Z",
+  "updatedAt": "2026-07-21T07:34:44.661Z"
+}
