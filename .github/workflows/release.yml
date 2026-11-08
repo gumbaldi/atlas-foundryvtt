@@ -103,6 +103,22 @@ jobs:
           name: foundry-release
           path: release
 
+      - name: Update module.json on main
+        run: |
+          cp release/module.json module.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add module.json
+
+          if git diff --cached --quiet; then
+            echo "module.json is already up to date"
+          else
+            git commit -m "chore: update Foundry manifest"
+            git push origin HEAD:main
+          fi
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -117,7 +133,6 @@ jobs:
           gh release create "foundry-v$VERSION" \
             "release/module.json" \
             "release/atlas-foundry-v$VERSION.zip" \
-            --target "$GITHUB_SHA" \
+            --target "$(git rev-parse HEAD)" \
             --title "Atlas Foundry v$VERSION" \
             --generate-notes
-
