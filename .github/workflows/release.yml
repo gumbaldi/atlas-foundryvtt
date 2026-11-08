@@ -16,6 +16,10 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_commit: ${{ steps.update_manifest.outputs.commit }}
 
     steps:
       - name: Checkout
@@ -76,6 +80,28 @@ jobs:
           ATLAS_FOUNDRY_DOWNLOAD_URL_TEMPLATE: https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-v{version}/atlas-foundry-v{version}.zip
         run: npm run package
 
+      - name: Update module.json in branch
+        id: update_manifest
+        if: github.event_name == 'push'
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          cp release/module.json module.json
+   
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+   
+          git add module.json
+   
+          if git diff --cached --quiet; then
+            echo "module.json is already up to date"
+          else
+            git commit -m "chore: update Foundry manifest"
+            git push origin "HEAD:refs/heads/$BRANCH"
+          fi
+   
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Upload release files
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
@@ -87,7 +113,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: verify
     runs-on: ubuntu-latest
     permissions:
@@ -96,6 +122,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.release_commit }}
 
       - name: Download release files
         uses: actions/download-artifact@v4
@@ -117,7 +145,6 @@ jobs:
           gh release create "foundry-v$VERSION" \
             "release/module.json" \
             "release/atlas-foundry-v$VERSION.zip" \
-            --target "$GITHUB_SHA" \
+            --target "$(git rev-parse HEAD)" \
             --title "Atlas Foundry v$VERSION" \
             --generate-notes
-
