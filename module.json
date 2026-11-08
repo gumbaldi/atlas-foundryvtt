@@ -2,7 +2,7 @@
   "id": "atlas-foundry",
   "title": "Atlas Integration",
   "description": "Browse public Atlas campaign content and receive Atlas notifications directly in Foundry VTT.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "authors": [
     {
       "name": "Atlas",
