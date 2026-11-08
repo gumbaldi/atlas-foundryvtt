@@ -1,0 +1,123 @@
+name: Foundry release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, dev, test]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foundry-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Check version against target branch
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git show "$BASE_SHA:package.json" > /tmp/base-package.json
+          node <<'NODE'
+          const base = require('/tmp/base-package.json').version;
+          const current = require('./package.json').version;
+
+          function parse(version) {
+            if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
+              throw new Error(`Expected stable version MAJOR.MINOR.PATCH, got: ${version}`);
+            }
+            return version.split('.').map(BigInt);
+          }
+
+          const oldParts = parse(base);
+          const newParts = parse(current);
+          const increased = newParts.some((part, i) =>
+            part > oldParts[i] && newParts.slice(0, i).every((p, j) => p === oldParts[j])
+          );
+
+          if (!increased) {
+            throw new Error(`Version must increase: ${base} -> ${current}`);
+          }
+          console.log(`Version increased: ${base} -> ${current}`);
+          NODE
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build release package
+        env:
+          ATLAS_FOUNDRY_MANIFEST_URL: https://github.com/gumbaldi/atlas-foundryvtt/releases/latest/download/module.json
+          ATLAS_FOUNDRY_DOWNLOAD_URL_TEMPLATE: https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-v{version}/atlas-foundry-v{version}.zip
+        run: npm run package
+
+      - name: Upload release files
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundry-release
+          path: |
+            release/module.json
+            release/atlas-foundry-v*.zip
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download release files
+        uses: actions/download-artifact@v4
+        with:
+          name: foundry-release
+          path: release
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Expected stable version MAJOR.MINOR.PATCH: $VERSION" >&2
+            exit 1
+          fi
+
+          gh release create "foundry-v$VERSION" \
+            "release/module.json" \
+            "release/atlas-foundry-v$VERSION.zip" \
+            --target "$GITHUB_SHA" \
+            --title "Atlas Foundry v$VERSION" \
+            --generate-notes
+
