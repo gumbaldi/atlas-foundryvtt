@@ -78,7 +78,14 @@ jobs:
         env:
           ATLAS_FOUNDRY_MANIFEST_URL: https://github.com/gumbaldi/atlas-foundryvtt/releases/latest/download/module.json
           ATLAS_FOUNDRY_DOWNLOAD_URL_TEMPLATE: https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-v{version}/atlas-foundry-v{version}.zip
-        run: npm run package
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/test ]]; then
+            VERSION=$(node -p "require('./package.json').version")
+            npm pkg set "version=${VERSION}-test.${GITHUB_RUN_NUMBER}"
+            export ATLAS_FOUNDRY_MANIFEST_URL="https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/module.json"
+            export ATLAS_FOUNDRY_DOWNLOAD_URL_TEMPLATE="https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/atlas-foundry-v{version}.zip"
+          fi
+          npm run package
 
       - name: Update module.json in branch
         id: update_manifest
@@ -113,7 +120,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test')
     needs: verify
     runs-on: ubuntu-latest
     permissions:
@@ -132,6 +139,7 @@ jobs:
           path: release
 
       - name: Create GitHub release
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -148,3 +156,19 @@ jobs:
             --target "$(git rev-parse HEAD)" \
             --title "Atlas Foundry v$VERSION" \
             --generate-notes
+
+      - name: Publish test prerelease
+        if: github.ref == 'refs/heads/test'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./release/module.json').version")
+          if gh release view foundry-test >/dev/null 2>&1; then
+            git tag -f foundry-test "$(git rev-parse HEAD)"
+            git push --force origin refs/tags/foundry-test
+            gh release upload foundry-test "release/atlas-foundry-v$VERSION.zip" --clobber
+            gh release upload foundry-test release/module.json --clobber
+          else
+            gh release create foundry-test "release/atlas-foundry-v$VERSION.zip" release/module.json \
+              --target "$(git rev-parse HEAD)" --title "Atlas Foundry Test" --prerelease
+          fi
