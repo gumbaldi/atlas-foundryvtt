@@ -47,7 +47,7 @@ const moduleJsonPath = join(DIST, 'module.json');
 if (!existsSync(moduleJsonPath)) fail('dist/module.json not found after build — did the build succeed?');
 
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
-const version = process.env.ATLAS_FOUNDRY_VERSION || pkg.version;
+const version = pkg.version;
 if (!version) fail('package.json has no "version" field');
 
 const manifestUrl = process.env.ATLAS_FOUNDRY_MANIFEST_URL;
