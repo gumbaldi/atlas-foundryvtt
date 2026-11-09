@@ -181,6 +181,62 @@ describe('NotificationStore', () => {
     expect(store.getState().unreadCount).toBe(0);
   });
 
+  describe('markAllUnreadRead', () => {
+    const page = (count: number, startAt = 0) =>
+      Array.from({ length: count }, (_, i) =>
+        makeMessage({ id: `m${startAt + i}`, createdAt: new Date(Date.UTC(2026, 0, 1) - (startAt + i) * 60_000).toISOString() }),
+      );
+
+    beforeEach(() => {
+      vi.mocked(markMessageRead).mockResolvedValue(makeMessage({ isRead: true }));
+    });
+
+    it('pages through every unread notification, then resyncs', async () => {
+      const first = page(45);
+      vi.mocked(listMessages).mockReset().mockResolvedValueOnce(first).mockResolvedValueOnce([]).mockResolvedValue([]);
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      expect(markMessageRead).toHaveBeenCalledTimes(45);
+      expect(listMessages).toHaveBeenNthCalledWith(1, { unread: true, limit: 100, cursor: undefined });
+      expect(listMessages).toHaveBeenNthCalledWith(2, { unread: true, limit: 100, cursor: first[44]!.createdAt });
+      // The final resync fetches the plain list + unread count.
+      expect(fetchUnreadCount).toHaveBeenCalled();
+    });
+
+    it('does nothing but resync when there is nothing unread', async () => {
+      vi.mocked(listMessages).mockReset().mockResolvedValue([]);
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      expect(markMessageRead).not.toHaveBeenCalled();
+      expect(fetchUnreadCount).toHaveBeenCalledOnce();
+    });
+
+    it('stops after 20 pages when the server keeps returning full pages', async () => {
+      vi.mocked(listMessages).mockReset().mockImplementation(async () => page(100));
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      // 20 paging requests + 1 for the final resync's list.
+      expect(vi.mocked(listMessages).mock.calls.filter(([params]) => params?.unread).length).toBe(20);
+    });
+
+    it('keeps going when one item fails and reports a single error', async () => {
+      vi.mocked(listMessages).mockReset().mockResolvedValueOnce(page(3)).mockResolvedValue([]);
+      vi.mocked(markMessageRead).mockRejectedValueOnce(new Error('boom')).mockResolvedValue(makeMessage({ isRead: true }));
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      expect(markMessageRead).toHaveBeenCalledTimes(3);
+      expect(ui.notifications.error).toHaveBeenCalledOnce();
+    });
+  });
+
   it('polls every 10 minutes while the socket is connected, every 3 minutes while degraded', async () => {
     vi.mocked(atlasSocket.getStatus).mockReturnValue('connected');
     const store = freshStore();
