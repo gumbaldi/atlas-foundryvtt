@@ -11,6 +11,8 @@ interface CacheEntry<T> {
 export class TtlCache {
   private readonly store = new Map<string, CacheEntry<unknown>>();
   private readonly inFlight = new Map<string, Promise<unknown>>();
+  /** Bumped by `clear()`/`invalidate()` — a fetch that started under an older generation must not write its result back. */
+  private generation = 0;
 
   async getOrFetch<T>(key: string, ttlMs: number, fetcher: () => Promise<T>): Promise<T> {
     const cached = this.store.get(key);
@@ -21,18 +23,22 @@ export class TtlCache {
     const existing = this.inFlight.get(key);
     if (existing) return existing as Promise<T>;
 
+    const startedUnder = this.generation;
     const promise = fetcher()
       .then((value) => {
-        this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
+        if (startedUnder === this.generation) this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
         return value;
       })
-      .finally(() => this.inFlight.delete(key));
+      .finally(() => {
+        if (this.inFlight.get(key) === promise) this.inFlight.delete(key);
+      });
     this.inFlight.set(key, promise);
     return promise;
   }
 
   /** Drops every entry whose key starts with `prefix` (e.g. `'list:'` invalidates all list queries at once). */
   invalidate(prefix: string): void {
+    this.generation += 1;
     for (const key of this.store.keys()) {
       if (key.startsWith(prefix)) this.store.delete(key);
     }
@@ -46,6 +52,7 @@ export class TtlCache {
   }
 
   clear(): void {
+    this.generation += 1;
     this.store.clear();
     this.inFlight.clear();
   }

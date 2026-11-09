@@ -100,7 +100,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const existing = inFlightGets.get(path);
   if (existing) return existing as Promise<T>;
 
-  const promise = performRequest<T>(path, options).finally(() => inFlightGets.delete(path));
+  const promise = performRequest<T>(path, options).finally(() => {
+    if (inFlightGets.get(path) === promise) inFlightGets.delete(path);
+  });
   inFlightGets.set(path, promise);
   return promise;
+}
+
+/** Session reset: later GETs must not join a request that started under the previous sign-in. */
+export function clearInFlightGets(): void {
+  inFlightGets.clear();
 }

@@ -353,3 +353,8 @@ export function registerQuestPanel(): void {
     if (moduleType === 'quests' && activePanel) void activePanel.refresh();
   });
 }
+
+/** Session reset: the quest list belongs to the sign-in that loaded it. */
+export function closeQuestPanel(): void {
+  if (activePanel) void activePanel.close();
+}

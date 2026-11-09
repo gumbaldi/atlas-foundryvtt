@@ -147,4 +147,18 @@ describe('LinkVisibilityChecker', () => {
 
     vi.useRealTimers();
   });
+
+  it('forgets a cached positive result after clear()', async () => {
+    vi.mocked(request).mockResolvedValue({ visible: [{ documentId: 'd9', moduleType: 'characters', name: 'Aria' }] });
+    const checker = new LinkVisibilityChecker();
+    const ref = { documentId: 'd9', moduleType: 'characters' };
+
+    expect((await checker.isVisible(ref)).visible).toBe(true);
+    await checker.isVisible(ref);
+    expect(request).toHaveBeenCalledTimes(1);
+
+    checker.clear();
+    await checker.isVisible(ref);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
 });

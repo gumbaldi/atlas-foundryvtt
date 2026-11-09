@@ -32,7 +32,7 @@ function mockGame() {
 }
 
 vi.mock('../auth/auth-manager', () => ({
-  authManager: { isLinked: vi.fn(() => true) },
+  authManager: { isLinked: vi.fn(() => true), getSessionEpoch: vi.fn(() => 0) },
 }));
 vi.mock('../socket/atlas-socket', () => ({
   atlasSocket: { getStatus: vi.fn(() => 'connected') },
@@ -76,6 +76,7 @@ describe('NotificationStore', () => {
     mockHooks();
     mockGame();
     vi.mocked(authManager.isLinked).mockReturnValue(true);
+    vi.mocked(authManager.getSessionEpoch).mockReturnValue(0);
     vi.mocked(atlasSocket.getStatus).mockReturnValue('connected');
     vi.mocked(getQuietMode).mockReturnValue(false);
     vi.mocked(listMessages).mockReset().mockResolvedValue([]);
@@ -157,6 +158,27 @@ describe('NotificationStore', () => {
 
     Hooks.callAll('atlas-foundry.authChanged', { state: 'loggedOut' });
     expect(store.getState()).toEqual({ items: [], unreadCount: 0, status: 'idle' });
+  });
+
+  it('drops a resync answer that arrives after sign-out', async () => {
+    let resolveList!: (items: AtlasMessage[]) => void;
+    vi.mocked(listMessages).mockReturnValue(new Promise((resolve) => (resolveList = resolve)));
+    vi.mocked(fetchUnreadCount).mockResolvedValue(3);
+
+    const store = freshStore();
+    store.start();
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Sign out while the list request is still pending.
+    vi.mocked(authManager.getSessionEpoch).mockReturnValue(1);
+    vi.mocked(authManager.isLinked).mockReturnValue(false);
+    Hooks.callAll('atlas-foundry.authChanged', { state: 'loggedOut' });
+
+    resolveList([makeMessage()]);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(store.getState().items).toEqual([]);
+    expect(store.getState().unreadCount).toBe(0);
   });
 
   it('polls every 10 minutes while the socket is connected, every 3 minutes while degraded', async () => {

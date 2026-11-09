@@ -75,6 +75,19 @@ export class LinkVisibilityChecker {
     };
   }
 
+  /** Session reset: forget every cached outcome and fail whatever is still queued (callers show "?"). */
+  clear(): void {
+    this.cache.clear();
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    const pending = [...this.resolvers.values()];
+    this.queued.clear();
+    this.resolvers.clear();
+    for (const resolver of pending) resolver.reject(new Error('Atlas Foundry: session reset'));
+  }
+
   /** Convenience for a single link — same batching/caching, just one ref. */
   async isVisible(ref: LinkRef): Promise<{ visible: boolean; name?: string; failed: boolean }> {
     const result = await this.check([ref]);

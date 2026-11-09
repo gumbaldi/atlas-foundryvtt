@@ -24,8 +24,10 @@ const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 // window forward instead of spawning a duplicate (plan P4 step 7).
 const openViewers = new Map<string, AtlasViewerApplication>();
 
+const viewerKey = (moduleType: string, documentId: string) => `${moduleType}:${documentId}`;
+
 export function openDocumentViewer(params: AtlasViewerParams): void {
-  const existing = openViewers.get(params.documentId);
+  const existing = openViewers.get(viewerKey(params.moduleType, params.documentId));
   if (existing) {
     existing.bringToFront();
     return;
@@ -61,18 +63,22 @@ export class AtlasViewerApplication extends foundry.applications.api.Application
     });
     this.moduleType = params.moduleType;
     this.documentId = params.documentId;
-    openViewers.set(params.documentId, this);
+    openViewers.set(viewerKey(params.moduleType, params.documentId), this);
     void this.load();
   }
 
   private async load(): Promise<void> {
     this.state = 'loading';
+    const epoch = authManager.getSessionEpoch();
     try {
-      this.doc = await getDocument(this.moduleType, this.documentId);
+      const doc = await getDocument(this.moduleType, this.documentId);
+      if (epoch !== authManager.getSessionEpoch()) return;
+      this.doc = doc;
       this.state = 'loaded';
       this.errorKey = null;
       this.notFoundOrForbidden = false;
     } catch (err) {
+      if (epoch !== authManager.getSessionEpoch()) return;
       this.applyError(err);
     }
     await this.render();
@@ -81,12 +87,16 @@ export class AtlasViewerApplication extends foundry.applications.api.Application
   private async refresh(): Promise<void> {
     this.state = 'loading';
     await this.render();
+    const epoch = authManager.getSessionEpoch();
     try {
-      this.doc = await refreshDocument(this.moduleType, this.documentId);
+      const doc = await refreshDocument(this.moduleType, this.documentId);
+      if (epoch !== authManager.getSessionEpoch()) return;
+      this.doc = doc;
       this.state = 'loaded';
       this.errorKey = null;
       this.notFoundOrForbidden = false;
     } catch (err) {
+      if (epoch !== authManager.getSessionEpoch()) return;
       this.applyError(err);
     }
     await this.render();
@@ -195,7 +205,12 @@ export class AtlasViewerApplication extends foundry.applications.api.Application
   }
 
   protected _onClose(options?: Record<string, unknown>): void {
-    openViewers.delete(this.documentId);
+    openViewers.delete(viewerKey(this.moduleType, this.documentId));
     super._onClose(options);
   }
+}
+
+/** Session reset: a document window must not outlive the sign-in that loaded it. */
+export function closeAllViewers(): void {
+  for (const viewer of [...openViewers.values()]) void viewer.close();
 }

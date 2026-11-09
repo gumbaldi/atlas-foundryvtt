@@ -13,6 +13,7 @@ import { openQuestPanel, registerQuestPanel } from './quests/quest-panel-app';
 import { notificationStore } from './notifications/notification-store';
 import { registerBell } from './notifications/bell';
 import { openNotificationCenter, registerGmBroadcastReceiver, registerNotificationsControl } from './notifications/notification-center-app';
+import { resetSessionData } from './session-reset';
 import { MODULE_ID } from './constants';
 import { log } from './log';
 import type { AtlasSearchResult } from './atlas-types';
@@ -91,6 +92,7 @@ Hooks.once('init', () => {
   registerQuestsKeybinding();
   registerControls(openSearch);
   registerAuthSocketWiring();
+  Hooks.on('atlas-foundry.sessionReset', resetSessionData);
   registerLinkEntryPoints();
   registerSceneLinksBar();
   registerTokenHud();

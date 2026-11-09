@@ -32,6 +32,8 @@ export function openLinkManager(target: LinkManagerTarget): void {
  * no longer resolve at all (deleted Atlas document, wrong campaign), which
  * `buildReadFilter`'s GM bypass wouldn't otherwise surface as "broken".
  */
+const openManagers = new Set<LinkManagerApp>();
+
 export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS: foundry.applications.api.ApplicationV2Options = {
     classes: ['atlas-foundry', 'atlas-foundry-link-manager'],
@@ -47,6 +49,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
   constructor(target: LinkManagerTarget) {
     super({ window: { title: target.name } });
     this.target = target;
+    openManagers.add(this);
     void this.load();
   }
 
@@ -161,4 +164,14 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
     await updateLinkLabel(this.target.doc, linkId, value);
     await this.load();
   }
+
+  protected _onClose(options?: Record<string, unknown>): void {
+    openManagers.delete(this);
+    super._onClose(options);
+  }
+}
+
+/** Session reset: link rows (names resolved per user) belong to the sign-in that loaded them. */
+export function closeAllLinkManagers(): void {
+  for (const manager of [...openManagers]) void manager.close();
 }

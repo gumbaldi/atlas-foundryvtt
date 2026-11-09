@@ -230,4 +230,68 @@ describe('AuthManager', () => {
     expect(manager.getState()).toBe('loggedOut');
     expect(globalThis.ui.notifications.warn).toHaveBeenCalledOnce();
   });
+
+  describe('session epoch', () => {
+    const okExchange = async (url: string, init?: RequestInit) => {
+      if (url === EXCHANGE_URL) return jsonResponse(200, { accessToken: 'jwt-1', tokenType: 'Bearer', expiresIn: 900, scopes: [], campaignId: 'c1', worldId: 'world-1' });
+      if (url === ME_URL) return jsonResponse(200, { userId: 'u1', displayName: 'Bob', campaignId: 'c1', campaignName: 'Testkampagne', role: 'player' });
+      if (init?.method === 'DELETE') return jsonResponse(204, {});
+      throw new Error(`unexpected fetch ${url}`);
+    };
+
+    beforeEach(() => {
+      mockHooks();
+      fetchMock.mockImplementation(okExchange);
+    });
+
+    const resets = () => (globalThis.Hooks.callAll as ReturnType<typeof vi.fn>).mock.calls.filter(([name]) => name === 'atlas-foundry.sessionReset').length;
+
+    it('advances and announces on login()', async () => {
+      const manager = new AuthManager();
+      const before = manager.getSessionEpoch();
+      await manager.login('atlas_foundry_new', 'token-2');
+      expect(manager.getSessionEpoch()).toBeGreaterThan(before);
+      expect(resets()).toBeGreaterThan(0);
+    });
+
+    it('advances and announces on logout()', async () => {
+      const manager = new AuthManager();
+      const before = manager.getSessionEpoch();
+      await manager.logout();
+      expect(manager.getSessionEpoch()).toBeGreaterThan(before);
+      expect(resets()).toBeGreaterThan(0);
+    });
+
+    it('advances and announces when the exchange reports a revoked token', async () => {
+      fetchMock.mockImplementation(async (url: string) => (url === EXCHANGE_URL ? jsonResponse(401, {}) : jsonResponse(500, {})));
+      const manager = new AuthManager();
+      const before = manager.getSessionEpoch();
+      await expect(manager.ensureAccessToken()).rejects.toThrow();
+      expect(manager.getSessionEpoch()).toBeGreaterThan(before);
+      expect(resets()).toBeGreaterThan(0);
+    });
+
+    it('advances and announces on invalidateCache() (base URL change)', () => {
+      const manager = new AuthManager();
+      const before = manager.getSessionEpoch();
+      manager.invalidateCache();
+      expect(manager.getSessionEpoch()).toBeGreaterThan(before);
+      expect(resets()).toBeGreaterThan(0);
+    });
+
+    it('stays put on a plain token renewal', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(1_700_000_000_000);
+      const manager = new AuthManager();
+      await manager.ensureAccessToken();
+      const before = manager.getSessionEpoch();
+      const callsBefore = resets();
+
+      vi.setSystemTime(1_700_000_000_000 + 900_000 - 30_000);
+      await manager.ensureAccessToken();
+
+      expect(manager.getSessionEpoch()).toBe(before);
+      expect(resets()).toBe(callsBefore);
+    });
+  });
 });

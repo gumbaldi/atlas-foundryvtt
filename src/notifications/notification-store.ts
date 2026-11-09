@@ -64,12 +64,16 @@ export class NotificationStore {
     }
     this.status = 'loading';
     this.notify();
+    const epoch = authManager.getSessionEpoch();
     try {
       const [unreadCount, items] = await Promise.all([fetchUnreadCount(), listMessages({ limit: LIST_LIMIT })]);
+      // Signed out or switched account while the request was in flight — the answer belongs to the old session.
+      if (epoch !== authManager.getSessionEpoch()) return this.resync();
       this.unreadCount = unreadCount;
       this.items = items;
       this.status = 'idle';
     } catch (err) {
+      if (epoch !== authManager.getSessionEpoch()) return this.resync();
       this.status = 'error';
       log.warn('Atlas Foundry: notification sync failed', err);
     }
