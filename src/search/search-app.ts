@@ -301,3 +301,8 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     void this.close();
   }
 }
+
+/** Session reset: results belong to the sign-in that searched. A pending `pick()` resolves with null on close. */
+export function closeSearch(): void {
+  if (activeSearchApp) void activeSearchApp.close();
+}

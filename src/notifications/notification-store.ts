@@ -15,6 +15,9 @@ export interface NotificationStoreState {
 }
 
 const LIST_LIMIT = 30;
+// markAllUnreadRead pages through the unread set; a safety cap against a server that keeps returning items.
+const MARK_ALL_PAGE_LIMIT = 100;
+const MARK_ALL_MAX_PAGES = 20;
 // Socket disconnected/degraded → shorter fallback poll; socket connected →
 // long drift-check only (plan: "3 min (Socket down) / 10 min (Socket ok)").
 const POLL_INTERVAL_DEGRADED_MS = 3 * 60_000;
@@ -64,16 +67,61 @@ export class NotificationStore {
     }
     this.status = 'loading';
     this.notify();
+    const epoch = authManager.getSessionEpoch();
     try {
       const [unreadCount, items] = await Promise.all([fetchUnreadCount(), listMessages({ limit: LIST_LIMIT })]);
+      // Signed out or switched account while the request was in flight — the answer belongs to the old session.
+      if (epoch !== authManager.getSessionEpoch()) return this.resync();
       this.unreadCount = unreadCount;
       this.items = items;
       this.status = 'idle';
     } catch (err) {
+      if (epoch !== authManager.getSessionEpoch()) return this.resync();
       this.status = 'error';
       log.warn('Atlas Foundry: notification sync failed', err);
     }
     this.notify();
+  }
+
+  /**
+   * Marks every unread notification in the module as read, not just the loaded
+   * 30 — the bell's count comes from the server. No bulk endpoint exists, so it
+   * pages through `unread=true` (cursor = createdAt of the previous page's last
+   * item) and marks one by one, then resyncs to the server's truth.
+   */
+  async markAllUnreadRead(): Promise<void> {
+    let cursor: string | undefined;
+    let failed = 0;
+    let lastError: unknown;
+
+    for (let pageNumber = 0; pageNumber < MARK_ALL_MAX_PAGES; pageNumber++) {
+      let batch: AtlasMessage[];
+      try {
+        batch = await listMessages({ unread: true, limit: MARK_ALL_PAGE_LIMIT, cursor });
+      } catch (err) {
+        failed += 1;
+        lastError = err;
+        break;
+      }
+      if (batch.length === 0) break;
+
+      for (const message of batch) {
+        const loaded = this.items.find((m) => m.id === message.id);
+        if (loaded) loaded.isRead = true;
+        try {
+          await markMessageRead(message.id);
+        } catch (err) {
+          if (loaded) loaded.isRead = false;
+          failed += 1;
+          lastError = err;
+        }
+      }
+      this.notify();
+      cursor = batch[batch.length - 1]!.createdAt;
+    }
+
+    await this.resync();
+    if (failed > 0) notifyError(lastError, 'ATLASFOUNDRY.Notifications.ActionFailed');
   }
 
   async markRead(messageId: string): Promise<void> {

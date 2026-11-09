@@ -27,9 +27,11 @@ import {
  *
  * Two modes:
  * - Live (`ATLAS_TEST_URL` set): bootstraps a throwaway campaign + Foundry
- *   JWT against a real backend, hits every route, validates. With
- *   `--record`, also saves each response under `fixtures/` — refused unless
- *   the target host is localhost (never record against a real deployment).
+ *   JWT against a real backend, hits every route, validates. If the
+ *   bootstrap fails, every route fails with that error — a named backend is
+ *   never silently replaced by old fixtures. With `--record`, also saves
+ *   each response under `fixtures/` — refused unless the target host is
+ *   localhost (never record against a real deployment).
  * - Fixture-only (`ATLAS_TEST_URL` unset): validates the last recorded
  *   fixtures against the current schemas — no network, works in CI without
  *   a backend. A route with no fixture yet is skipped, not failed.
@@ -40,23 +42,15 @@ const FIXTURES_DIR = join(__dirname, 'fixtures');
 
 const TEST_URL = process.env.ATLAS_TEST_URL?.replace(/\/+$/, '');
 
-// Seeded local test user. Read from env or login.txt (repo root, gitignored) —
-// never hardcode the account, see scripts/check-naming.sh.
-function loginTxt(label: string): string | undefined {
-  try {
-    const text = readFileSync(join(__dirname, '../../../login.txt'), 'utf8');
-    return text.match(new RegExp(`${label}:\\s*([^\\s]+)`))?.[1];
-  } catch {
-    return undefined;
-  }
-}
-const TEST_EMAIL = process.env.ATLAS_TEST_EMAIL ?? loginTxt('E-Mail');
-const TEST_PASSWORD = process.env.ATLAS_TEST_PASSWORD ?? loginTxt('Passwort');
+// Seeded local test user, taken from the environment only — never hardcode the
+// account and never read it from a file outside this repository.
+const TEST_EMAIL = process.env.ATLAS_TEST_EMAIL;
+const TEST_PASSWORD = process.env.ATLAS_TEST_PASSWORD;
 const RECORD = process.argv.includes('--record') || process.env.ATLAS_CONTRACT_RECORD === 'true';
 
 if (RECORD && TEST_URL && (!TEST_EMAIL || !TEST_PASSWORD)) {
   throw new Error(
-    'Missing login credentials for --record: set ATLAS_TEST_EMAIL / ATLAS_TEST_PASSWORD or fill login.txt',
+    'Missing login credentials for --record: set ATLAS_TEST_EMAIL and ATLAS_TEST_PASSWORD',
   );
 }
 
@@ -139,7 +133,7 @@ beforeAll(async () => {
     ctx = await bootstrap();
   } catch (err) {
     bootstrapError = err instanceof Error ? err.message : String(err);
-    console.warn(`[contract] Bootstrap against ${TEST_URL} failed, live checks will skip: ${bootstrapError}`);
+    console.warn(`[contract] Bootstrap against ${TEST_URL} failed, live checks will fail: ${bootstrapError}`);
   }
 }, 30_000);
 
@@ -264,6 +258,27 @@ const ROUTES: RouteCase[] = [
   },
 ];
 
+// Recorded responses are committed to a public repo — never keep real secrets in them,
+// not even short-lived or already revoked ones.
+const SECRET_PLACEHOLDERS: Record<string, string> = {
+  accessToken: 'eyJFAKE.PLACEHOLDER.JWTVALUE_NOT_A_REAL_TOKEN_0000000000000',
+  token: 'atlas_foundry_PLACEHOLDER_NOT_A_REAL_TOKEN_000000000000',
+  deviceCode: 'PLACEHOLDER_DEVICE_CODE_NOT_A_REAL_CODE_00000000',
+};
+
+function redactSecrets(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSecrets);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, inner]) => [
+        key,
+        typeof inner === 'string' && key in SECRET_PLACEHOLDERS ? SECRET_PLACEHOLDERS[key] : redactSecrets(inner),
+      ]),
+    );
+  }
+  return value;
+}
+
 function fixturePath(name: string): string {
   return join(FIXTURES_DIR, `${name}.json`);
 }
@@ -273,19 +288,20 @@ describe('Foundry API contract', () => {
     it(`${route.name} matches its schema`, async ({ skip }) => {
       let payload: unknown;
 
+      if (TEST_URL && !ctx) {
+        throw new Error(`bootstrap against ${TEST_URL} failed: ${bootstrapError}`);
+      }
+
       if (TEST_URL && ctx) {
         payload = await route.live(ctx);
         if (RECORD) {
           mkdirSync(FIXTURES_DIR, { recursive: true });
-          writeFileSync(fixturePath(route.name), `${JSON.stringify(payload, null, 2)}\n`);
+          writeFileSync(fixturePath(route.name), `${JSON.stringify(redactSecrets(payload), null, 2)}\n`);
         }
       } else if (existsSync(fixturePath(route.name))) {
         payload = JSON.parse(readFileSync(fixturePath(route.name), 'utf8'));
       } else {
-        const reason = TEST_URL
-          ? `bootstrap against ${TEST_URL} failed (${bootstrapError})`
-          : 'ATLAS_TEST_URL not set and no recorded fixture exists yet — run once with ATLAS_TEST_URL set and --record';
-        skip(true, reason);
+        skip(true, 'ATLAS_TEST_URL not set and no recorded fixture exists yet — run once with ATLAS_TEST_URL set and --record');
         return;
       }
 

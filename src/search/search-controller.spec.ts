@@ -115,6 +115,34 @@ describe('SearchController', () => {
     expect(controller.getState()).toMatchObject({ status: 'done', query: 'bear' });
   });
 
+  it('aborts the running request at once on a filter change and never shows its results', async () => {
+    const signals: AbortSignal[] = [];
+    let resolveA!: (value: AtlasSearchResponse) => void;
+    vi.mocked(searchDocuments)
+      .mockImplementationOnce((_params, options) => {
+        signals.push(options!.signal!);
+        return new Promise((resolve) => (resolveA = resolve));
+      })
+      .mockImplementationOnce(async (_params, options) => {
+        signals.push(options!.signal!);
+        return { data: [{ id: 'b', name: 'Orc B', moduleType: 'creatures', tags: [] }], total: 1, page: 1, limit: 20, totalPages: 1 };
+      });
+
+    controller.update('orc', { types: ['creatures'] });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(signals[0]?.aborted).toBe(false);
+
+    // Same text, different filter — before the debounce for the new request even fires.
+    controller.update('orc', { types: ['items'] });
+    expect(signals[0]?.aborted).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(300);
+    resolveA({ data: [{ id: 'a', name: 'Orc A', moduleType: 'creatures', tags: [] }], total: 1, page: 1, limit: 20, totalPages: 1 });
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(controller.getState().results.map((r) => r.id)).toEqual(['b']);
+  });
+
   it('surfaces a classified, localized error message on failure', async () => {
     vi.mocked(searchDocuments).mockRejectedValue(new AtlasForbiddenError('/x'));
 

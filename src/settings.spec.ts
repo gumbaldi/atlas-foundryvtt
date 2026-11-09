@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  clearUserToken,
+  discardLegacyUserToken,
   getBaseUrl,
   getCampaignId,
+  getUserToken,
+  getUserTokenId,
+  setUserToken,
   migrateLegacyIntegrationToken,
   normalizeBaseUrl,
   setBaseUrl,
@@ -10,7 +15,7 @@ import {
 } from './settings';
 import { MODULE_ID } from './constants';
 
-function mockGame(store: Record<string, unknown>, isGM = true) {
+function mockGame(store: Record<string, unknown>, isGM = true, userId = 'u1') {
   globalThis.game = {
     settings: {
       register: vi.fn(),
@@ -25,7 +30,7 @@ function mockGame(store: Record<string, unknown>, isGM = true) {
       localize: (key: string) => key,
       format: (key: string) => key,
     },
-    user: { isGM },
+    user: { isGM, id: userId },
     world: { id: 'test-world', title: 'Test World' },
   } as unknown as Game;
 
@@ -108,5 +113,70 @@ describe('settings helpers', () => {
     expect(store.integrationToken).toBe('atlas_foundry_legacy');
     expect(globalThis.game.settings.set).not.toHaveBeenCalled();
     expect(globalThis.ui.notifications.warn).not.toHaveBeenCalled();
+  });
+});
+
+describe('per-user Foundry token', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = { userTokens: {}, userToken: '', userTokenId: '' };
+  });
+
+  it('keeps one sign-in per Foundry user in the same browser', async () => {
+    mockGame(store, true, 'u1');
+    await setUserToken('token-u1', 'id-u1');
+
+    mockGame(store, false, 'u2');
+    expect(getUserToken()).toBe('');
+    await setUserToken('token-u2', 'id-u2');
+
+    mockGame(store, true, 'u1');
+    expect(getUserToken()).toBe('token-u1');
+    expect(getUserTokenId()).toBe('id-u1');
+
+    mockGame(store, false, 'u2');
+    expect(getUserToken()).toBe('token-u2');
+    expect(getUserTokenId()).toBe('id-u2');
+  });
+
+  it('clearUserToken only removes the current user\'s entry', async () => {
+    mockGame(store, true, 'u1');
+    await setUserToken('token-u1', 'id-u1');
+    mockGame(store, false, 'u2');
+    await setUserToken('token-u2', 'id-u2');
+
+    await clearUserToken();
+
+    expect(getUserToken()).toBe('');
+    mockGame(store, true, 'u1');
+    expect(getUserToken()).toBe('token-u1');
+  });
+});
+
+describe('discardLegacyUserToken', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = { userTokens: {}, userToken: '', userTokenId: '' };
+    mockGame(store);
+  });
+
+  it('empties a filled browser-wide token and tells the user to reconnect once', async () => {
+    store.userToken = 'atlas_foundry_old';
+    store.userTokenId = 'old-id';
+
+    await discardLegacyUserToken();
+
+    expect(store.userToken).toBe('');
+    expect(store.userTokenId).toBe('');
+    expect(globalThis.ui.notifications.info).toHaveBeenCalledOnce();
+  });
+
+  it('does nothing when there is no legacy token', async () => {
+    await discardLegacyUserToken();
+
+    expect(globalThis.game.settings.set).not.toHaveBeenCalled();
+    expect(globalThis.ui.notifications.info).not.toHaveBeenCalled();
   });
 });

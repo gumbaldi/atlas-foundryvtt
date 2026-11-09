@@ -288,6 +288,12 @@
   min-width: 380px;
 }
 
+.atlas-foundry-login-code-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+}
+
 .atlas-foundry-login-code {
   font-size: 1.4rem;
   font-weight: 700;

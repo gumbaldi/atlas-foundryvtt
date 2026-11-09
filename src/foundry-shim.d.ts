@@ -18,10 +18,20 @@ declare global {
     onChange?: (value: T) => void;
   }
 
+  interface GameSettingsMenuConfig {
+    name: string;
+    label: string;
+    hint?: string;
+    icon?: string;
+    type: unknown;
+    restricted?: boolean;
+  }
+
   interface GameSettings {
     register<T = unknown>(namespace: string, key: string, data: GameSettingsConfig<T>): void;
     get<T = unknown>(namespace: string, key: string): T;
     set<T = unknown>(namespace: string, key: string, value: T): Promise<T>;
+    registerMenu(namespace: string, key: string, data: GameSettingsMenuConfig): void;
   }
 
   interface GameI18n {
@@ -31,6 +41,7 @@ declare global {
   }
 
   interface GameUser {
+    id: string;
     isGM: boolean;
     name: string;
   }
@@ -165,6 +176,12 @@ declare global {
           classes?: string[];
           window?: ApplicationV2WindowOptions;
           position?: ApplicationV2PositionOptions;
+          /** `'form'` makes the application element itself a `<form>`; `form.handler` receives its submit. */
+          tag?: string;
+          form?: {
+            handler?: (event: Event, form: HTMLFormElement, formData: { object: Record<string, unknown> }) => void | Promise<void>;
+            closeOnSubmit?: boolean;
+          };
         }
 
         class ApplicationV2 {
@@ -191,6 +208,7 @@ declare global {
           callback?: (
             event: Event,
             button: HTMLButtonElement & DialogV2FormButton,
+            dialog: DialogV2RenderContext,
           ) => void | Promise<void>;
         }
 

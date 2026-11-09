@@ -21,6 +21,18 @@ export interface VisibilityCheckResult {
   failed: boolean;
 }
 
+export type LinkRowState = 'visible' | 'broken' | 'unknown';
+
+/**
+ * `broken` only when the check ran and the ref wasn't confirmed; if the check
+ * itself failed (network/auth) we can't tell an outage from a deleted target,
+ * so the link is `unknown` and must never invite a removal.
+ */
+export function toLinkRowState(ref: LinkRef, result: VisibilityCheckResult): LinkRowState {
+  if (result.isVisible(ref)) return 'visible';
+  return result.failed ? 'unknown' : 'broken';
+}
+
 const CACHE_TTL_MS = 60_000;
 const DEBOUNCE_MS = 250;
 const MAX_REFS_PER_REQUEST = 100;
@@ -73,6 +85,19 @@ export class LinkVisibilityChecker {
       nameFor: (ref) => names.get(refKey(ref)),
       failed,
     };
+  }
+
+  /** Session reset: forget every cached outcome and fail whatever is still queued (callers show "?"). */
+  clear(): void {
+    this.cache.clear();
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    const pending = [...this.resolvers.values()];
+    this.queued.clear();
+    this.resolvers.clear();
+    for (const resolver of pending) resolver.reject(new Error('Atlas Foundry: session reset'));
   }
 
   /** Convenience for a single link — same batching/caching, just one ref. */

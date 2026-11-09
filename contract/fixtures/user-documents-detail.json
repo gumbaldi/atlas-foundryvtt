@@ -1,6 +1,6 @@
 {
-  "id": "000000000000000000000003",
-  "campaignId": "000000000000000000000002",
+  "id": "6af153b44755e79bfcd90d85",
+  "campaignId": "6af153b44755e79bfcd90d83",
   "moduleType": "characters",
   "name": "Contract Char",
   "entry": "<p>Contract fixture</p>",
@@ -8,6 +8,6 @@
     "all"
   ],
   "tags": [],
-  "createdAt": "2026-07-21T07:34:44.661Z",
-  "updatedAt": "2026-07-21T07:34:44.661Z"
+  "createdAt": "2026-11-09T05:01:40.142Z",
+  "updatedAt": "2026-11-09T05:01:40.142Z"
 }

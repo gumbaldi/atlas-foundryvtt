@@ -6,7 +6,8 @@ and Foundry version in `CHANGELOG.md` when done.
 
 ## Setup
 
-1. Local stack running: `./services.sh` from the repo root (Backend `:53001`, Frontend `:3000`).
+1. A running Atlas backend and frontend, started from the Atlas repository (the examples assume
+   the dev ports `:53001` and `:3000`).
 2. A Foundry v14 instance with this addon installed (packaged Zip from `npm run package`,
    installed fresh — not a dev symlink, per the release gate).
 3. Two browser profiles/windows:
@@ -16,7 +17,7 @@ and Foundry version in `CHANGELOG.md` when done.
    (`readAccess: ["all"]`), owner/custom (`readAccess: [<player's userId>]`), and GM-only
    (`readAccess: []`) — across at least `characters` and `locations`, plus at least one
    `quests` document of each status with a mention referencing both a visible and a
-   GM-only document. `scripts/test-api.sh`'s Foundry category creates exactly this shape
+   GM-only document. The Foundry category of the Atlas repository's `scripts/test-api.sh` creates exactly this shape
    automatically if you want a scripted starting point instead of building it by hand.
 
 ## The one rule every section below serves
@@ -28,7 +29,32 @@ how everything else scores.
 
 ---
 
-## P3 — Login & Session
+## Start-up and entry points (Foundry 14)
+
+Do this section first, in a fresh world with only this module active.
+
+S1. Open the browser console. No Atlas error is logged while the world loads, and
+   `({ scriptLoaded: typeof globalThis.AtlasFoundry !== 'undefined', settingsRegistered: game.settings.settings.has('atlas-foundry.showBell') })`
+   returns `true` / `true`.
+S2. The Atlas tools (search, quests, notifications; scene links for the GM) are visible in the token
+   controls right after load, without switching tools first. The scene link bar is visible on the
+   first scene.
+S3. As GM, right-click a scene in the navigation bar and in the Scenes directory: "Atlas links…" is
+   present in both. This confirms the `getSceneContextOptions` hook name — if it is missing, report
+   which context menu lacks it. As a player the entry is absent.
+S4. *Configure Settings* shows an "Atlas" section with the **Atlas connection** button for the GM only.
+S5. Connect: one click opens Atlas on the confirmation page; after confirming there, the Foundry
+   dialog closes by itself. Start again, close the dialog with X, then confirm in Atlas: Foundry
+   stays disconnected.
+S6. Open a second browser tab as another Foundry user: that user is not connected until they connect
+   themselves.
+S7. As GM, change the world's campaign to a different one: a connected player turns red ("different
+   campaign") and sees no Atlas data.
+S8. With more than 30 unread notifications, "Mark all read" brings the bell to 0.
+
+---
+
+## Login and session
 
 1. GM: world unlinked → connect via the device-code flow → `campaignId` gets set on the
    world setting, status dot turns green, `foundry_tokens` (Atlas profile) shows an entry
@@ -44,11 +70,12 @@ how everything else scores.
    token (Network tab: new handshake after a disconnect).
 6. Stop the backend → status turns yellow/degraded, no repeated error popups; restart it →
    automatic recovery.
-7. **Security**: as the player, `game.settings.get('atlas-foundry','userToken')` for the
-   **GM's** token is not readable (client-scoped, different browser); world-scoped settings
-   contain no token (`baseUrl`/`campaignId` only).
+7. **Security**: the long-lived token lives only in the client-scoped setting
+   `game.settings.get('atlas-foundry','userTokens')`, keyed by Foundry user id — as the player, the
+   **GM's** entry is not readable (different browser); world-scoped settings contain no token
+   (`baseUrl`/`campaignId` only).
 
-## P4 — Viewer & Data Layer
+## Viewer and data layer
 
 8. Open a document with mentions → mentions are clickable, the target viewer opens; a
    target the player can't read shows "not available", not an error or stale content.
@@ -62,7 +89,7 @@ how everything else scores.
     `<img src=x onerror=alert(1)>`, `<script>`, `<a href="javascript:…">`, nested SVG — none
     execute; a mention span with all four `data-*` attributes survives intact.
 
-## P6 — Search
+## Search
 
 14. GM finds a GM-only document via search; the player searching the identical query does
     not.
@@ -72,7 +99,7 @@ how everything else scores.
 18. Picker mode (`await AtlasFoundry.pickDocument()` in the console) resolves with the
     chosen result object.
 
-## P5 — Context Links
+## Context links
 
 19. GM links a Scene to both a public document and a GM-only document → GM sees 2 chips on
     the scene bar; the player sees 1.
@@ -88,7 +115,7 @@ how everything else scores.
     (documented, accepted privacy tradeoff) — but confirm no click path anywhere delivers
     actual document *content* without the server-side check passing.
 
-## P7 — Quest Panel
+## Quest panel
 
 25. GM's quest panel shows every quest including GM-only ones, visibly marked; the player's
     panel shows only what they're permitted to see.
@@ -99,7 +126,7 @@ how everything else scores.
     does not appear as a chip for the player.
 29. Close and reopen the panel → position/size persisted from before.
 
-## P8 — Notifications
+## Notifications
 
 30. GM sends an in-app notification to the player (frontend channel) → player's Foundry:
     bell badge +1 and a toast within seconds; GM's own Foundry: nothing (not the recipient).

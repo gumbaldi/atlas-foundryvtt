@@ -14,6 +14,11 @@ const KIND_ICONS: Record<string, string> = {
   'gm-announcement': 'fa-solid fa-bullhorn',
   'document-new': 'fa-solid fa-file-circle-plus',
   'document-updated': 'fa-solid fa-file-pen',
+  'document-media': 'fa-solid fa-photo-film',
+  'support-ticket': 'fa-solid fa-life-ring',
+  'diary-invite': 'fa-solid fa-book-bookmark',
+  'diary-entry': 'fa-solid fa-book',
+  'agent-content': 'fa-solid fa-robot',
 };
 
 const MANY_UNREAD_THRESHOLD = 20;
@@ -188,18 +193,15 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
   }
 
   private async markAllRead(): Promise<void> {
-    const unread = notificationStore.getState().items.filter((m) => !m.isRead);
-    if (unread.length > MANY_UNREAD_THRESHOLD) {
-      ui.notifications.info(t('ATLASFOUNDRY.Notifications.MarkAllReadManyHint', { count: unread.length }));
+    // The badge counts every unread notification, the loaded list only the newest few.
+    const { unreadCount } = notificationStore.getState();
+    if (unreadCount > MANY_UNREAD_THRESHOLD) {
+      ui.notifications.info(t('ATLASFOUNDRY.Notifications.MarkAllReadManyHint', { count: unreadCount }));
     }
 
     this.markingAllRead = true;
     await this.render();
-    // Sequential, not Promise.all — messages.controller.ts has no bulk
-    // "mark all read" endpoint (plan step 56's documented "otherwise sequential" fallback).
-    for (const item of unread) {
-      await notificationStore.markRead(item.id);
-    }
+    await notificationStore.markAllUnreadRead();
     this.markingAllRead = false;
     await this.render();
   }

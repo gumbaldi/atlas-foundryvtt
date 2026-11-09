@@ -14,8 +14,13 @@ export function getConnectionStatus(): StatusInfo {
   const state = authManager.getState();
 
   if (state === 'revoked') {
+    const reason = authManager.getRevokedReason();
     const messageKey =
-      authManager.getRevokedReason() === 'world-mismatch' ? 'ATLASFOUNDRY.Status.WorldMismatch' : 'ATLASFOUNDRY.Status.Revoked';
+      reason === 'world-mismatch'
+        ? 'ATLASFOUNDRY.Status.WorldMismatch'
+        : reason === 'campaign-mismatch'
+          ? 'ATLASFOUNDRY.Status.CampaignMismatch'
+          : 'ATLASFOUNDRY.Status.Revoked';
     return { color: 'red', messageKey };
   }
   if (state === 'loggedOut') return { color: 'grey', messageKey: 'ATLASFOUNDRY.Status.LoggedOut' };

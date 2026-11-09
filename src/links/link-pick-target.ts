@@ -54,7 +54,7 @@ export async function pickLinkTarget(result: AtlasSearchResult): Promise<void> {
   }
 
   const content = `
-    <form class="atlas-foundry atlas-foundry-link-target-picker">
+    <div class="atlas-foundry atlas-foundry-link-target-picker">
       <div class="form-group">
         ${options
           .map(
@@ -70,7 +70,7 @@ export async function pickLinkTarget(result: AtlasSearchResult): Promise<void> {
         <label>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Links.LabelPlaceholder'))}</label>
         <input type="text" name="label" placeholder="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Links.LabelPlaceholder'))}">
       </div>
-    </form>
+    </div>
   `;
 
   await foundry.applications.api.DialogV2.prompt({
@@ -78,11 +78,11 @@ export async function pickLinkTarget(result: AtlasSearchResult): Promise<void> {
     content,
     ok: {
       label: 'ATLASFOUNDRY.Links.AddButton',
-      callback: async (_event, button) => {
-        const targetIndexField = button.form.elements.namedItem('targetIndex') as HTMLInputElement | RadioNodeList | null;
+      callback: async (_event, _button, dialog) => {
+        const targetIndexField = dialog.element.querySelector<HTMLInputElement>('input[name="targetIndex"]:checked');
         const target = options[Number(targetIndexField?.value ?? '-1')];
         if (!target) return;
-        const label = (button.form.elements.namedItem('label') as HTMLInputElement | null)?.value ?? '';
+        const label = dialog.element.querySelector<HTMLInputElement>('input[name="label"]')?.value ?? '';
 
         await addLink(target.doc, {
           documentId: result.id,

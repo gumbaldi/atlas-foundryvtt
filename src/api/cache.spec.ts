@@ -112,3 +112,44 @@ describe('socket-driven invalidation', () => {
     expect(listFetcher).not.toHaveBeenCalled();
   });
 });
+
+describe('TtlCache generation guard', () => {
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((r) => (resolve = r));
+    return { promise, resolve };
+  }
+
+  it('does not store a fetch result that finished after clear()', async () => {
+    const cache = new TtlCache();
+    const slow = deferred<string>();
+    const first = cache.getOrFetch('k', 60_000, () => slow.promise);
+    cache.clear();
+    slow.resolve('stale');
+    await first;
+
+    const fetcher = vi.fn(async () => 'fresh');
+    expect(await cache.getOrFetch('k', 60_000, fetcher)).toBe('fresh');
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  it('does not store a fetch result that finished after invalidate(prefix)', async () => {
+    const cache = new TtlCache();
+    const slow = deferred<string>();
+    const first = cache.getOrFetch('list:a', 60_000, () => slow.promise);
+    cache.invalidate('list:');
+    slow.resolve('stale');
+    await first;
+
+    const fetcher = vi.fn(async () => 'fresh');
+    expect(await cache.getOrFetch('list:a', 60_000, fetcher)).toBe('fresh');
+  });
+
+  it('still caches when nothing was cleared in between', async () => {
+    const cache = new TtlCache();
+    await cache.getOrFetch('k', 60_000, async () => 'v');
+    const fetcher = vi.fn(async () => 'other');
+    expect(await cache.getOrFetch('k', 60_000, fetcher)).toBe('v');
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+});

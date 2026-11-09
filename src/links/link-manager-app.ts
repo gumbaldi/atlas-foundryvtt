@@ -3,7 +3,7 @@ import { MODULE_TYPE_ICONS } from '../constants';
 import { openDocumentViewer } from '../apps/viewer-app';
 import { SearchApp } from '../search/search-app';
 import { addLink, getLinks, removeLink, updateLinkLabel, type AtlasLink, type FlagCapableDocument } from './link-store';
-import { linkVisibility, toRefs } from './link-visibility';
+import { linkVisibility, toLinkRowState, toRefs, type LinkRowState } from './link-visibility';
 import type { ModuleType } from '../constants';
 
 /** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
@@ -18,7 +18,7 @@ export interface LinkManagerTarget {
 interface RowState {
   link: AtlasLink;
   currentName?: string;
-  broken: boolean;
+  state: LinkRowState;
 }
 
 export function openLinkManager(target: LinkManagerTarget): void {
@@ -32,6 +32,8 @@ export function openLinkManager(target: LinkManagerTarget): void {
  * no longer resolve at all (deleted Atlas document, wrong campaign), which
  * `buildReadFilter`'s GM bypass wouldn't otherwise surface as "broken".
  */
+const openManagers = new Set<LinkManagerApp>();
+
 export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS: foundry.applications.api.ApplicationV2Options = {
     classes: ['atlas-foundry', 'atlas-foundry-link-manager'],
@@ -47,6 +49,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
   constructor(target: LinkManagerTarget) {
     super({ window: { title: target.name } });
     this.target = target;
+    openManagers.add(this);
     void this.load();
   }
 
@@ -59,7 +62,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
     this.rows = links.map((link) => ({
       link,
       currentName: result.nameFor(link),
-      broken: !result.isVisible(link),
+      state: toLinkRowState(link, result),
     }));
     this.checkFailed = result.failed;
     this.loading = false;
@@ -94,11 +97,12 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
       row.link.moduleType === 'custom' ? t('ATLASFOUNDRY.Search.CustomModule') : (t(`ATLASFOUNDRY.ModuleTypes.${row.link.moduleType}`) || row.link.moduleType);
 
     return `
-      <div class="atlas-foundry-link-row${row.broken ? ' atlas-foundry-link-row-broken' : ''}" data-link-id="${foundry.utils.escapeHTML(row.link.id)}">
+      <div class="atlas-foundry-link-row${row.state === 'broken' ? ' atlas-foundry-link-row-broken' : ''}" data-link-id="${foundry.utils.escapeHTML(row.link.id)}">
         <div class="atlas-foundry-link-row-main">
           <strong><i class="${icon}"></i> ${foundry.utils.escapeHTML(displayName)}</strong>
           <span class="atlas-foundry-link-row-type">${foundry.utils.escapeHTML(typeLabel)}</span>
-          ${row.broken ? `<span class="atlas-foundry-badge atlas-foundry-badge-restricted">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Links.Broken'))}</span>` : ''}
+          ${row.state === 'broken' ? `<span class="atlas-foundry-badge atlas-foundry-badge-restricted">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Links.Broken'))}</span>` : ''}
+          ${row.state === 'unknown' ? `<span class="atlas-foundry-badge">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Links.Unknown'))}</span>` : ''}
           <input
             type="text"
             class="atlas-foundry-link-label-input"
@@ -161,4 +165,14 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
     await updateLinkLabel(this.target.doc, linkId, value);
     await this.load();
   }
+
+  protected _onClose(options?: Record<string, unknown>): void {
+    openManagers.delete(this);
+    super._onClose(options);
+  }
+}
+
+/** Session reset: link rows (names resolved per user) belong to the sign-in that loaded them. */
+export function closeAllLinkManagers(): void {
+  for (const manager of [...openManagers]) void manager.close();
 }

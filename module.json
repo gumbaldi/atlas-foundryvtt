@@ -1,8 +1,8 @@
 {
   "id": "atlas-foundry",
-  "title": "Atlas Integration",
-  "description": "Browse public Atlas campaign content and receive Atlas notifications directly in Foundry VTT.",
-  "version": "0.2.3",
+  "title": "Atlas",
+  "description": "Search and read your Atlas campaign, receive Atlas notifications, and link Foundry scenes, actors and items to Atlas documents.",
+  "version": "0.3.0-test.28",
   "authors": [
     {
       "name": "Atlas",
@@ -11,8 +11,8 @@
     }
   ],
   "url": "https://github.com/gumbaldi/atlas-foundryvtt",
-  "manifest": "https://github.com/gumbaldi/atlas-foundryvtt/releases/latest/download/module.json",
-  "download": "https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-v0.2.3/atlas-foundry-v0.2.3.zip",
+  "manifest": "https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/module.json",
+  "download": "https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/atlas-foundry-v0.3.0-test.28.zip",
   "compatibility": {
     "minimum": "14",
     "verified": "14"

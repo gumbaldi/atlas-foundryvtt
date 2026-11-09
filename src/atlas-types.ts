@@ -166,8 +166,17 @@ export const AtlasMessageSchema = z.object({
   customModuleId: z.string().optional(),
   targetCategoryId: z.string().optional(),
   channels: z.array(z.string()),
-  /** Only 3 real values exist today (checked against message.schema.ts) — no 'appointment'/'quest'/'dm' kind despite the plan's broader notification-type ambitions. */
-  kind: z.enum(['gm-announcement', 'document-new', 'document-updated']),
+  /** Mirrors Atlas' `NotificationKind` (shared message.types.ts). Kinds without a document fall back to the campaign dashboard when opened. */
+  kind: z.enum([
+    'gm-announcement',
+    'document-new',
+    'document-updated',
+    'document-media',
+    'support-ticket',
+    'diary-invite',
+    'diary-entry',
+    'agent-content',
+  ]),
   folder: z.string(),
   customFolderId: z.string().optional(),
   isRead: z.boolean(),

@@ -32,7 +32,7 @@ function mockGame() {
 }
 
 vi.mock('../auth/auth-manager', () => ({
-  authManager: { isLinked: vi.fn(() => true) },
+  authManager: { isLinked: vi.fn(() => true), getSessionEpoch: vi.fn(() => 0) },
 }));
 vi.mock('../socket/atlas-socket', () => ({
   atlasSocket: { getStatus: vi.fn(() => 'connected') },
@@ -76,6 +76,7 @@ describe('NotificationStore', () => {
     mockHooks();
     mockGame();
     vi.mocked(authManager.isLinked).mockReturnValue(true);
+    vi.mocked(authManager.getSessionEpoch).mockReturnValue(0);
     vi.mocked(atlasSocket.getStatus).mockReturnValue('connected');
     vi.mocked(getQuietMode).mockReturnValue(false);
     vi.mocked(listMessages).mockReset().mockResolvedValue([]);
@@ -157,6 +158,83 @@ describe('NotificationStore', () => {
 
     Hooks.callAll('atlas-foundry.authChanged', { state: 'loggedOut' });
     expect(store.getState()).toEqual({ items: [], unreadCount: 0, status: 'idle' });
+  });
+
+  it('drops a resync answer that arrives after sign-out', async () => {
+    let resolveList!: (items: AtlasMessage[]) => void;
+    vi.mocked(listMessages).mockReturnValue(new Promise((resolve) => (resolveList = resolve)));
+    vi.mocked(fetchUnreadCount).mockResolvedValue(3);
+
+    const store = freshStore();
+    store.start();
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Sign out while the list request is still pending.
+    vi.mocked(authManager.getSessionEpoch).mockReturnValue(1);
+    vi.mocked(authManager.isLinked).mockReturnValue(false);
+    Hooks.callAll('atlas-foundry.authChanged', { state: 'loggedOut' });
+
+    resolveList([makeMessage()]);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(store.getState().items).toEqual([]);
+    expect(store.getState().unreadCount).toBe(0);
+  });
+
+  describe('markAllUnreadRead', () => {
+    const page = (count: number, startAt = 0) =>
+      Array.from({ length: count }, (_, i) =>
+        makeMessage({ id: `m${startAt + i}`, createdAt: new Date(Date.UTC(2026, 0, 1) - (startAt + i) * 60_000).toISOString() }),
+      );
+
+    beforeEach(() => {
+      vi.mocked(markMessageRead).mockResolvedValue(makeMessage({ isRead: true }));
+    });
+
+    it('pages through every unread notification, then resyncs', async () => {
+      const first = page(45);
+      vi.mocked(listMessages).mockReset().mockResolvedValueOnce(first).mockResolvedValueOnce([]).mockResolvedValue([]);
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      expect(markMessageRead).toHaveBeenCalledTimes(45);
+      expect(listMessages).toHaveBeenNthCalledWith(1, { unread: true, limit: 100, cursor: undefined });
+      expect(listMessages).toHaveBeenNthCalledWith(2, { unread: true, limit: 100, cursor: first[44]!.createdAt });
+      // The final resync fetches the plain list + unread count.
+      expect(fetchUnreadCount).toHaveBeenCalled();
+    });
+
+    it('does nothing but resync when there is nothing unread', async () => {
+      vi.mocked(listMessages).mockReset().mockResolvedValue([]);
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      expect(markMessageRead).not.toHaveBeenCalled();
+      expect(fetchUnreadCount).toHaveBeenCalledOnce();
+    });
+
+    it('stops after 20 pages when the server keeps returning full pages', async () => {
+      vi.mocked(listMessages).mockReset().mockImplementation(async () => page(100));
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      // 20 paging requests + 1 for the final resync's list.
+      expect(vi.mocked(listMessages).mock.calls.filter(([params]) => params?.unread).length).toBe(20);
+    });
+
+    it('keeps going when one item fails and reports a single error', async () => {
+      vi.mocked(listMessages).mockReset().mockResolvedValueOnce(page(3)).mockResolvedValue([]);
+      vi.mocked(markMessageRead).mockRejectedValueOnce(new Error('boom')).mockResolvedValue(makeMessage({ isRead: true }));
+
+      const store = freshStore();
+      await store.markAllUnreadRead();
+
+      expect(markMessageRead).toHaveBeenCalledTimes(3);
+      expect(ui.notifications.error).toHaveBeenCalledOnce();
+    });
   });
 
   it('polls every 10 minutes while the socket is connected, every 3 minutes while degraded', async () => {
