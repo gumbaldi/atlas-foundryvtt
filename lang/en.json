@@ -7,6 +7,8 @@
       "OpenSearch": "Atlas Search"
     },
     "Settings": {
+      "MenuName": "Atlas connection",
+      "MenuHint": "Atlas address, campaign and sign-in for this world.",
       "MenuButton": "Atlas Settings",
       "Title": "Atlas Settings",
       "Save": "Save",

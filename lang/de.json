@@ -7,6 +7,8 @@
       "OpenSearch": "Atlas-Suche"
     },
     "Settings": {
+      "MenuName": "Atlas-Verbindung",
+      "MenuHint": "Atlas-Adresse, Kampagne und Anmeldung für diese Welt.",
       "MenuButton": "Atlas-Einstellungen",
       "Title": "Atlas-Einstellungen",
       "Save": "Speichern",

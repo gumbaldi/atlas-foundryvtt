@@ -1,6 +1,6 @@
 import { registerSettings, migrateLegacyIntegrationToken } from './settings';
 import { registerControls } from './controls';
-import { openSettingsDialog } from './apps/settings-app';
+import { AtlasSettingsApp, openSettingsDialog } from './apps/settings-app';
 import { openLoginDialog } from './auth/login-app';
 import { authManager, type AuthState } from './auth/auth-manager';
 import { atlasSocket } from './socket/atlas-socket';
@@ -32,23 +32,6 @@ declare global {
     /** Opens the P8 notification center — same entry point as the bell/scene-controls tool. */
     openNotifications: () => void;
   };
-}
-
-function registerSettingsMenuButton(): void {
-  Hooks.on('renderSettings', (_app: unknown, html: unknown) => {
-    if (!game.user.isGM) return;
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.innerHTML = `<i class="fa-solid fa-book-open"></i> ${game.i18n.localize('ATLASFOUNDRY.Settings.MenuButton')}`;
-    button.addEventListener('click', () => {
-      openSettingsDialog().catch((err) => log.error('Failed to open settings dialog', err));
-    });
-
-    // v13 passed jQuery, v14 passes a plain HTMLElement — accept both.
-    const root = html instanceof HTMLElement ? html : (html as { 0?: HTMLElement } | undefined)?.[0];
-    root?.querySelector('#settings-game')?.append(button);
-  });
 }
 
 /**
@@ -96,6 +79,14 @@ function registerQuestsKeybinding(): void {
 // so everything that only calls Hooks.on / keybindings.register belongs in `init`.
 Hooks.once('init', () => {
   registerSettings();
+  game.settings.registerMenu(MODULE_ID, 'connection', {
+    name: 'ATLASFOUNDRY.Settings.MenuName',
+    label: 'ATLASFOUNDRY.Settings.MenuButton',
+    hint: 'ATLASFOUNDRY.Settings.MenuHint',
+    icon: 'fa-solid fa-book-open',
+    type: AtlasSettingsApp,
+    restricted: true,
+  });
   registerSearchKeybinding();
   registerQuestsKeybinding();
   registerControls(openSearch);
@@ -110,7 +101,6 @@ Hooks.once('init', () => {
 // Runtime work only: auth state, DOM, game.socket, network.
 Hooks.once('ready', async () => {
   await migrateLegacyIntegrationToken();
-  registerSettingsMenuButton();
   registerBell();
   registerGmBroadcastReceiver();
   notificationStore.start();

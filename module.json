@@ -1,7 +1,7 @@
 {
   "id": "atlas-foundry",
-  "title": "Atlas Integration",
-  "description": "Browse public Atlas campaign content and receive Atlas notifications directly in Foundry VTT.",
+  "title": "Atlas",
+  "description": "Search and read your Atlas campaign, receive Atlas notifications, and link Foundry scenes, actors and items to Atlas documents.",
   "version": "0.2.3-test.18",
   "authors": [
     {

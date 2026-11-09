@@ -112,4 +112,18 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['getSceneContextOptions'] ?? []).length).toBeGreaterThan(0);
     expect(harness.handlers['getSceneNavigationContext']).toBeUndefined();
   });
+
+  it('registers the GM settings as an official module menu and no renderSettings button', async () => {
+    await import('./main');
+    const { AtlasSettingsApp } = await import('./apps/settings-app');
+    harness.fire('init');
+
+    expect(game.settings.registerMenu).toHaveBeenCalledTimes(1);
+    expect(game.settings.registerMenu).toHaveBeenCalledWith(
+      'atlas-foundry',
+      'connection',
+      expect.objectContaining({ restricted: true, type: AtlasSettingsApp }),
+    );
+    expect(harness.handlers['renderSettings']).toBeUndefined();
+  });
 });

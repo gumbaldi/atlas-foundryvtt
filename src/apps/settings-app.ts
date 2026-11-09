@@ -19,14 +19,9 @@ function renderStatus(dialogElement: HTMLElement): void {
   }
 }
 
-export async function openSettingsDialog(): Promise<void> {
-  if (!game.user.isGM) {
-    ui.notifications.warn(t('ATLASFOUNDRY.Settings.GmOnly'));
-    return;
-  }
-
-  const content = `
-    <form class="atlas-foundry-settings">
+function buildContent(): string {
+  return `
+    <div class="atlas-foundry-settings">
       <div class="form-group atlas-foundry-status-row">
         <span class="atlas-foundry-dot" data-status-dot></span>
         <span data-status-text></span>
@@ -46,67 +41,106 @@ export async function openSettingsDialog(): Promise<void> {
         <button type="button" data-action="test-connection">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.TestConnection'))}</button>
         <p class="atlas-foundry-status" data-test-status></p>
       </div>
-    </form>
+    </div>
+    <footer class="form-footer">
+      <button type="submit"><i class="fa-solid fa-floppy-disk"></i> ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.Save'))}</button>
+    </footer>
   `;
+}
 
-  let onAuthChanged: (() => void) | undefined;
-  let onSocketStatusChanged: (() => void) | undefined;
+/**
+ * The GM's Atlas settings, opened from Foundry's own "Configure Settings"
+ * module menu (`game.settings.registerMenu`, see main.ts). The app element
+ * itself is the `<form>` (`tag: 'form'`), so the content below must not nest
+ * another one.
+ */
+export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
+  static DEFAULT_OPTIONS: foundry.applications.api.ApplicationV2Options = {
+    id: 'atlas-foundry-settings',
+    tag: 'form',
+    classes: ['atlas-foundry'],
+    window: { title: 'ATLASFOUNDRY.Settings.Title', icon: 'fa-solid fa-book-open' },
+    position: { width: 480 },
+    form: { handler: AtlasSettingsApp.onSubmit, closeOnSubmit: true },
+  };
 
-  try {
-    await foundry.applications.api.DialogV2.prompt({
-      window: { title: 'ATLASFOUNDRY.Settings.Title' },
-      content,
-      render: (_event, dialog) => {
-        renderStatus(dialog.element);
-        onAuthChanged = () => renderStatus(dialog.element);
-        onSocketStatusChanged = () => renderStatus(dialog.element);
-        Hooks.on('atlas-foundry.authChanged', onAuthChanged);
-        Hooks.on('atlas-foundry.socketStatusChanged', onSocketStatusChanged);
+  private onAuthChanged: (() => void) | undefined;
+  private onSocketStatusChanged: (() => void) | undefined;
 
-        dialog.element.querySelector('[data-action="auth-toggle"]')?.addEventListener('click', async () => {
-          if (authManager.isLinked()) {
-            await authManager.logout();
-          } else {
-            await openLoginDialog();
-          }
-          renderStatus(dialog.element);
-        });
+  static async onSubmit(_event: Event, _form: HTMLFormElement, formData: { object: Record<string, unknown> }): Promise<void> {
+    const { normalized, warningKey } = validateBaseUrl(String(formData.object.baseUrl ?? ''));
+    await setBaseUrl(normalized);
+    await setCampaignId(String(formData.object.campaignId ?? '').trim());
 
-        const testButton = dialog.element.querySelector<HTMLButtonElement>('[data-action="test-connection"]');
-        const statusEl = dialog.element.querySelector<HTMLElement>('[data-test-status]');
-        const baseUrlInput = dialog.element.querySelector<HTMLInputElement>('input[name="baseUrl"]');
-
-        testButton?.addEventListener('click', async () => {
-          if (!statusEl) return;
-          statusEl.classList.remove('atlas-foundry-status-ok', 'atlas-foundry-status-error');
-          statusEl.textContent = t('ATLASFOUNDRY.Settings.TestingConnection');
-          try {
-            const result = await testConnection(baseUrlInput?.value ?? '');
-            statusEl.textContent = formatConnectionTestResult(result);
-            statusEl.classList.add(result.ok ? 'atlas-foundry-status-ok' : 'atlas-foundry-status-error');
-          } catch (err) {
-            notifyError(err, 'ATLASFOUNDRY.ConnectionTest.UnexpectedError');
-            statusEl.textContent = t('ATLASFOUNDRY.ConnectionTest.UnexpectedError');
-            statusEl.classList.add('atlas-foundry-status-error');
-          }
-        });
-      },
-      ok: {
-        label: 'ATLASFOUNDRY.Settings.Save',
-        callback: async (_event, button) => {
-          const baseUrlInput = button.form.elements.namedItem('baseUrl') as HTMLInputElement | null;
-          const campaignIdInput = button.form.elements.namedItem('campaignId') as HTMLInputElement | null;
-
-          const { normalized, warningKey } = validateBaseUrl(baseUrlInput?.value ?? '');
-          await setBaseUrl(normalized);
-          await setCampaignId(campaignIdInput?.value.trim() ?? '');
-
-          if (warningKey) ui.notifications.warn(t(warningKey));
-        },
-      },
-    });
-  } finally {
-    if (onAuthChanged) Hooks.off('atlas-foundry.authChanged', onAuthChanged);
-    if (onSocketStatusChanged) Hooks.off('atlas-foundry.socketStatusChanged', onSocketStatusChanged);
+    if (warningKey) ui.notifications.warn(t(warningKey));
   }
+
+  protected async _renderHTML(): Promise<HTMLElement> {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = buildContent();
+    return wrapper;
+  }
+
+  protected async _replaceHTML(result: HTMLElement, content: HTMLElement): Promise<void> {
+    content.replaceChildren(...Array.from(result.childNodes));
+    this.wire(content);
+  }
+
+  private wire(root: HTMLElement): void {
+    renderStatus(root);
+
+    this.removeHookListeners();
+    this.onAuthChanged = () => renderStatus(root);
+    this.onSocketStatusChanged = () => renderStatus(root);
+    Hooks.on('atlas-foundry.authChanged', this.onAuthChanged);
+    Hooks.on('atlas-foundry.socketStatusChanged', this.onSocketStatusChanged);
+
+    root.querySelector('[data-action="auth-toggle"]')?.addEventListener('click', async () => {
+      if (authManager.isLinked()) {
+        await authManager.logout();
+      } else {
+        await openLoginDialog();
+      }
+      renderStatus(root);
+    });
+
+    const testButton = root.querySelector<HTMLButtonElement>('[data-action="test-connection"]');
+    const statusEl = root.querySelector<HTMLElement>('[data-test-status]');
+    const baseUrlInput = root.querySelector<HTMLInputElement>('input[name="baseUrl"]');
+
+    testButton?.addEventListener('click', async () => {
+      if (!statusEl) return;
+      statusEl.classList.remove('atlas-foundry-status-ok', 'atlas-foundry-status-error');
+      statusEl.textContent = t('ATLASFOUNDRY.Settings.TestingConnection');
+      try {
+        const result = await testConnection(baseUrlInput?.value ?? '');
+        statusEl.textContent = formatConnectionTestResult(result);
+        statusEl.classList.add(result.ok ? 'atlas-foundry-status-ok' : 'atlas-foundry-status-error');
+      } catch (err) {
+        notifyError(err, 'ATLASFOUNDRY.ConnectionTest.UnexpectedError');
+        statusEl.textContent = t('ATLASFOUNDRY.ConnectionTest.UnexpectedError');
+        statusEl.classList.add('atlas-foundry-status-error');
+      }
+    });
+  }
+
+  private removeHookListeners(): void {
+    if (this.onAuthChanged) Hooks.off('atlas-foundry.authChanged', this.onAuthChanged);
+    if (this.onSocketStatusChanged) Hooks.off('atlas-foundry.socketStatusChanged', this.onSocketStatusChanged);
+    this.onAuthChanged = undefined;
+    this.onSocketStatusChanged = undefined;
+  }
+
+  protected _onClose(options?: Record<string, unknown>): void {
+    this.removeHookListeners();
+    super._onClose(options);
+  }
+}
+
+export async function openSettingsDialog(): Promise<void> {
+  if (!game.user.isGM) {
+    ui.notifications.warn(t('ATLASFOUNDRY.Settings.GmOnly'));
+    return;
+  }
+  await new AtlasSettingsApp().render(true);
 }
