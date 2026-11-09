@@ -2,7 +2,7 @@
   "id": "atlas-foundry",
   "title": "Atlas",
   "description": "Search and read your Atlas campaign, receive Atlas notifications, and link Foundry scenes, actors and items to Atlas documents.",
-  "version": "0.2.3-test.18",
+  "version": "0.2.4-test.19",
   "authors": [
     {
       "name": "Atlas",
@@ -12,7 +12,7 @@
   ],
   "url": "https://github.com/gumbaldi/atlas-foundryvtt",
   "manifest": "https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/module.json",
-  "download": "https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/atlas-foundry-v0.2.3-test.18.zip",
+  "download": "https://github.com/gumbaldi/atlas-foundryvtt/releases/download/foundry-test/atlas-foundry-v0.2.4-test.19.zip",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
