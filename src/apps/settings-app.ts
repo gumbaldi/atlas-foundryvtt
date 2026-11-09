@@ -99,7 +99,7 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
       if (authManager.isLinked()) {
         await authManager.logout();
       } else {
-        await openLoginDialog();
+        await openLoginDialog({ prepare: () => this.storeCurrentInputs(root) });
       }
       renderStatus(root);
     });
@@ -122,6 +122,21 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
         statusEl.classList.add('atlas-foundry-status-error');
       }
     });
+  }
+
+  /** The Connect button must use what is typed in the form, not the last saved values. */
+  private async storeCurrentInputs(root: HTMLElement): Promise<void> {
+    const baseUrlInput = root.querySelector<HTMLInputElement>('input[name="baseUrl"]');
+    const campaignIdInput = root.querySelector<HTMLInputElement>('input[name="campaignId"]');
+
+    const { normalized, warningKey } = validateBaseUrl(baseUrlInput?.value ?? '');
+    if (!normalized) {
+      ui.notifications.warn(t('ATLASFOUNDRY.ConnectionTest.MissingBaseUrl'));
+      throw new Error('Atlas Foundry: base URL missing');
+    }
+    await setBaseUrl(normalized);
+    await setCampaignId(campaignIdInput?.value.trim() ?? '');
+    if (warningKey) ui.notifications.warn(t(warningKey));
   }
 
   private removeHookListeners(): void {

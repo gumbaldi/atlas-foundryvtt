@@ -41,6 +41,7 @@ declare global {
   }
 
   interface GameUser {
+    id: string;
     isGM: boolean;
     name: string;
   }

@@ -12,7 +12,7 @@ function mockGame(store: Record<string, unknown>, isGM = true) {
       }),
     },
     i18n: { lang: 'en', localize: (key: string) => key, format: (key: string) => key },
-    user: { isGM, name: 'Tester' },
+    user: { isGM, name: 'Tester', id: 'u1' },
     world: { id: 'world-1', title: 'Test World' },
   } as unknown as Game;
 
@@ -54,10 +54,13 @@ const REVOKE_URL = (id: string) => `https://atlas.example.com/api/v1/users/me/fo
 
 describe('AuthManager', () => {
   let store: Record<string, unknown>;
+  const entry = () => (store.userTokens as Record<string, { token: string; tokenId: string }>).u1;
+  const storedToken = () => entry()?.token ?? '';
+  const storedTokenId = () => entry()?.tokenId ?? '';
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    store = { baseUrl: 'https://atlas.example.com', campaignId: '', userToken: 'atlas_foundry_abc', userTokenId: 'token-1' };
+    store = { baseUrl: 'https://atlas.example.com', campaignId: '', userTokens: { u1: { token: 'atlas_foundry_abc', tokenId: 'token-1' } } };
     mockGame(store);
     mockHooks();
     fetchMock = vi.fn();
@@ -131,26 +134,53 @@ describe('AuthManager', () => {
     await expect(manager.ensureAccessToken()).rejects.toThrow();
 
     expect(manager.getState()).toBe('revoked');
-    expect(store.userToken).toBe('');
-    expect(store.userTokenId).toBe('');
+    expect(storedToken()).toBe('');
 
     // A revoked state must not silently flip back to 'loggedOut' on the next call.
     await expect(manager.ensureAccessToken()).rejects.toThrow();
     expect(manager.getState()).toBe('revoked');
   });
 
-  it('warns when /foundry/me reports a different campaign than the world is pinned to', async () => {
+  it('refuses and revokes a token whose campaign differs from the world\'s campaign', async () => {
     store.campaignId = 'world-campaign';
-    fetchMock.mockImplementation(async (url: string) => {
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       if (url === EXCHANGE_URL) return jsonResponse(200, { accessToken: 'jwt-1', tokenType: 'Bearer', expiresIn: 900, scopes: [], campaignId: 'other-campaign', worldId: 'world-1' });
-      if (url === ME_URL) return jsonResponse(200, { userId: 'u1', displayName: 'Bob', campaignId: 'other-campaign', campaignName: 'Andere Kampagne', role: 'player' });
+      if (url === REVOKE_URL('token-1') && init?.method === 'DELETE') return jsonResponse(204, {});
       throw new Error(`unexpected fetch ${url}`);
     });
 
     const manager = new AuthManager();
-    await manager.ensureAccessToken();
+    await expect(manager.ensureAccessToken()).rejects.toThrow();
 
-    expect(globalThis.ui.notifications.warn).toHaveBeenCalledOnce();
+    expect(manager.getState()).toBe('revoked');
+    expect(manager.getRevokedReason()).toBe('campaign-mismatch');
+    expect(storedToken()).toBe('');
+    expect(fetchMock).toHaveBeenCalledWith(REVOKE_URL('token-1'), expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  it('drops an exchange result that finishes after the stored token changed', async () => {
+    let releaseExchange: (() => void) | undefined;
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url === EXCHANGE_URL) {
+        await new Promise<void>((resolve) => {
+          releaseExchange = resolve;
+        });
+        return jsonResponse(200, { accessToken: 'jwt-stale', tokenType: 'Bearer', expiresIn: 900, scopes: [], campaignId: 'c1', worldId: 'world-1' });
+      }
+      if (url === ME_URL) return jsonResponse(200, { userId: 'u1', displayName: 'Bob', campaignId: 'c1', campaignName: 'Testkampagne', role: 'player' });
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    const manager = new AuthManager();
+    const pending = manager.ensureAccessToken();
+    const assertion = expect(pending).rejects.toThrow();
+
+    store.userTokens = { u1: { token: 'atlas_foundry_other', tokenId: 'token-9' } };
+    releaseExchange?.();
+    await assertion;
+
+    expect(manager.getState()).not.toBe('active');
+    expect(manager.getLinkedCampaignId()).toBeNull();
   });
 
   it('login() stores the device token and validates it immediately', async () => {
@@ -160,13 +190,12 @@ describe('AuthManager', () => {
       throw new Error(`unexpected fetch ${url}`);
     });
 
-    store.userToken = '';
-    store.userTokenId = '';
+    store.userTokens = {};
     const manager = new AuthManager();
     await manager.login('atlas_foundry_new', 'token-2');
 
-    expect(store.userToken).toBe('atlas_foundry_new');
-    expect(store.userTokenId).toBe('token-2');
+    expect(storedToken()).toBe('atlas_foundry_new');
+    expect(storedTokenId()).toBe('token-2');
     expect(manager.getState()).toBe('active');
   });
 
@@ -181,7 +210,7 @@ describe('AuthManager', () => {
     const manager = new AuthManager();
     await manager.logout();
 
-    expect(store.userToken).toBe('');
+    expect(storedToken()).toBe('');
     expect(manager.getState()).toBe('loggedOut');
     expect(fetchMock).toHaveBeenCalledWith(REVOKE_URL('token-1'), expect.objectContaining({ method: 'DELETE' }));
   });
@@ -197,7 +226,7 @@ describe('AuthManager', () => {
     const manager = new AuthManager();
     await manager.logout();
 
-    expect(store.userToken).toBe('');
+    expect(storedToken()).toBe('');
     expect(manager.getState()).toBe('loggedOut');
     expect(globalThis.ui.notifications.warn).toHaveBeenCalledOnce();
   });

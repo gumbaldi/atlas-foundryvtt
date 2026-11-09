@@ -4,7 +4,7 @@ import { log } from '../log';
 import type { TokenExchangeResponse } from '../atlas-types';
 
 export type AuthState = 'loggedOut' | 'linking' | 'active' | 'revoked';
-export type RevokedReason = 'revoked' | 'world-mismatch';
+export type RevokedReason = 'revoked' | 'world-mismatch' | 'campaign-mismatch';
 
 export interface FoundryMe {
   userId: string;
@@ -156,6 +156,10 @@ export class AuthManager {
       body: JSON.stringify({ token: userToken, worldId: game.world.id }),
     });
 
+    // The stored token may have changed (logout, new login) while this request
+    // was in flight — its result must not touch the newer session.
+    if (getUserToken() !== userToken) throw new Error('Atlas Foundry: token changed during exchange');
+
     if (response.status === 401) {
       const detail = (await response.json().catch(() => null)) as { message?: string } | null;
       this.revokedReason = detail?.message?.toLowerCase().includes('world mismatch') ? 'world-mismatch' : 'revoked';
@@ -171,6 +175,23 @@ export class AuthManager {
     }
 
     const body = (await response.json()) as TokenExchangeResponse;
+
+    // Fail closed: a sign-in for another campaign than the world's is revoked, not just warned about.
+    const worldCampaignId = getCampaignId();
+    if (worldCampaignId && body.campaignId !== worldCampaignId) {
+      const tokenId = getUserTokenId();
+      await this.revokeOnServer(tokenId, body.accessToken).catch((err) =>
+        log.warn('Atlas Foundry: failed to revoke a wrong-campaign token', err),
+      );
+      this.revokedReason = 'campaign-mismatch';
+      await clearUserToken();
+      this.cachedJwt = null;
+      this.me = null;
+      this.sessionCampaignId = null;
+      this.setState('revoked');
+      throw new Error('Atlas Foundry: token belongs to a different campaign than this world');
+    }
+
     // Uhr-Drift: expiresIn is relative to the server's clock at response time,
     // so we anchor it to Date.now() on receipt rather than trusting any absolute value.
     this.cachedJwt = { token: body.accessToken, expiresAt: Date.now() + body.expiresIn * 1000 };
@@ -191,15 +212,7 @@ export class AuthManager {
 
     const me = (await response.json()) as FoundryMe;
     this.me = me;
-    this.checkCampaignConsistency(me);
     this.notifyChange();
-  }
-
-  private checkCampaignConsistency(me: FoundryMe): void {
-    const worldCampaignId = getCampaignId();
-    if (worldCampaignId && me.campaignId && worldCampaignId !== me.campaignId) {
-      ui.notifications.warn(t('ATLASFOUNDRY.Auth.CampaignMismatch', { campaignName: me.campaignName }));
-    }
   }
 
   private async revokeOnServer(tokenId: string, accessToken: string): Promise<void> {

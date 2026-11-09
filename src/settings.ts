@@ -57,6 +57,15 @@ export function registerSettings(): void {
   // Client-scoped (per browser/localStorage, never synced to other clients) —
   // see the P3 plan's token storage risk assessment. Only the long-lived
   // Foundry user token lives here; the short-lived exchange JWT stays in memory.
+  // Keyed by Foundry user id so a GM tab and a player tab in one browser each
+  // keep their own sign-in.
+  game.settings.register(MODULE_ID, 'userTokens', {
+    scope: 'client',
+    config: false,
+    type: Object,
+    default: {},
+  });
+  // Legacy browser-wide slots: registered only so discardLegacyUserToken() can empty them.
   game.settings.register(MODULE_ID, 'userToken', {
     scope: 'client',
     config: false,
@@ -137,17 +146,25 @@ export async function setCampaignId(value: string): Promise<void> {
   await game.settings.set(MODULE_ID, 'campaignId', value);
 }
 
+interface StoredUserToken {
+  token: string;
+  tokenId: string;
+}
+
+function getUserTokens(): Record<string, StoredUserToken> {
+  return game.settings.get<Record<string, StoredUserToken>>(MODULE_ID, 'userTokens') ?? {};
+}
+
 export function getUserToken(): string {
-  return game.settings.get<string>(MODULE_ID, 'userToken') ?? '';
+  return getUserTokens()[game.user.id]?.token ?? '';
 }
 
 export function getUserTokenId(): string {
-  return game.settings.get<string>(MODULE_ID, 'userTokenId') ?? '';
+  return getUserTokens()[game.user.id]?.tokenId ?? '';
 }
 
 export async function setUserToken(token: string, tokenId: string): Promise<void> {
-  await game.settings.set(MODULE_ID, 'userToken', token);
-  await game.settings.set(MODULE_ID, 'userTokenId', tokenId);
+  await game.settings.set(MODULE_ID, 'userTokens', { ...getUserTokens(), [game.user.id]: { token, tokenId } });
 }
 
 export function getShowSceneLinks(): boolean {
@@ -182,8 +199,25 @@ export function getShowBell(): boolean {
 }
 
 export async function clearUserToken(): Promise<void> {
+  const tokens = { ...getUserTokens() };
+  delete tokens[game.user.id];
+  await game.settings.set(MODULE_ID, 'userTokens', tokens);
+}
+
+/**
+ * Tokens used to be one browser-wide slot shared by every Foundry user of the
+ * browser. Those are discarded once (everyone reconnects); the Atlas profile
+ * keeps listing the old link until it expires or is revoked there. Call once
+ * from `ready`, before `authManager.restore()`.
+ */
+export async function discardLegacyUserToken(): Promise<void> {
+  const legacyToken = game.settings.get<string>(MODULE_ID, 'userToken');
+  const legacyTokenId = game.settings.get<string>(MODULE_ID, 'userTokenId');
+  if (!legacyToken && !legacyTokenId) return;
+
   await game.settings.set(MODULE_ID, 'userToken', '');
   await game.settings.set(MODULE_ID, 'userTokenId', '');
+  if (legacyToken) ui.notifications.info(t('ATLASFOUNDRY.Auth.LegacyTokenDiscarded'));
 }
 
 /**

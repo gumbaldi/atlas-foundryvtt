@@ -94,7 +94,7 @@
     },
     "Auth": {
       "LogoutOfflineHint": "Could not reach Atlas to revoke the link on the server. You've been signed out here — revoke the token in Atlas' settings too if you want to fully disable it.",
-      "CampaignMismatch": "Your Atlas login belongs to a different campaign than the one linked to this world ({campaignName}). Sign out and sign in again with the right account, or ask your GM to check the world's campaign link."
+      "LegacyTokenDiscarded": "Atlas sign-ins are now kept per Foundry user. Please connect to Atlas once more."
     },
     "Status": {
       "LoggedOut": "Not connected — sign-in required.",
@@ -102,16 +102,14 @@
       "Connected": "Connected as {displayName} ({campaignName})",
       "Reconnecting": "Reconnecting…",
       "Revoked": "Link expired or revoked — sign in again.",
-      "WorldMismatch": "This link belongs to a different Foundry world — sign in again."
+      "WorldMismatch": "This link belongs to a different Foundry world — sign in again.",
+      "CampaignMismatch": "This sign-in belongs to a different campaign than this world — connect again."
     },
     "Login": {
       "Title": "Connect to Atlas",
-      "Instructions": "Enter this code on the Atlas page that just opened (or use the link below), then sign in and confirm.",
-      "OpenAtlas": "Open Atlas",
-      "FallbackLinkHint": "If a new tab didn't open (popup blocked), copy this link instead:",
       "Waiting": "Waiting for confirmation…",
       "Cancel": "Cancel",
-      "PopupBlocked": "Your browser blocked the popup — copy the link from the dialog instead.",
+      "PopupBlocked": "Your browser blocked the new tab — use \"Open Atlas again\" below to confirm the connection.",
       "StartFailed": "Could not start the Atlas login. Check the base URL in the settings and try again.",
       "PollFailed": "Something went wrong while waiting for confirmation. Please try again.",
       "Denied": "The login was declined in Atlas.",
@@ -119,7 +117,11 @@
       "CampaignMismatch": "You confirmed a different campaign than the one already linked to this world. The token was discarded and revoked — ask your GM if this world should be relinked.",
       "ExchangeFailed": "The login was confirmed, but Atlas rejected the resulting token. Please try again.",
       "Success": "Connected as {displayName} ({campaignName}).",
-      "PlayerWaitingForGm": "Your GM needs to link this world to an Atlas campaign first (sign in as GM) before players can connect."
+      "PlayerWaitingForGm": "Your GM needs to link this world to an Atlas campaign first (sign in as GM) before players can connect.",
+      "ConfirmInAtlas": "Confirm in Atlas",
+      "TabOpened": "Atlas has opened in a new tab. Confirm the connection there — this window closes by itself.",
+      "CodeHint": "Code: {code}",
+      "OpenAtlasAgain": "Open Atlas again"
     },
     "Links": {
       "HeaderButton": "Atlas Links",
