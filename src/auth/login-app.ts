@@ -17,6 +17,19 @@ function renderContent(start: DeviceFlowStart, tabOpened: boolean): string {
   `;
 }
 
+/**
+ * The confirmation URL comes from the server's response and is navigated to from a
+ * tab that inherited Foundry's origin — only plain http(s) may ever be opened (never `javascript:`).
+ */
+function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 export interface LoginOptions {
   /** Runs after the Atlas tab was opened and before the login starts (e.g. to store the typed base URL). A rejection aborts the login. */
   prepare?: () => Promise<void>;
@@ -61,6 +74,11 @@ export async function openLoginDialog(options: LoginOptions = {}): Promise<void>
     return;
   }
 
+  if (!isHttpUrl(start.verificationUriComplete)) {
+    tab?.close();
+    notifyError(new Error('Atlas Foundry: unsafe verification URL'), 'ATLASFOUNDRY.Login.StartFailed');
+    return;
+  }
   if (tab) tab.location.href = start.verificationUriComplete;
 
   authManager.setLinking(true);

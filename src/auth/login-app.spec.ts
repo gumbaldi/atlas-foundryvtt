@@ -78,6 +78,15 @@ describe('openLoginDialog', () => {
     expect(tab.opener).toBeNull();
   });
 
+  it('refuses a non-http(s) confirmation URL from the server and closes the blank tab', async () => {
+    startDeviceFlow.mockResolvedValue({ ...START, verificationUriComplete: 'javascript:alert(1)' });
+    const openLoginDialog = await loadOpenLoginDialog();
+    await openLoginDialog();
+
+    expect(tab.location.href).toBe('');
+    expect(tab.close).toHaveBeenCalled();
+  });
+
   it('closes the blank tab when the device flow cannot be started', async () => {
     startDeviceFlow.mockRejectedValue(new Error('down'));
     const openLoginDialog = await loadOpenLoginDialog();
