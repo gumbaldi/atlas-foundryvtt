@@ -110,6 +110,8 @@ jobs:
             echo "module.json is already up to date"
           else
             git commit -m "chore: update Foundry manifest"
+            # The branch may have moved while this run was building (e.g. a version bump pushed meanwhile).
+            git pull --rebase origin "$BRANCH"
             git push origin "HEAD:refs/heads/$BRANCH"
           fi
    
