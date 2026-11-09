@@ -99,8 +99,11 @@ jobs:
         env:
           BRANCH: ${{ github.ref_name }}
         run: |
+          # The test-channel build above rewrites package.json (npm pkg set). Drop
+          # those build-time edits so the tree is clean for the rebase below.
+          git restore .
           cp release/module.json module.json
-   
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
    
