@@ -94,7 +94,7 @@ export class QuestPanelApp extends foundry.applications.api.ApplicationV2 {
     id: 'atlas-quest-panel',
     classes: ['atlas-foundry', 'atlas-foundry-quest-panel'],
     window: { title: 'ATLASFOUNDRY.Quests.Title', icon: 'fa-solid fa-scroll', resizable: true },
-    position: { width: 380, height: 560, ...getQuestPanelPosition() },
+    position: { width: 380, height: 560 },
   };
 
   private state: PanelState = 'loading';
@@ -105,7 +105,9 @@ export class QuestPanelApp extends foundry.applications.api.ApplicationV2 {
   private rootElement: HTMLElement | null = null;
 
   constructor() {
-    super({});
+    // Read the stored position here, not in DEFAULT_OPTIONS: static fields run
+    // while the ES module is evaluated, before `init` has registered the setting.
+    super({ position: { width: 380, height: 560, ...getQuestPanelPosition() } });
     void this.load();
   }
 

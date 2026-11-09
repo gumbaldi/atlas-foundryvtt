@@ -57,15 +57,20 @@ function registerSheetHeaderButtons(): void {
   });
 }
 
-/** GM-only "Atlas links…" entry in the scene navigation bar's right-click context menu. */
-function registerSceneNavigationContextMenu(): void {
-  Hooks.on('getSceneNavigationContext', (_html: HTMLElement, entries: ContextMenuEntry[]) => {
+/**
+ * GM-only "Atlas links…" entry in the scene right-click context menus. V14 fires
+ * `get<DocumentName>ContextOptions` (no more `getSceneNavigationContext`); the
+ * hook covers both the scene navigation bar and the Scenes sidebar directory.
+ */
+function registerSceneContextMenu(): void {
+  Hooks.on('getSceneContextOptions', (_app: unknown, menuItems: ContextMenuEntry[]) => {
     if (!game.user.isGM) return;
-    entries.push({
+    menuItems.push({
       name: 'ATLASFOUNDRY.Links.ManagerTitle',
       icon: '<i class="fa-solid fa-link"></i>',
       callback: (target: HTMLElement) => {
-        const sceneId = target.dataset.sceneId;
+        // Navigation items carry data-scene-id, directory entries data-entry-id.
+        const sceneId = target.dataset.sceneId ?? target.dataset.entryId;
         const scene = sceneId ? game.scenes.get(sceneId) : undefined;
         if (!scene) return;
         openLinkManager({ doc: scene, name: scene.name ?? '' });
@@ -98,6 +103,6 @@ function registerActiveSceneControlTool(): void {
 
 export function registerLinkEntryPoints(): void {
   registerSheetHeaderButtons();
-  registerSceneNavigationContextMenu();
+  registerSceneContextMenu();
   registerActiveSceneControlTool();
 }

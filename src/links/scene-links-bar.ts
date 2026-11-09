@@ -134,6 +134,11 @@ function scheduleRender(): void {
   void renderSceneLinksBar();
 }
 
+/** One-off render for the scene already on the canvas — `canvasReady` has fired before `ready` runs. */
+export function renderSceneLinksBarNow(): void {
+  scheduleRender();
+}
+
 export function registerSceneLinksBar(): void {
   Hooks.on('canvasReady', scheduleRender);
   Hooks.on('updateScene', (scene: FoundryDocumentLike) => {

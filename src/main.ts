@@ -6,7 +6,7 @@ import { authManager, type AuthState } from './auth/auth-manager';
 import { atlasSocket } from './socket/atlas-socket';
 import { openSearch, SearchApp } from './search/search-app';
 import { registerLinkEntryPoints } from './links/link-entry-points';
-import { registerSceneLinksBar } from './links/scene-links-bar';
+import { registerSceneLinksBar, renderSceneLinksBarNow } from './links/scene-links-bar';
 import { registerTokenHud } from './links/token-hud';
 import { pickLinkTarget } from './links/link-pick-target';
 import { openQuestPanel, registerQuestPanel } from './quests/quest-panel-app';
@@ -92,25 +92,29 @@ function registerQuestsKeybinding(): void {
   });
 }
 
+// Foundry v14 builds the scene controls (and the rest of the UI) before `ready`,
+// so everything that only calls Hooks.on / keybindings.register belongs in `init`.
 Hooks.once('init', () => {
   registerSettings();
   registerSearchKeybinding();
   registerQuestsKeybinding();
-});
-
-Hooks.once('ready', async () => {
-  await migrateLegacyIntegrationToken();
   registerControls(openSearch);
-  registerSettingsMenuButton();
   registerAuthSocketWiring();
   registerLinkEntryPoints();
   registerSceneLinksBar();
   registerTokenHud();
   registerQuestPanel();
-  registerBell();
   registerNotificationsControl();
+});
+
+// Runtime work only: auth state, DOM, game.socket, network.
+Hooks.once('ready', async () => {
+  await migrateLegacyIntegrationToken();
+  registerSettingsMenuButton();
+  registerBell();
   registerGmBroadcastReceiver();
   notificationStore.start();
+  renderSceneLinksBarNow();
   await authManager.restore();
   log.info('ready');
 });
