@@ -1,45 +1,46 @@
 # Releasing the Atlas Foundry Integration
 
-No CI currently runs this checklist automatically (no `.github/workflows/` exists in this
-repository) — treat every step below as a manual gate before publishing a version. If CI
-is added later, wire it to run the same commands from `integrations/foundryvtt/`.
+CI (`.github/workflows/release.yml`) runs lint, typecheck, the unit tests, the contract typecheck
+and the contract tests against the recorded fixtures, then packages the module. Everything that
+needs a real Foundry world or a live backend stays a manual gate below.
 
 ## 1. Verify
 
-Run from `integrations/foundryvtt/`:
+Run from the repository root:
 
 ```bash
 npm run lint
 npm run typecheck
 npm run test               # Vitest unit suite
+npm run typecheck:contract
+npm run test:contract       # recorded fixtures, no network
 npm run build               # Vite production build
 ```
 
-If a local Atlas backend is reachable (`./services.sh` from the repo root, or otherwise on
-`:53001`):
+If an Atlas backend is reachable (start it from the Atlas repository; the dev backend listens on
+`:53001`), run the contract tests live. The credentials come from the environment only:
 
 ```bash
-# From the repo root — Foundry category + the rest of the standard API suite
-bash scripts/test-api.sh http://localhost:53001/api/v1 <email> <password>
-
-# From integrations/foundryvtt/ — contract tests against the live backend, and re-records
-# fixtures for CI/offline runs. Refuses to run unless ATLAS_TEST_URL is localhost.
+# Contract tests against the live backend, and re-record fixtures for CI/offline runs.
+# Refuses to record unless ATLAS_TEST_URL is localhost; recorded tokens are replaced by placeholders.
 ATLAS_TEST_URL=http://localhost:53001/api/v1 \
 ATLAS_TEST_EMAIL=<email> ATLAS_TEST_PASSWORD=<password> \
 npm run test:contract:record
 ```
 
-Without a reachable backend, `npm run test:contract` still runs against the fixtures
-already committed under `contract/fixtures/` — useful as an offline smoke check, but it
-only catches drift since the last `--record` run, not new backend changes.
+With `ATLAS_TEST_URL` set, a backend that cannot be reached fails every route — it never falls back
+to the fixtures. Without `ATLAS_TEST_URL`, `npm run test:contract` validates the committed
+`contract/fixtures/` only, which catches drift since the last `--record` run, not new backend
+changes. The per-user permission checks against a live backend (`scripts/test-api.sh`) belong to
+the Atlas repository.
 
 All of the above must be green before continuing.
 
 ## 2. Decide the version
 
-SemVer, independent of the Atlas monorepo's own version. Bump `integrations/foundryvtt/package.json`'s
-`version` — `module.json`'s `version` is patched automatically by the packaging step, don't
-edit it by hand.
+SemVer, independent of the Atlas version. Raise `package.json`'s `version` (`./update_module.sh`
+patch-bumps it and commits) — `module.json`'s `version` is patched automatically by the packaging
+step, don't edit it by hand.
 
 Add an entry to `CHANGELOG.md` (Keep a Changelog format) under a new version heading, moving
 anything from `## [Unreleased]` into it.
@@ -69,8 +70,10 @@ npm run package
 
 ## 4. Publish — pick a release channel
 
-This is an open owner decision (P9 plan) between two variants; the packaging script
-supports both without code changes:
+CI publishes through variant A: a push to `main` creates the GitHub release `foundry-v<version>`
+with the Zip and `module.json`; a push to `test` refreshes the rolling `foundry-test` prerelease
+(version `<version>-test.<run>`). Pull requests must raise the version. The packaging script also
+supports variant B without code changes:
 
 **A. GitHub Releases (requires a public — or public-enough — repo/mirror)**
 
@@ -101,7 +104,7 @@ Before calling a release done:
 2. Run through [docs/SMOKE-TEST.md](docs/SMOKE-TEST.md) completely, with a GM and a
    player browser.
 3. Only after a full, successful pass: bump `compatibility.verified` in the *source*
-   `module.json` (`integrations/foundryvtt/module.json`, not the packaged copy) to the
+   `module.json` (the source file at the repository root, not the packaged copy) to the
    exact Foundry version tested, commit that alongside the changelog entry.
 4. Record the smoke-test date and Foundry version in `CHANGELOG.md`'s entry for this
    release (`Smoke-tested: <date> on Foundry v<x.y.z>`).
@@ -113,4 +116,4 @@ point of the version-pin gate; treat it as a claim other GMs will trust before i
 
 - `zip` CLI available on the machine running `npm run package` (used via `child_process`,
   not a bundled JS zip library).
-- Node/npm matching `integrations/foundryvtt/package.json`'s toolchain (Vite 8, Vitest 4).
+- Node/npm matching `package.json`'s toolchain (Vite 8, Vitest 4).

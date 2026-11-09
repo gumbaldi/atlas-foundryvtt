@@ -1,15 +1,16 @@
-# Atlas Integration for Foundry VTT
+# Atlas for Foundry VTT
 
-Foundry v14 module for live, read-only access to public Atlas campaign documents, plus Atlas
-notifications inside Foundry's chat/UI.
+Foundry v14 module ("Atlas") that shows your Atlas campaign inside Foundry: search and read
+documents, a quest panel, Atlas notifications, and links from Foundry scenes, actors and items to
+Atlas documents. Everything is read per user with that user's own Atlas rights.
 
-This addon is standalone: it's built and deployed independently of the Atlas monorepo and never
-imports from `@atlas/shared` or any other workspace package.
+This repository is standalone: it is built and released on its own and never imports from the Atlas
+repository or any of its packages.
 
 ## Installation
 
-**Via manifest URL** (once P9 publishes real releases): in Foundry's *Install Module* dialog,
-paste the manifest URL from `module.json` (`manifest` field).
+**Via manifest URL**: in Foundry's *Install Module* dialog, paste the manifest URL from
+`module.json` (`manifest` field).
 
 **Manually**: build the module (see Development below) and copy or symlink the `dist/` output to:
 
@@ -21,16 +22,19 @@ Then enable `Atlas Integration` in the world's module settings.
 
 ## GM Setup
 
-1. In Foundry, open the settings sidebar and click `Atlas Settings` (GM only).
+1. In Foundry, open *Configure Settings → Atlas* and click **Atlas connection** (GM only).
 2. Enter your Atlas frontend URL as the **Atlas base URL** (e.g. `https://atlas.example.com`).
 3. Click **Test connection** to confirm Foundry can reach the Atlas backend.
-4. Click **Mit Atlas verbinden / Connect to Atlas** <!-- lang-ok: the button carries both labels -->, then confirm the shown code on the Atlas page
-   that opens. Your first successful GM login links this world to your Atlas campaign automatically
-   (no manual campaign ID needed).
+4. Click **Connect to Atlas**. Atlas opens in a new tab on the confirmation page — confirm there and
+   the Foundry dialog closes by itself. Closing the dialog instead cancels the connection. Your
+   first successful GM login links this world to your Atlas campaign automatically (no manual
+   campaign ID needed).
 5. Save.
 
-Each GM device link is independent, per-user, and revocable in Atlas' own settings
-(`Profile → Foundry`) or via the addon's own **Disconnect** button.
+Every Foundry user connects separately, even in the same browser. A link is per user and revocable
+in Atlas under *Profile → Foundry links* or with the addon's **Disconnect** button. If a user's
+Atlas account belongs to a different campaign than the one the world is linked to, the link is
+refused and revoked.
 
 ## Player Setup
 
@@ -55,7 +59,6 @@ able to reach the Atlas backend over HTTPS:
 ## Development
 
 ```bash
-cd integrations/foundryvtt
 npm install
 npm run build      # builds dist/ (module.json, scripts/, lang/, styles/)
 npm run dev         # watch mode
@@ -72,17 +75,24 @@ ln -s "$(pwd)/dist" "{Foundry userData}/Data/modules/atlas-foundry"
 ```
 
 See `docs/RELEASING.md` for the full release process and `docs/SMOKE-TEST.md` for the
-manual pre-release checklist. `scripts/test-api.sh` (repo root) has a Foundry category
-covering the per-user permission boundaries end to end against a live backend.
+manual pre-release checklist. The end-to-end permission checks against a live backend
+(`scripts/test-api.sh`) belong to the Atlas repository.
 
 ## Foundry API Grounding
 
 Built against the Foundry v14 `ApplicationV2` and `DialogV2` APIs, and the v13+ Record-based
 `getSceneControlButtons` hook signature (`controls.tokens.tools` is a `Record`, not an `Array`).
 
+## Known limitations
+
+- The GM's "show this to everyone" broadcast travels over Foundry's module socket, which carries no
+  verifiable sender. A player's client could forge a suggestion, which only produces a toast. Opening
+  the suggested document still checks the recipient's own Atlas rights, so no content leaks.
+- Objectives and checklists on quests are not shown — Atlas has no such field.
+
 ## Scope (current state)
 
-- Scene-control button (**Atlas Search**, also bound to `Ctrl+K`) and settings dialog exist and
+- Scene-control button (**Atlas Search**, also bound to `Ctrl+K`) and the GM settings menu exist and
   are fully localized (DE/EN).
 - Per-user device-code login (GM and players), JWT lifecycle (cached with lazy renewal, no
   background timer), a managed Socket.IO connection with auth-on-reconnect, and logout are all
@@ -136,10 +146,8 @@ Built against the Foundry v14 `ApplicationV2` and `DialogV2` APIs, and the v13+ 
   appointment/conversation/DM reference fields yet, so those notification kinds and their
   deep-links aren't buildable today — items without a `documentId` fall back to the campaign
   dashboard link, exactly as the plan's own documented fallback describes.
-- Testing, contracts, and release process (P9): a Foundry category in the repo-root
-  `scripts/test-api.sh` (device-flow provisioning, a default-deny permission matrix, and
-  visibility checks across every consumed route); `npm run test:contract`, zod schemas
-  (`src/atlas-types.ts`) validated against a live backend or replayed fixtures
-  (`contract/fixtures/`), catching addon/backend response drift; `npm run package`
-  (`scripts/package.mjs`) producing a deterministic, installable Zip + manifest under
-  `release/`. See `CHANGELOG.md`, `docs/RELEASING.md`, `docs/SMOKE-TEST.md`.
+- Testing, contracts, and release process: `npm run test:contract` validates zod schemas
+  (`src/atlas-types.ts`) against a live backend or replayed fixtures (`contract/fixtures/`),
+  catching addon/backend response drift; CI runs it on every build. `npm run package`
+  (`scripts/package.mjs`) produces a deterministic, installable Zip + manifest under `release/`.
+  See `CHANGELOG.md`, `docs/RELEASING.md`, `docs/SMOKE-TEST.md`.
