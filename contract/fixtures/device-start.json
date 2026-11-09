@@ -1,8 +1,8 @@
 {
-  "deviceCode": "FAKE_PLACEHOLDER_DEVICE_CODE_0000000000000000000000000",
-  "userCode": "FAKE-CODE",
+  "deviceCode": "PLACEHOLDER_DEVICE_CODE_NOT_A_REAL_CODE_00000000",
+  "userCode": "ABCD-1234",
   "verificationUri": "https://atlas.example.com/link-foundry",
-  "verificationUriComplete": "https://atlas.example.com/link-foundry?code=FAKE-CODE",
+  "verificationUriComplete": "https://atlas.example.com/link-foundry?code=ABCD-1234",
   "expiresIn": 600,
   "interval": 5
 }

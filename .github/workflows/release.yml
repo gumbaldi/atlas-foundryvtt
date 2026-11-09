@@ -74,6 +74,12 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Contract typecheck
+        run: npm run typecheck:contract
+
+      - name: Contract tests (recorded fixtures)
+        run: npm run test:contract
+
       - name: Build release package
         env:
           ATLAS_FOUNDRY_MANIFEST_URL: https://github.com/gumbaldi/atlas-foundryvtt/releases/latest/download/module.json
