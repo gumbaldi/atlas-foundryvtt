@@ -21,6 +21,18 @@ export interface VisibilityCheckResult {
   failed: boolean;
 }
 
+export type LinkRowState = 'visible' | 'broken' | 'unknown';
+
+/**
+ * `broken` only when the check ran and the ref wasn't confirmed; if the check
+ * itself failed (network/auth) we can't tell an outage from a deleted target,
+ * so the link is `unknown` and must never invite a removal.
+ */
+export function toLinkRowState(ref: LinkRef, result: VisibilityCheckResult): LinkRowState {
+  if (result.isVisible(ref)) return 'visible';
+  return result.failed ? 'unknown' : 'broken';
+}
+
 const CACHE_TTL_MS = 60_000;
 const DEBOUNCE_MS = 250;
 const MAX_REFS_PER_REQUEST = 100;

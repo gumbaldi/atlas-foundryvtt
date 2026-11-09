@@ -17,7 +17,7 @@ vi.mock('../api/client', () => ({ request: vi.fn() }));
 
 const { authManager } = await import('../auth/auth-manager');
 const { request } = await import('../api/client');
-const { LinkVisibilityChecker } = await import('./link-visibility');
+const { LinkVisibilityChecker, toLinkRowState } = await import('./link-visibility');
 
 describe('LinkVisibilityChecker', () => {
   beforeEach(() => {
@@ -160,5 +160,22 @@ describe('LinkVisibilityChecker', () => {
     checker.clear();
     await checker.isVisible(ref);
     expect(request).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('toLinkRowState', () => {
+  const ref = { documentId: 'd1', moduleType: 'characters' };
+  const result = (visible: boolean, failed: boolean) => ({ isVisible: () => visible, nameFor: () => undefined, failed });
+
+  it('is visible for a confirmed link', () => {
+    expect(toLinkRowState(ref, result(true, false))).toBe('visible');
+  });
+
+  it('is broken when the check succeeded but did not confirm the link', () => {
+    expect(toLinkRowState(ref, result(false, false))).toBe('broken');
+  });
+
+  it('is unknown, not broken, when the check itself failed', () => {
+    expect(toLinkRowState(ref, result(false, true))).toBe('unknown');
   });
 });

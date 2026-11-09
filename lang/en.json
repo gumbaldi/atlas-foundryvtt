@@ -132,6 +132,7 @@
       "AddButton": "Add…",
       "PickTitle": "Choose an Atlas document",
       "Broken": "Target not found",
+      "Unknown": "Could not be checked",
       "Remove": "Remove",
       "LabelPlaceholder": "Label (optional)",
       "NoneVisible": "No links you have access to.",

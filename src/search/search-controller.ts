@@ -34,6 +34,8 @@ export class SearchController {
   private state: SearchControllerState = initialState();
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private abortController: AbortController | null = null;
+  /** Bumped on every update(); a response only counts while its version is still the latest. */
+  private requestVersion = 0;
 
   constructor(private readonly onStateChange: (state: SearchControllerState) => void) {}
 
@@ -44,10 +46,13 @@ export class SearchController {
   /** Called on every text-input keystroke or filter change (module-type chips, "names only" toggle). */
   update(q: string, filters: SearchFilters = {}): void {
     this.cancelPendingDebounce();
+    // A filter change keeps the text the same, so the running request must be
+    // superseded here, not only once the debounce for the new one fires.
+    const version = ++this.requestVersion;
+    this.abortController?.abort();
+    this.abortController = null;
 
     if (q.trim().length < MIN_QUERY_LENGTH) {
-      this.abortController?.abort();
-      this.abortController = null;
       this.setState({ status: 'idle', query: q, results: [], errorKey: null });
       return;
     }
@@ -55,7 +60,7 @@ export class SearchController {
     this.setState({ ...this.state, query: q, status: 'loading' });
     this.debounceTimer = setTimeout(() => {
       this.debounceTimer = null;
-      void this.runSearch(q, filters);
+      void this.runSearch(q, filters, version);
     }, DEBOUNCE_MS);
   }
 
@@ -64,18 +69,17 @@ export class SearchController {
     this.abortController?.abort();
   }
 
-  private async runSearch(q: string, filters: SearchFilters): Promise<void> {
-    this.abortController?.abort();
+  private async runSearch(q: string, filters: SearchFilters, version: number): Promise<void> {
     const controller = new AbortController();
     this.abortController = controller;
 
     const params: SearchDocumentsParams = { q, ...filters };
     try {
       const response = await searchDocuments(params, { signal: controller.signal });
-      if (controller.signal.aborted || this.state.query !== q) return;
+      if (controller.signal.aborted || version !== this.requestVersion) return;
       this.setState({ status: 'done', query: q, results: response.data, errorKey: null });
     } catch (err) {
-      if (controller.signal.aborted || this.state.query !== q) return;
+      if (controller.signal.aborted || version !== this.requestVersion) return;
       this.setState({ status: 'error', query: q, results: [], errorKey: apiErrorMessageKey(err) });
     }
   }
