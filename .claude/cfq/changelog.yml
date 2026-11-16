@@ -1,12 +1,15 @@
+- batchNumber: 2
+  batch: 002-2026-11-09-atlas-scene-control-group
+  branch: cfq/002-2026-11-09-atlas-scene-control-group
+  base: test
+  started: 2026-11-16
+  status: in-progress
 - batchNumber: 1
   batch: 001-2026-11-09-v14-startup-login-and-session-fixes
   branch: batch/001-v14-startup-login-and-session-fixes
   started: 2026-11-09
   status: done
   finished: 2026-11-16
-- batchNumber: 2
-  batch: 002-2026-11-09-atlas-scene-control-group
-  status: parked
 - batchNumber: 1
   batch: 001-2026-11-09-v14-startup-login-and-session-fixes
   status: parked
