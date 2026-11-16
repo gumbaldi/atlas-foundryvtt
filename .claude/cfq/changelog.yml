@@ -3,7 +3,15 @@
   branch: cfq/002-2026-11-09-atlas-scene-control-group
   base: test
   started: 2026-11-16
-  status: in-progress
+  status: done
+  finished: 2026-11-16
+  phases:
+    - phase: "01-atlas-scene-control-group"
+      status: "green"
+      summary: "Added idempotent ensureAtlasGroup in controls.ts and moved the four Atlas scene-control tools into a new last-ordered atlas group; lang keys, docs and tests updated"
+    - phase: "02-atlas-group-svg-icon"
+      status: "green"
+      summary: "Atlas scene-control group now uses a single-colour Atlas logo SVG painted via CSS mask, copied by the build"
 - batchNumber: 1
   batch: 001-2026-11-09-v14-startup-login-and-session-fixes
   branch: batch/001-v14-startup-login-and-session-fixes
