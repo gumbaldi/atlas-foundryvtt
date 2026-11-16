@@ -39,7 +39,8 @@ S1. Open the browser console. No Atlas error is logged while the world loads, an
 S2. The Atlas tools (search, quests, notifications; scene links for the GM) are visible after clicking the Atlas
    group at the bottom of the left toolbar; scene links only for the GM, token controls contain none of
    them. The scene link bar is visible on the
-   first scene.
+   first scene. The Atlas group shows the Atlas logo (globe over book), recoloured on hover and
+   when active like the other toolbar icons, not a Font Awesome book.
 S3. As GM, right-click a scene in the navigation bar and in the Scenes directory: "Atlas links…" is
    present in both. This confirms the `getSceneContextOptions` hook name — if it is missing, report
    which context menu lacks it. As a player the entry is absent.

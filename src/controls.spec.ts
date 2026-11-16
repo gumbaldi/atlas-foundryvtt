@@ -13,7 +13,7 @@ describe('ensureAtlasGroup', () => {
     expect(tools).toEqual({});
     expect(controls.atlas).toMatchObject({
       name: 'atlas',
-      icon: 'fa-solid fa-book-atlas',
+      icon: 'atlas-foundry-group-icon',
       tools: {},
     });
     expect(controls.atlas.order).toBeGreaterThan(controls.tokens.order);

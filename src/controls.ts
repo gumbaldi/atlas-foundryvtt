@@ -14,7 +14,7 @@ export function ensureAtlasGroup(controls: Record<string, any>): Record<string, 
     controls.atlas = {
       name: 'atlas',
       title: 'ATLASFOUNDRY.Controls.Group',
-      icon: 'fa-solid fa-book-atlas',
+      icon: 'atlas-foundry-group-icon',
       order: maxOrder + 1,
       activeTool: 'atlasSearch',
       visible: true,

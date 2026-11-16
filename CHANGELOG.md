@@ -50,6 +50,8 @@ before `compatibility.verified` in `module.json` is raised — see
   recipient's own Atlas rights.
 
 ### Added
+- The Atlas tools now live in their own Atlas group in the scene controls, with the Atlas logo
+  as icon.
 - A Foundry category in the Atlas repository's `scripts/test-api.sh` suite: device-flow token
   issuance, a default-deny regression matrix, and per-user visibility checks across documents,
   search, quests, `visibility-check`, and messages.
