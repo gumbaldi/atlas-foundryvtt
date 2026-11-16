@@ -4,6 +4,7 @@
       "Title": "Atlas"
     },
     "Controls": {
+      "Group": "Atlas",
       "OpenSearch": "Atlas-Suche"
     },
     "Settings": {
