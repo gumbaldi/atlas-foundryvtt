@@ -76,7 +76,22 @@
       "Refresh": "Refresh",
       "OpenInAtlas": "Open in Atlas",
       "RestrictedBadge": "Restricted",
-      "UpdatedAt": "Last updated {date}"
+      "UpdatedAt": "Last updated {date}",
+      "Deadline": {
+        "State": {
+          "upcoming": "Upcoming",
+          "due": "Due",
+          "kept": "Kept",
+          "archived": "Archived"
+        },
+        "Remaining": {
+          "InDays": "in {count} days",
+          "InDay": "in {count} day",
+          "Today": "today",
+          "DaysOverdue": "{count} days overdue",
+          "DayOverdue": "{count} day overdue"
+        }
+      }
     },
     "Entry": {
       "ImageUnavailable": "Image unavailable — check MINIO_ENDPOINT/firewall."
@@ -194,7 +209,8 @@
       "cultures": "Cultures",
       "session-logs": "Session Logs",
       "chronicles": "Chronicles",
-      "calendars": "Calendars"
+      "calendars": "Calendars",
+      "deadlines": "Deadlines"
     }
   }
 }

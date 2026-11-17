@@ -4,6 +4,7 @@ import { MODULE_TYPE_ICONS, type ModuleType } from '../constants';
 import { getDocument, refreshDocument } from '../api/documents';
 import { apiErrorMessageKey, AtlasForbiddenError, AtlasNotFoundError } from '../api/errors';
 import { renderEntryHtml } from '../render/entry-renderer';
+import { describeDeadline } from '../render/deadline-line';
 import { atlasDocumentUrl } from '../deep-links';
 import { authManager } from '../auth/auth-manager';
 import type { AtlasDocumentDetail } from '../atlas-types';
@@ -163,6 +164,19 @@ export class AtlasViewerApplication extends foundry.applications.api.Application
     const typeLabel =
       doc.moduleType === 'custom' ? (doc.customModuleLabel ?? t('ATLASFOUNDRY.Search.CustomModule')) : t(`ATLASFOUNDRY.ModuleTypes.${doc.moduleType}`);
 
+    const deadline = describeDeadline(doc);
+    const deadlineLine = deadline
+      ? `<div class="atlas-foundry-viewer-deadline">${[
+          deadline.stateKey
+            ? `<span class="atlas-foundry-badge">${foundry.utils.escapeHTML(t(deadline.stateKey))}</span>`
+            : '',
+          deadline.dueText ? `<span>${foundry.utils.escapeHTML(deadline.dueText)}</span>` : '',
+          deadline.remainingKey
+            ? `<span>${foundry.utils.escapeHTML(t(deadline.remainingKey, { count: deadline.remainingCount }))}</span>`
+            : '',
+        ].join(' ')}</div>`
+      : '';
+
     root.innerHTML = `
       <header class="atlas-foundry-viewer-header">
         ${image ? `<img src="${foundry.utils.escapeHTML(image)}" alt="">` : ''}
@@ -173,6 +187,7 @@ export class AtlasViewerApplication extends foundry.applications.api.Application
             ${!isPublic ? `<span class="atlas-foundry-badge atlas-foundry-badge-restricted">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Viewer.RestrictedBadge'))}</span>` : ''}
             ${doc.tags.map((tag) => `<span class="atlas-foundry-tag">${foundry.utils.escapeHTML(tag)}</span>`).join('')}
           </div>
+          ${deadlineLine}
         </div>
       </header>
       <div class="atlas-foundry-viewer-toolbar">
