@@ -142,9 +142,9 @@ describe('AuthManager', () => {
   });
 
   it('refuses and revokes a token whose campaign differs from the world\'s campaign', async () => {
-    store.campaignId = 'world-campaign';
+    store.campaignId = '64f0000000000000000000aa';
     fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url === EXCHANGE_URL) return jsonResponse(200, { accessToken: 'jwt-1', tokenType: 'Bearer', expiresIn: 900, scopes: [], campaignId: 'other-campaign', worldId: 'world-1' });
+      if (url === EXCHANGE_URL) return jsonResponse(200, { accessToken: 'jwt-1', tokenType: 'Bearer', expiresIn: 900, scopes: [], campaignId: '64f0000000000000000000bb', worldId: 'world-1' });
       if (url === REVOKE_URL('token-1') && init?.method === 'DELETE') return jsonResponse(204, {});
       throw new Error(`unexpected fetch ${url}`);
     });

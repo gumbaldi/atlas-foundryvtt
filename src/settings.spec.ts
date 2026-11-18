@@ -133,6 +133,11 @@ describe('settings helpers', () => {
     expect(getCampaignId()).toBe('64f0000000000000000000ab');
   });
 
+  it('ignores a stored campaignId that is not a Mongo id (legacy alias)', async () => {
+    store.campaignId = 'dvl';
+    expect(getCampaignId()).toBe('');
+  });
+
   it('round-trips campaignSlug', async () => {
     await setCampaignSlug('dvl');
     expect(getCampaignSlug()).toBe('dvl');
