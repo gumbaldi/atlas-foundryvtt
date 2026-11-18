@@ -93,7 +93,6 @@ describe('request()', () => {
   });
 
   it('aborts and rejects with AtlasNetworkError once the timeout elapses', async () => {
-    vi.useFakeTimers();
     fetchMock.mockImplementation(
       (_url: string, init: RequestInit) =>
         new Promise((_resolve, reject) => {
@@ -101,10 +100,33 @@ describe('request()', () => {
         }),
     );
 
-    const promise = request('/g', { timeoutMs: 1000 });
-    const assertion = expect(promise).rejects.toBeInstanceOf(AtlasNetworkError);
-    await vi.advanceTimersByTimeAsync(1000);
-    await assertion;
+    const promise = request('/g', { timeoutMs: 20 });
+    await expect(promise).rejects.toBeInstanceOf(AtlasNetworkError);
+    await expect(promise).rejects.toThrow('Request timed out');
+  });
+
+  it("rejects with AtlasNetworkError when the caller's signal aborts", async () => {
+    fetchMock.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+        }),
+    );
+
+    const controller = new AbortController();
+    const promise = request('/h', { signal: controller.signal });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    controller.abort();
+    await expect(promise).rejects.toBeInstanceOf(AtlasNetworkError);
+  });
+
+  it('passes a signal to fetch when no caller signal is given', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, { ok: true }));
+    await request('/i');
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
   it('rejects with AtlasAuthError when not logged in', async () => {

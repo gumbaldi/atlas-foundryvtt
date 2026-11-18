@@ -35,62 +35,49 @@ async function toApiError(response: Response, path: string): Promise<AtlasApiErr
   return new AtlasServerError(path, response.status, message);
 }
 
-/**
- * A single classified request. Combines the caller's signal with a timeout
- * manually rather than relying on `AbortSignal.any`/`.timeout` (not
- * guaranteed available in every Foundry/Electron runtime — see plan risk
- * note), so this works everywhere the rest of the addon does.
- */
+/** A single classified request. The caller's signal and the timeout are combined with `AbortSignal.any`. */
 async function performRequest<T>(path: string, options: RequestOptions, isRetry = false): Promise<T> {
   const baseUrl = getBaseUrl();
   if (!baseUrl) throw new AtlasNetworkError(path, 'Atlas Foundry: base URL not configured');
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const requestController = new AbortController();
-  const onCallerAbort = () => requestController.abort();
-  const timer = setTimeout(() => requestController.abort(), timeoutMs);
-  options.signal?.addEventListener('abort', onCallerAbort);
+  const signal = AbortSignal.any([AbortSignal.timeout(timeoutMs), ...(options.signal ? [options.signal] : [])]);
 
+  let accessToken: string;
   try {
-    let accessToken: string;
-    try {
-      accessToken = await authManager.ensureAccessToken();
-    } catch {
-      throw new AtlasAuthError(path, 'Not logged in');
-    }
-
-    let response: Response;
-    try {
-      response = await fetch(`${baseUrl}/api/v1${path}`, {
-        method: options.method ?? 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-        },
-        body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-        signal: requestController.signal,
-      });
-    } catch (err) {
-      if (requestController.signal.aborted) throw new AtlasNetworkError(path, 'Request timed out');
-      throw new AtlasNetworkError(path, err instanceof Error ? err.message : String(err));
-    }
-
-    // One forced re-exchange + retry on 401 (JWT rejected mid-flight, e.g.
-    // revoked seconds ago) before treating it as an auth failure — see plan's
-    // AtlasAuthError note.
-    if (response.status === 401 && !isRetry) {
-      authManager.invalidateCache();
-      return performRequest<T>(path, options, true);
-    }
-    if (!response.ok) {
-      throw await toApiError(response, path);
-    }
-    if (response.status === 204) return undefined as T;
-    return (await response.json()) as T;
-  } finally {
-    clearTimeout(timer);
-    options.signal?.removeEventListener('abort', onCallerAbort);
+    accessToken = await authManager.ensureAccessToken();
+  } catch {
+    throw new AtlasAuthError(path, 'Not logged in');
   }
+
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}/api/v1${path}`, {
+      method: options.method ?? 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      signal,
+    });
+  } catch (err) {
+    if (signal.aborted) throw new AtlasNetworkError(path, 'Request timed out');
+    throw new AtlasNetworkError(path, err instanceof Error ? err.message : String(err));
+  }
+
+  // One forced re-exchange + retry on 401 (JWT rejected mid-flight, e.g.
+  // revoked seconds ago) before treating it as an auth failure — see plan's
+  // AtlasAuthError note.
+  if (response.status === 401 && !isRetry) {
+    authManager.invalidateCache();
+    return performRequest<T>(path, options, true);
+  }
+  if (!response.ok) {
+    throw await toApiError(response, path);
+  }
+  if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
