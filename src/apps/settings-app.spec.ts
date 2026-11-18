@@ -6,7 +6,7 @@ const store: Record<string, unknown> = {};
 function installStubs() {
   for (const key of Object.keys(store)) delete store[key];
   store.baseUrl = 'https://atlas.old';
-  store.campaignId = 'old-campaign';
+  store.campaignId = '6af153b44755e79bfcd90d83';
 
   globalThis.game = {
     settings: {
@@ -47,7 +47,7 @@ describe('AtlasSettingsApp', () => {
     const result = (await (app as any)._renderHTML()) as HTMLElement;
 
     expect(result.querySelector('form')).toBeNull();
-    expect(result.querySelector<HTMLInputElement>('input[name="atlasUrl"]')?.value).toBe('https://atlas.old/en/campaigns/old-campaign');
+    expect(result.querySelector<HTMLInputElement>('input[name="atlasUrl"]')?.value).toBe('https://atlas.old/en/campaigns/6af153b44755e79bfcd90d83');
     expect(result.querySelector('input[name="campaignId"]')).toBeNull();
     expect(result.querySelector('button[type="submit"]')).not.toBeNull();
   });
@@ -61,22 +61,22 @@ describe('AtlasSettingsApp', () => {
   it('derives base URL and campaign id from the campaign URL on submit', async () => {
     const { AtlasSettingsApp } = await import('./settings-app');
     await AtlasSettingsApp.onSubmit({} as Event, {} as HTMLFormElement, {
-      object: { atlasUrl: ' https://atlas.example/de/campaigns/c1 ' },
+      object: { atlasUrl: ' https://atlas.example/de/campaigns/6af153b44755e79bfcd90d83 ' },
     });
 
     expect(store.baseUrl).toBe('https://atlas.example');
-    expect(store.campaignId).toBe('c1');
+    expect(store.campaignId).toBe('6af153b44755e79bfcd90d83');
     expect(ui.notifications.warn).not.toHaveBeenCalled();
   });
 
   it('still saves a base URL without scheme but warns', async () => {
     const { AtlasSettingsApp } = await import('./settings-app');
     await AtlasSettingsApp.onSubmit({} as Event, {} as HTMLFormElement, {
-      object: { atlasUrl: 'atlas.example/campaigns/c2' },
+      object: { atlasUrl: 'atlas.example/campaigns/6af153b44755e79bfcd90d84' },
     });
 
     expect(store.baseUrl).toBe('atlas.example');
-    expect(store.campaignId).toBe('c2');
+    expect(store.campaignId).toBe('6af153b44755e79bfcd90d84');
     expect(ui.notifications.warn).toHaveBeenCalledWith('ATLASFOUNDRY.Settings.BaseUrlMissingScheme');
   });
 

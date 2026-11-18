@@ -54,21 +54,28 @@ describe('normalizeBaseUrl', () => {
 
 describe('parseAtlasUrl', () => {
   it('derives base URL and campaign id from a campaign URL', () => {
+    expect(parseAtlasUrl('https://atlas.ucuri.de/de/campaigns/6af153b44755e79bfcd90d83')).toEqual({
+      baseUrl: 'https://atlas.ucuri.de',
+      campaignId: '6af153b44755e79bfcd90d83',
+    });
+  });
+
+  it('ignores a slug that is not a campaign id but keeps the base URL', () => {
     expect(parseAtlasUrl('https://atlas.ucuri.de/de/campaigns/dvl')).toEqual({
       baseUrl: 'https://atlas.ucuri.de',
-      campaignId: 'dvl',
+      campaignId: '',
     });
   });
 
   it('ignores sub-pages, query, hash, whitespace and a missing locale', () => {
-    expect(parseAtlasUrl(' https://atlas.example/campaigns/c1/quests/x?a=1#h ')).toEqual({
+    expect(parseAtlasUrl(' https://atlas.example/campaigns/6af153b44755e79bfcd90d83/quests/x?a=1#h ')).toEqual({
       baseUrl: 'https://atlas.example',
-      campaignId: 'c1',
+      campaignId: '6af153b44755e79bfcd90d83',
     });
   });
 
   it('keeps a path prefix in front of the locale', () => {
-    expect(parseAtlasUrl('https://example.com/atlas/en/campaigns/c1').baseUrl).toBe('https://example.com/atlas');
+    expect(parseAtlasUrl('https://example.com/atlas/en/campaigns/dvl').baseUrl).toBe('https://example.com/atlas');
   });
 
   it('treats a plain base URL as base URL without campaign', () => {

@@ -39,7 +39,7 @@
       },
       "AtlasUrl": {
         "Name": "Atlas-URL",
-        "Hint": "Füge die URL deiner Kampagne aus dem Browser ein, z. B. https://atlas.example.com/de/campaigns/<id> — Adresse und Kampagne werden daraus abgeleitet. Eine reine Adresse ohne Kampagne geht auch; die Kampagne wird dann beim Spielleiter-Login unten gesetzt. /api/v1 und /socket.io müssen von dort erreichbar sein."
+        "Hint": "Füge die URL deiner Kampagne aus dem Browser ein, z. B. https://atlas.example.com/de/campaigns/dvl — die Adresse wird daraus abgeleitet. Die Kampagne bestätigst du beim Login unten auf der Atlas-Seite, sie wird dann automatisch gesetzt. /api/v1 und /socket.io müssen unter dieser Adresse erreichbar sein."
       },
       "CampaignId": {
         "Name": "Atlas-Kampagnen-ID",

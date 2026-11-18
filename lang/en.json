@@ -39,7 +39,7 @@
       },
       "AtlasUrl": {
         "Name": "Atlas URL",
-        "Hint": "Paste the URL of your campaign from the browser, e.g. https://atlas.example.com/en/campaigns/<id> — address and campaign are derived from it. A plain address without a campaign also works; the campaign is then set by the GM sign-in below. /api/v1 and /socket.io must be reachable there."
+        "Hint": "Paste the URL of your campaign from the browser, e.g. https://atlas.example.com/en/campaigns/dvl — the address is derived from it. You confirm the campaign on the Atlas page during the sign-in below; it is then set automatically. /api/v1 and /socket.io must be reachable at that address."
       },
       "CampaignId": {
         "Name": "Atlas campaign ID",
