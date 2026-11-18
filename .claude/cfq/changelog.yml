@@ -3,7 +3,15 @@
   branch: cfq/004-2026-11-18-slug-check-after-login
   base: cfq/003-2026-11-18-maintenance-findings-cleanup
   started: 2026-11-18
-  status: in-progress
+  status: done
+  finished: 2026-11-18
+  phases:
+    - phase: "01-remember-campaign-slug"
+      status: "green"
+      summary: "Campaign alias from the Atlas URL is parsed, stored in a new world setting campaignSlug, applied via applyAtlasUrl and shown again in the settings field"
+    - phase: "02-verify-slug-after-login"
+      status: "green"
+      summary: "After a GM login that pins the world, the confirmed campaign's alias from /foundry/me is checked against the stored URL alias; mismatch, null alias or failed refresh logs out with an error notification; contract schema, fixture, i18n keys and changelog updated"
 - batchNumber: 3
   batch: 003-2026-11-18-maintenance-findings-cleanup
   branch: cfq/003-2026-11-18-maintenance-findings-cleanup
