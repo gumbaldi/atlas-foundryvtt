@@ -41,7 +41,6 @@
         "Name": "Atlas-Kampagnen-ID",
         "Hint": "Wird automatisch gesetzt, sobald sich ein Spielleiter über den Login-Flow unten anmeldet. Du kannst sie auch manuell eintragen."
       },
-      "LegacyTokenMigrated": "Ein altes Atlas-Integrationstoken wurde gefunden und aus Sicherheitsgründen entfernt. Bitte widerrufe es in Atlas und melde dich über den Login-Flow unten neu an.",
       "Login": "Mit Atlas verbinden",
       "Logout": "Trennen"
     },

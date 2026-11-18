@@ -41,7 +41,6 @@
         "Name": "Atlas campaign ID",
         "Hint": "Set automatically once a GM signs in through the login flow below. You can also paste it manually."
       },
-      "LegacyTokenMigrated": "An old Atlas integration token was found and removed for security reasons. Please revoke it in Atlas and sign in again using the login flow below.",
       "Login": "Connect to Atlas",
       "Logout": "Disconnect"
     },
