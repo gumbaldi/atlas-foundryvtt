@@ -11,13 +11,20 @@ const getCampaignId = vi.fn(() => '');
 const getCampaignSlug = vi.fn(() => '');
 const setCampaignId = vi.fn(async () => undefined);
 
-vi.mock('./device-flow', () => ({ startDeviceFlow, pollDeviceFlow }));
+class DeviceFlowStartError extends Error {
+  constructor(readonly status: number) {
+    super(`device/start failed (HTTP ${status})`);
+  }
+}
+
+vi.mock('./device-flow', () => ({ startDeviceFlow, pollDeviceFlow, DeviceFlowStartError }));
 vi.mock('./auth-manager', () => ({
   authManager: { login, logout, setLinking, getMe },
   revokeUnlinkedToken: vi.fn(),
 }));
 vi.mock('../settings', () => ({ getCampaignId, getCampaignSlug, setCampaignId }));
-vi.mock('../log', () => ({ log: { error: vi.fn(), warn: vi.fn(), info: vi.fn() }, notifyError: vi.fn() }));
+const notifyError = vi.fn();
+vi.mock('../log', () => ({ log: { error: vi.fn(), warn: vi.fn(), info: vi.fn() }, notifyError }));
 
 const START = {
   deviceCode: 'dev',
@@ -99,6 +106,37 @@ describe('openLoginDialog', () => {
 
     expect(tab.close).toHaveBeenCalled();
     expect(tab.location.href).toBe('');
+  });
+
+  it('sends the alias as campaignSlug when no campaign id is pinned', async () => {
+    getCampaignSlug.mockReturnValue('dvl');
+    const openLoginDialog = await loadOpenLoginDialog();
+    void openLoginDialog();
+    await flush();
+
+    expect(startDeviceFlow).toHaveBeenCalledWith(expect.objectContaining({ campaignId: undefined, campaignSlug: 'dvl' }));
+  });
+
+  it('tells the GM when Atlas does not know the alias (404)', async () => {
+    getCampaignSlug.mockReturnValue('nope');
+    startDeviceFlow.mockRejectedValue(new DeviceFlowStartError(404));
+    const openLoginDialog = await loadOpenLoginDialog();
+    await openLoginDialog();
+
+    expect(tab.close).toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalledWith(expect.any(Error), 'ATLASFOUNDRY.Login.CampaignAliasUnknown', { slug: 'nope' });
+  });
+
+  it('sends only the pinned campaign id when an alias is stored as well', async () => {
+    getCampaignId.mockReturnValue('64f0000000000000000000ab');
+    getCampaignSlug.mockReturnValue('dvl');
+    const openLoginDialog = await loadOpenLoginDialog();
+    void openLoginDialog();
+    await flush();
+
+    expect(startDeviceFlow).toHaveBeenCalledWith(
+      expect.objectContaining({ campaignId: '64f0000000000000000000ab', campaignSlug: undefined }),
+    );
   });
 
   it('closes the blank tab and never starts the flow when prepare rejects', async () => {

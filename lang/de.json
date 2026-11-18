@@ -133,6 +133,7 @@
       "Cancel": "Abbrechen",
       "PopupBlocked": "Dein Browser hat den neuen Tab blockiert — nutze unten „Atlas erneut öffnen“, um die Verbindung zu bestätigen.",
       "StartFailed": "Der Atlas-Login konnte nicht gestartet werden. Prüfe die Basis-URL in den Einstellungen und versuche es erneut.",
+      "CampaignAliasUnknown": "In Atlas gibt es keine Kampagne mit dem Alias „{slug}“. Prüfe die Atlas-URL in den Einstellungen.",
       "PollFailed": "Beim Warten auf die Bestätigung ist etwas schiefgelaufen. Bitte versuche es erneut.",
       "Denied": "Der Login wurde in Atlas abgelehnt.",
       "Expired": "Der Code ist abgelaufen, bevor er bestätigt wurde. Verbinde dich erneut.",

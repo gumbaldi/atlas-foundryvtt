@@ -25,6 +25,9 @@ before `compatibility.verified` in `module.json` is raised — see
   be reached fails them instead of silently using old fixtures.
 
 ### Changed
+- A campaign alias in the Atlas URL (e.g. `…/campaigns/dvl`) is sent to Atlas when the login starts, so
+  the confirmation page shows that campaign directly instead of asking for one again. Needs the
+  matching Atlas backend (build 118). An alias Atlas does not know gets its own error message.
 - The GM settings open from *Configure Settings → Atlas* (an official module menu) instead of a
   button pushed into the settings sidebar; the module is now called "Atlas".
 - Connecting is one click: Atlas opens in a new tab on the confirmation page and the Foundry dialog

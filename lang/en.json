@@ -133,6 +133,7 @@
       "Cancel": "Cancel",
       "PopupBlocked": "Your browser blocked the new tab — use \"Open Atlas again\" below to confirm the connection.",
       "StartFailed": "Could not start the Atlas login. Check the base URL in the settings and try again.",
+      "CampaignAliasUnknown": "Atlas has no campaign with the alias \"{slug}\". Check the Atlas URL in the settings.",
       "PollFailed": "Something went wrong while waiting for confirmation. Please try again.",
       "Denied": "The login was declined in Atlas.",
       "Expired": "The code expired before it was confirmed. Try connecting again.",
