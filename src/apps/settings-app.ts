@@ -1,5 +1,6 @@
 import { t } from '../i18n';
-import { getBaseUrl, getCampaignId, setBaseUrl, setCampaignId, validateBaseUrl } from '../settings';
+import { getBaseUrl, getCampaignId, parseAtlasUrl, setBaseUrl, setCampaignId, validateBaseUrl } from '../settings';
+import { atlasCampaignDashboardUrl } from '../deep-links';
 import { testConnection, formatConnectionTestResult } from '../connection-test';
 import { notifyError } from '../log';
 import { authManager } from '../auth/auth-manager';
@@ -19,6 +20,12 @@ function renderStatus(dialogElement: HTMLElement): void {
   }
 }
 
+/** The single URL field shows the full campaign URL once linked, otherwise just the base URL. */
+function currentAtlasUrl(): string {
+  const campaignId = getCampaignId();
+  return campaignId ? atlasCampaignDashboardUrl(campaignId) : getBaseUrl();
+}
+
 function buildContent(): string {
   return `
     <div class="atlas-foundry-settings">
@@ -28,14 +35,9 @@ function buildContent(): string {
         <button type="button" data-action="auth-toggle"></button>
       </div>
       <div class="form-group">
-        <label>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.BaseUrl.Name'))}</label>
-        <input name="baseUrl" type="url" value="${foundry.utils.escapeHTML(getBaseUrl())}" placeholder="https://atlas.example.com">
-        <p class="hint">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.BaseUrl.Hint'))}</p>
-      </div>
-      <div class="form-group">
-        <label>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.CampaignId.Name'))}</label>
-        <input name="campaignId" type="text" value="${foundry.utils.escapeHTML(getCampaignId())}">
-        <p class="hint">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.CampaignId.Hint'))}</p>
+        <label>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.AtlasUrl.Name'))}</label>
+        <input name="atlasUrl" type="url" value="${foundry.utils.escapeHTML(currentAtlasUrl())}" placeholder="https://atlas.example.com/de/campaigns/...">
+        <p class="hint">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.AtlasUrl.Hint'))}</p>
       </div>
       <div class="form-group">
         <button type="button" data-action="test-connection">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Settings.TestConnection'))}</button>
@@ -68,9 +70,10 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
   private onSocketStatusChanged: (() => void) | undefined;
 
   static async onSubmit(_event: Event, _form: HTMLFormElement, formData: { object: Record<string, unknown> }): Promise<void> {
-    const { normalized, warningKey } = validateBaseUrl(String(formData.object.baseUrl ?? ''));
+    const parsed = parseAtlasUrl(String(formData.object.atlasUrl ?? ''));
+    const { normalized, warningKey } = validateBaseUrl(parsed.baseUrl);
     await setBaseUrl(normalized);
-    await setCampaignId(String(formData.object.campaignId ?? '').trim());
+    await setCampaignId(parsed.campaignId);
 
     if (warningKey) ui.notifications.warn(t(warningKey));
   }
@@ -106,14 +109,14 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
 
     const testButton = root.querySelector<HTMLButtonElement>('[data-action="test-connection"]');
     const statusEl = root.querySelector<HTMLElement>('[data-test-status]');
-    const baseUrlInput = root.querySelector<HTMLInputElement>('input[name="baseUrl"]');
+    const atlasUrlInput = root.querySelector<HTMLInputElement>('input[name="atlasUrl"]');
 
     testButton?.addEventListener('click', async () => {
       if (!statusEl) return;
       statusEl.classList.remove('atlas-foundry-status-ok', 'atlas-foundry-status-error');
       statusEl.textContent = t('ATLASFOUNDRY.Settings.TestingConnection');
       try {
-        const result = await testConnection(baseUrlInput?.value ?? '');
+        const result = await testConnection(parseAtlasUrl(atlasUrlInput?.value ?? '').baseUrl);
         statusEl.textContent = formatConnectionTestResult(result);
         statusEl.classList.add(result.ok ? 'atlas-foundry-status-ok' : 'atlas-foundry-status-error');
       } catch (err) {
@@ -126,16 +129,16 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
 
   /** The Connect button must use what is typed in the form, not the last saved values. */
   private async storeCurrentInputs(root: HTMLElement): Promise<void> {
-    const baseUrlInput = root.querySelector<HTMLInputElement>('input[name="baseUrl"]');
-    const campaignIdInput = root.querySelector<HTMLInputElement>('input[name="campaignId"]');
+    const atlasUrlInput = root.querySelector<HTMLInputElement>('input[name="atlasUrl"]');
 
-    const { normalized, warningKey } = validateBaseUrl(baseUrlInput?.value ?? '');
+    const parsed = parseAtlasUrl(atlasUrlInput?.value ?? '');
+    const { normalized, warningKey } = validateBaseUrl(parsed.baseUrl);
     if (!normalized) {
       ui.notifications.warn(t('ATLASFOUNDRY.ConnectionTest.MissingBaseUrl'));
       throw new Error('Atlas Foundry: base URL missing');
     }
     await setBaseUrl(normalized);
-    await setCampaignId(campaignIdInput?.value.trim() ?? '');
+    await setCampaignId(parsed.campaignId);
     if (warningKey) ui.notifications.warn(t(warningKey));
   }
 

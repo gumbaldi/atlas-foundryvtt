@@ -6,6 +6,31 @@ export function normalizeBaseUrl(url: string): string {
   return url.trim().replace(/\/+$/, '');
 }
 
+export interface ParsedAtlasUrl {
+  baseUrl: string;
+  /** Empty when the input was a plain base URL without `/campaigns/<id>`. */
+  campaignId: string;
+}
+
+/**
+ * Splits what the GM pastes into the single Atlas URL field: either a plain base URL
+ * (`https://atlas.example.com`) or a campaign URL from the browser
+ * (`https://atlas.example.com/de/campaigns/<id>[/...]`) — base URL and campaign id are derived
+ * from it. A locale segment (`de`/`en`) before `/campaigns/` is dropped. Pure, no Foundry globals.
+ */
+export function parseAtlasUrl(input: string): ParsedAtlasUrl {
+  const cleaned = input.trim().replace(/[?#].*$/, '');
+  const match = /^(.*?)(?:\/(?:de|en))?\/campaigns\/([^/]+)(?:\/.*)?$/i.exec(cleaned);
+  if (!match) return { baseUrl: normalizeBaseUrl(cleaned), campaignId: '' };
+  let campaignId = match[2] ?? '';
+  try {
+    campaignId = decodeURIComponent(campaignId);
+  } catch {
+    // keep the raw segment
+  }
+  return { baseUrl: normalizeBaseUrl(match[1] ?? ''), campaignId };
+}
+
 export interface BaseUrlValidation {
   normalized: string;
   warningKey?: string;

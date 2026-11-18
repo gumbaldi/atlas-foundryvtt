@@ -8,6 +8,7 @@ import {
   getUserTokenId,
   setUserToken,
   normalizeBaseUrl,
+  parseAtlasUrl,
   setBaseUrl,
   setCampaignId,
   validateBaseUrl,
@@ -48,6 +49,31 @@ describe('normalizeBaseUrl', () => {
 
   it('leaves a URL without a trailing slash untouched', () => {
     expect(normalizeBaseUrl('https://atlas.example.com')).toBe('https://atlas.example.com');
+  });
+});
+
+describe('parseAtlasUrl', () => {
+  it('derives base URL and campaign id from a campaign URL', () => {
+    expect(parseAtlasUrl('https://atlas.ucuri.de/de/campaigns/dvl')).toEqual({
+      baseUrl: 'https://atlas.ucuri.de',
+      campaignId: 'dvl',
+    });
+  });
+
+  it('ignores sub-pages, query, hash, whitespace and a missing locale', () => {
+    expect(parseAtlasUrl(' https://atlas.example/campaigns/c1/quests/x?a=1#h ')).toEqual({
+      baseUrl: 'https://atlas.example',
+      campaignId: 'c1',
+    });
+  });
+
+  it('keeps a path prefix in front of the locale', () => {
+    expect(parseAtlasUrl('https://example.com/atlas/en/campaigns/c1').baseUrl).toBe('https://example.com/atlas');
+  });
+
+  it('treats a plain base URL as base URL without campaign', () => {
+    expect(parseAtlasUrl('https://atlas.example/')).toEqual({ baseUrl: 'https://atlas.example', campaignId: '' });
+    expect(parseAtlasUrl('')).toEqual({ baseUrl: '', campaignId: '' });
   });
 });
 
