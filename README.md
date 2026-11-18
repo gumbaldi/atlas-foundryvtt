@@ -49,8 +49,8 @@ refused and revoked.
 ## Player Setup
 
 `Atlas Settings` is GM-only. Once the GM has linked the world to an Atlas campaign, each player
-connects from their own Foundry client via the scene controls' **Atlas Search** button (or
-`Ctrl+K`), which shows a **Connect to Atlas** prompt when not yet linked. Before the world is
+connects from their own Foundry client via the **Atlas Search** button in the Atlas group of the
+scene controls (or `Ctrl+K`), which shows a **Connect to Atlas** prompt when not yet linked. Before the world is
 linked, no connect prompt is shown — players see a hint that their GM needs to sign in first.
 
 ## Deployment Requirements
@@ -106,7 +106,8 @@ manual pre-release checklist. The end-to-end permission checks against a live ba
 ## Foundry API Grounding
 
 Built against the Foundry v14 `ApplicationV2` and `DialogV2` APIs, and the v13+ Record-based
-`getSceneControlButtons` hook signature (`controls.tokens.tools` is a `Record`, not an `Array`).
+`getSceneControlButtons` hook signature (`controls` and each group's `tools` are `Record`s, not `Array`s; the Atlas tools live in their own
+`atlas` group at the bottom of the scene controls).
 
 ## Known limitations
 

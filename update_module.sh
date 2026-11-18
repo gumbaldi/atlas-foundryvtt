@@ -2,7 +2,6 @@
 
 npm install
 npm audit fix
-npm ci
 
 npm run lint
 npm run typecheck

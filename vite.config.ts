@@ -32,6 +32,7 @@ export default defineConfig({
           },
         },
         { src: 'lang/*', dest: 'lang', rename: { stripBase: true } },
+        { src: 'assets/*', dest: 'assets', rename: { stripBase: true } },
         { src: 'src/styles/atlas-foundry.css', dest: 'styles', rename: { stripBase: true } },
       ],
     }),

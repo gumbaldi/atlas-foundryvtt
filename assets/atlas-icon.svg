@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Globe: ring, equator and two meridian arcs -->
+  <circle cx="32" cy="23" r="15" fill="none" stroke="#000" stroke-width="4"/>
+  <path d="M17 23h30M32 8c-7.500 5-7.500 25 0 30M32 8c7.500 5 7.500 25 0 30" fill="none" stroke="#000" stroke-width="2.600"/>
+  <!-- Open book silhouette; centre fold and page edge are transparent gaps -->
+  <path fill="#000" fill-rule="evenodd" d="M4 44q14-8 28 0 14-8 28 0v15q-14-8-28 0-14-8-28 0zM31 46.500v10.500h2V46.500zM8 47.500q11-5 20.500-.5v1.600q-9.500-4.100-20.500.5zM56 47.500q-11-5-20.500-.5v1.600q9.500-4.100 20.500.5z"/>
+</svg>

@@ -4,6 +4,7 @@
       "Title": "Atlas"
     },
     "Controls": {
+      "Group": "Atlas",
       "OpenSearch": "Atlas Search"
     },
     "Settings": {
@@ -40,7 +41,6 @@
         "Name": "Atlas campaign ID",
         "Hint": "Set automatically once a GM signs in through the login flow below. You can also paste it manually."
       },
-      "LegacyTokenMigrated": "An old Atlas integration token was found and removed for security reasons. Please revoke it in Atlas and sign in again using the login flow below.",
       "Login": "Connect to Atlas",
       "Logout": "Disconnect"
     },
@@ -75,7 +75,22 @@
       "Refresh": "Refresh",
       "OpenInAtlas": "Open in Atlas",
       "RestrictedBadge": "Restricted",
-      "UpdatedAt": "Last updated {date}"
+      "UpdatedAt": "Last updated {date}",
+      "Deadline": {
+        "State": {
+          "upcoming": "Upcoming",
+          "due": "Due",
+          "kept": "Kept",
+          "archived": "Archived"
+        },
+        "Remaining": {
+          "InDays": "in {count} days",
+          "InDay": "in {count} day",
+          "Today": "today",
+          "DaysOverdue": "{count} days overdue",
+          "DayOverdue": "{count} day overdue"
+        }
+      }
     },
     "Entry": {
       "ImageUnavailable": "Image unavailable — check MINIO_ENDPOINT/firewall."
@@ -193,7 +208,8 @@
       "cultures": "Cultures",
       "session-logs": "Session Logs",
       "chronicles": "Chronicles",
-      "calendars": "Calendars"
+      "calendars": "Calendars",
+      "deadlines": "Deadlines"
     }
   }
 }

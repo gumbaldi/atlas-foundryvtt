@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AuthManager } from './auth-manager';
+import { AuthManager, revokeUnlinkedToken } from './auth-manager';
 
 function mockGame(store: Record<string, unknown>, isGM = true) {
   globalThis.game = {
@@ -292,6 +292,77 @@ describe('AuthManager', () => {
 
       expect(manager.getSessionEpoch()).toBe(before);
       expect(resets()).toBe(callsBefore);
+    });
+  });
+
+  describe('revokeUnlinkedToken', () => {
+    let warnSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    const exchangeOk = () =>
+      jsonResponse(200, { accessToken: 'jwt-1', tokenType: 'Bearer', expiresIn: 900, scopes: [], campaignId: 'c1', worldId: 'world-1' });
+
+    it('exchanges the raw token and deletes it with the resulting JWT', async () => {
+      fetchMock.mockImplementation(async (url: string) => {
+        if (url === EXCHANGE_URL) return exchangeOk();
+        if (url === REVOKE_URL('token-9')) return jsonResponse(204, null);
+        throw new Error(`unexpected fetch ${url}`);
+      });
+
+      await revokeUnlinkedToken('atlas_foundry_raw', 'token-9');
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [exchangeUrl, exchangeInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(exchangeUrl).toBe(EXCHANGE_URL);
+      expect(exchangeInit.method).toBe('POST');
+      expect(exchangeInit.body).toContain('atlas_foundry_raw');
+      expect(exchangeInit.body).toContain('world-1');
+      const [revokeUrl, revokeInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+      expect(revokeUrl).toBe(REVOKE_URL('token-9'));
+      expect(revokeInit.method).toBe('DELETE');
+      expect(revokeInit.headers).toMatchObject({ Authorization: 'Bearer jwt-1' });
+    });
+
+    it('does not delete when the exchange is rejected', async () => {
+      fetchMock.mockResolvedValue(jsonResponse(401, { message: 'nope' }));
+
+      await expect(revokeUnlinkedToken('atlas_foundry_raw', 'token-9')).resolves.toBeUndefined();
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing without a base URL', async () => {
+      store.baseUrl = '';
+
+      await revokeUnlinkedToken('atlas_foundry_raw', 'token-9');
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('logs and resolves on a network error', async () => {
+      fetchMock.mockRejectedValue(new Error('offline'));
+
+      await expect(revokeUnlinkedToken('atlas_foundry_raw', 'token-9')).resolves.toBeUndefined();
+
+      expect(warnSpy).toHaveBeenCalled();
+    });
+
+    it('logs a failed DELETE instead of ignoring it', async () => {
+      fetchMock.mockImplementation(async (url: string) => {
+        if (url === EXCHANGE_URL) return exchangeOk();
+        return jsonResponse(500, null);
+      });
+
+      await expect(revokeUnlinkedToken('atlas_foundry_raw', 'token-9')).resolves.toBeUndefined();
+
+      expect(warnSpy).toHaveBeenCalled();
     });
   });
 });

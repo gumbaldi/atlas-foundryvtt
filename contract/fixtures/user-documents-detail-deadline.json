@@ -1,0 +1,26 @@
+{
+  "id": "6af153b44755e79bfcd90d86",
+  "campaignId": "6af153b44755e79bfcd90d83",
+  "moduleType": "deadlines",
+  "name": "Contract Deadline",
+  "entry": "<p>Contract fixture</p>",
+  "readAccess": [
+    "all"
+  ],
+  "tags": [],
+  "startDate": {
+    "year": 1492,
+    "month": 3,
+    "day": 1
+  },
+  "dueDate": {
+    "year": 1492,
+    "month": 3,
+    "day": 7
+  },
+  "deadlineState": "upcoming",
+  "daysRemaining": 3,
+  "calendarName": "Contract Calendar",
+  "createdAt": "2026-11-17T05:01:40.142Z",
+  "updatedAt": "2026-11-17T05:01:40.142Z"
+}

@@ -1,18 +1,40 @@
 /**
- * F1 fix: in Foundry v13+ `SceneControls.controls` and each group's `tools`
- * are Records keyed by tool name, not Arrays — `tools.push(...)` used to be
- * a silent no-op (`Array.prototype.push` doesn't exist on a plain object),
- * so the Atlas button never appeared. `onClick` is also deprecated in favor
- * of `onChange` in v13+.
+ * Returns the `tools` record of the Atlas scene-controls group, creating the
+ * group first when absent. Idempotent, so every feature can keep its own
+ * `getSceneControlButtons` listener and call this without importing the others.
+ * The group is ordered after every other group so it sits at the bottom of the
+ * left toolbar. No `layer` is set: clicking the group switches no canvas layer.
+ */
+export function ensureAtlasGroup(controls: Record<string, any>): Record<string, any> {
+  if (!controls.atlas) {
+    const maxOrder = Object.values(controls).reduce<number>(
+      (max, group) => (typeof group?.order === 'number' && group.order > max ? group.order : max),
+      0,
+    );
+    controls.atlas = {
+      name: 'atlas',
+      title: 'ATLASFOUNDRY.Controls.Group',
+      icon: 'atlas-foundry-group-icon',
+      order: maxOrder + 1,
+      activeTool: 'atlasSearch',
+      visible: true,
+      tools: {},
+    };
+  }
+  return controls.atlas.tools;
+}
+
+/**
+ * In Foundry v13+ `SceneControls.controls` and each group's `tools` are
+ * Records keyed by name, not Arrays (`tools.push(...)` is a silent no-op), and
+ * `onClick` is deprecated in favor of `onChange`. The tool lives in the Atlas
+ * group (see `ensureAtlasGroup`).
  *
  * Visible to every user, not just the GM — players use search too.
  */
 export function registerControls(openSearch: () => void): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
-    const tokens = controls.tokens;
-    if (!tokens?.tools) return;
-
-    tokens.tools.atlasSearch = {
+    ensureAtlasGroup(controls).atlasSearch = {
       name: 'atlasSearch',
       title: 'ATLASFOUNDRY.Controls.OpenSearch',
       icon: 'fa-solid fa-search',

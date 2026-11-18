@@ -93,16 +93,17 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['getSceneControlButtons'] ?? []).length).toBeGreaterThan(0);
   });
 
-  it('adds the Atlas tools to the token controls when getSceneControlButtons fires after init', async () => {
+  it('adds the Atlas tools to the Atlas control group when getSceneControlButtons fires after init', async () => {
     await import('./main');
     harness.fire('init');
 
-    const controls = { tokens: { tools: {} as Record<string, unknown> } };
+    const controls: Record<string, any> = { tokens: { tools: {} as Record<string, unknown> } };
     harness.fire('getSceneControlButtons', controls);
 
-    expect(Object.keys(controls.tokens.tools)).toEqual(
+    expect(Object.keys(controls.atlas.tools)).toEqual(
       expect.arrayContaining(['atlasSearch', 'atlasQuests', 'atlasNotifications', 'atlasSceneLinks']),
     );
+    expect(Object.keys(controls.tokens.tools)).toEqual([]);
   });
 
   it('hooks the V14 scene context menu and not the removed getSceneNavigationContext', async () => {

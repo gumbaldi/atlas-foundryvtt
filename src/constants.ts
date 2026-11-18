@@ -14,6 +14,7 @@ export const MODULE_TYPES = [
   'session-logs',
   'chronicles',
   'calendars',
+  'deadlines',
 ] as const;
 
 export type ModuleType = (typeof MODULE_TYPES)[number];
@@ -31,4 +32,5 @@ export const MODULE_TYPE_ICONS: Record<ModuleType, string> = {
   'session-logs': 'fa-solid fa-clipboard-list',
   chronicles: 'fa-solid fa-timeline',
   calendars: 'fa-solid fa-calendar-days',
+  deadlines: 'fa-solid fa-hourglass-half',
 };

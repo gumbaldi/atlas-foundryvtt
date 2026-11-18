@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -10,6 +10,7 @@ import {
   AtlasQuestsResponseSchema,
   AtlasSearchResponseSchema,
   AtlasUnreadCountSchema,
+  DeadlineStateSchema,
   DeviceFlowPollApprovedSchema,
   DeviceFlowStartSchema,
   FoundryMeSchema,
@@ -308,4 +309,31 @@ describe('Foundry API contract', () => {
       route.schema.parse(payload);
     });
   }
+});
+
+/**
+ * Deadline documents (fixture-only: the live bootstrap creates no deadline). The detail response
+ * gains `startDate?`, `dueDate`, `deadlineState`, `daysRemaining` and `calendarName?`; all are
+ * optional in the schema, so a detail from a backend that sends none must still validate.
+ */
+describe('Foundry API contract: deadlines', () => {
+  it('user-documents-detail-deadline matches its schema', () => {
+    const payload = JSON.parse(readFileSync(fixturePath('user-documents-detail-deadline'), 'utf8'));
+    const parsed = AtlasDocumentDetailSchema.parse(payload);
+    DeadlineStateSchema.parse(parsed.deadlineState);
+    expect(parsed.dueDate).toEqual({ year: 1492, month: 3, day: 7 });
+  });
+
+  it('an old-shape detail without deadline fields still validates', () => {
+    const payload = JSON.parse(readFileSync(fixturePath('user-documents-detail'), 'utf8'));
+    const parsed = AtlasDocumentDetailSchema.parse(payload);
+    expect(parsed.deadlineState).toBeUndefined();
+    expect(parsed.dueDate).toBeUndefined();
+  });
+
+  it('accepts a null daysRemaining and rejects an unknown state', () => {
+    const base = JSON.parse(readFileSync(fixturePath('user-documents-detail-deadline'), 'utf8'));
+    expect(AtlasDocumentDetailSchema.safeParse({ ...base, daysRemaining: null }).success).toBe(true);
+    expect(AtlasDocumentDetailSchema.safeParse({ ...base, deadlineState: 'bogus' }).success).toBe(false);
+  });
 });
