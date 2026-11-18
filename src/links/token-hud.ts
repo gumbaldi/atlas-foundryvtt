@@ -55,7 +55,7 @@ export function registerTokenHud(): void {
             if (visible.length === 0) return;
             if (visible.length === 1) {
               const only = visible[0]!;
-              openLink(only, { external: event.shiftKey || event.ctrlKey || event.metaKey, currentName: result.nameFor(only) });
+              openLink(only);
               return;
             }
             void openLinksPopover(visible, event.currentTarget as HTMLElement);

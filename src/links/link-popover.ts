@@ -4,7 +4,7 @@ import { linkVisibility, toRefs } from './link-visibility';
 import { openLink } from './link-actions';
 import type { AtlasLink } from './link-store';
 
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 let activePopover: HTMLElement | null = null;
@@ -82,9 +82,9 @@ export async function openLinksPopover(links: AtlasLink[], anchor: HTMLElement):
   panel.querySelectorAll<HTMLButtonElement>('[data-link-id]').forEach((button) => {
     const link = visibleLinks.find((l) => l.id === button.dataset.linkId);
     if (!link) return;
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', () => {
       closeActivePopover();
-      openLink(link, { external: event.shiftKey || event.ctrlKey || event.metaKey, currentName: result.nameFor(link) });
+      openLink(link);
     });
   });
 }

@@ -45,23 +45,42 @@ export class SearchController {
 
   /** Called on every text-input keystroke or filter change (module-type chips, "names only" toggle). */
   update(q: string, filters: SearchFilters = {}): void {
-    this.cancelPendingDebounce();
-    // A filter change keeps the text the same, so the running request must be
-    // superseded here, not only once the debounce for the new one fires.
-    const version = ++this.requestVersion;
-    this.abortController?.abort();
-    this.abortController = null;
-
-    if (q.trim().length < MIN_QUERY_LENGTH) {
-      this.setState({ status: 'idle', query: q, results: [], errorKey: null });
-      return;
-    }
+    const version = this.supersede(q);
+    if (version === null) return;
 
     this.setState({ ...this.state, query: q, status: 'loading' });
     this.debounceTimer = setTimeout(() => {
       this.debounceTimer = null;
       void this.runSearch(q, filters, version);
     }, DEBOUNCE_MS);
+  }
+
+  /** Enter: runs the search immediately, skipping the debounce; the minimum length still applies. */
+  searchNow(q: string, filters: SearchFilters = {}): void {
+    const version = this.supersede(q);
+    if (version === null) return;
+
+    this.setState({ ...this.state, query: q, status: 'loading' });
+    void this.runSearch(q, filters, version);
+  }
+
+  /**
+   * Cancels the pending debounce and the running request. A filter change keeps
+   * the text the same, so the running request must be superseded here, not only
+   * once the debounce for the new one fires. Returns the new request version, or
+   * `null` (after going idle) when the query is below the minimum length.
+   */
+  private supersede(q: string): number | null {
+    this.cancelPendingDebounce();
+    const version = ++this.requestVersion;
+    this.abortController?.abort();
+    this.abortController = null;
+
+    if (q.trim().length < MIN_QUERY_LENGTH) {
+      this.setState({ status: 'idle', query: q, results: [], errorKey: null });
+      return null;
+    }
+    return version;
   }
 
   dispose(): void {

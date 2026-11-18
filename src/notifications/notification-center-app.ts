@@ -4,7 +4,7 @@ import { SOCKET_EVENT, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
 import { getAutoOpenGmSuggestions } from '../settings';
 import { notificationStore } from './notification-store';
-import { openDocumentViewer } from '../apps/viewer-app';
+import { notificationAtlasTarget, openInAtlas } from '../links/open-in-atlas';
 import { atlasCampaignDashboardUrl } from '../deep-links';
 import type { AtlasMessage } from '../atlas-types';
 
@@ -80,7 +80,7 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
 
     root.innerHTML = `
       <header class="atlas-foundry-notification-center-header">
-        <div class="atlas-foundry-quest-panel-filters">
+        <div class="atlas-foundry-notification-center-filters">
           ${(['unread', 'all'] as ListFilter[])
             .map(
               (f) =>
@@ -127,7 +127,7 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
         ${!item.isRead ? '<span class="atlas-foundry-notification-item-dot"></span>' : ''}
       </div>
       <div class="atlas-foundry-notification-item-actions">
-        ${!item.isRead ? `<button type="button" data-action="read" title="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Notifications.MarkRead'))}"><i class="fa-solid fa-check"></i></button>` : ''}
+        ${!item.isRead ? `<button type="button" class="atlas-foundry-acknowledge" data-action="read"><i class="fa-solid fa-check"></i> ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Notifications.MarkRead'))}</button>` : ''}
         <button type="button" data-action="dismiss" title="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Links.Remove'))}"><i class="fa-solid fa-xmark"></i></button>
         ${canBroadcast ? `<button type="button" data-action="broadcast" title="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Notifications.Broadcast'))}"><i class="fa-solid fa-tower-broadcast"></i></button>` : ''}
       </div>
@@ -169,10 +169,10 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
   }
 
   private openItem(item: AtlasMessage): void {
-    if (!item.isRead) void notificationStore.markRead(item.id);
-
-    if (item.documentId && item.documentModuleType) {
-      openDocumentViewer({ moduleType: item.documentModuleType, documentId: item.documentId, name: item.documentName });
+    // Opening an item never acknowledges it; that is the explicit "Acknowledge" button.
+    const target = notificationAtlasTarget(item);
+    if (target.kind === 'document') {
+      void openInAtlas(target.ref);
       return;
     }
     // No appointment/conversation reference fields exist on Message yet
@@ -262,7 +262,7 @@ export function registerGmBroadcastReceiver(): void {
     const payload = data as { type?: string; moduleType?: ModuleType | 'custom'; documentId?: string; documentName?: string } | null;
     if (payload?.type !== 'suggest-open' || !payload.moduleType || !payload.documentId) return;
 
-    const openIt = () => openDocumentViewer({ moduleType: payload.moduleType!, documentId: payload.documentId!, name: payload.documentName });
+    const openIt = () => void openInAtlas({ moduleType: payload.moduleType!, documentId: payload.documentId! });
 
     if (getAutoOpenGmSuggestions()) {
       openIt();

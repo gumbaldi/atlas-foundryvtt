@@ -22,8 +22,8 @@
       },
       "BaseUrlMissingScheme": "The base URL is missing http:// or https:// — connections will fail until it's added.",
       "ShowSceneLinks": {
-        "Name": "Show scene links bar",
-        "Hint": "Toggles the Atlas links bar at the top of the canvas."
+        "Name": "Scene links bar expanded",
+        "Hint": "Expands or collapses the Atlas links bar at the top of the canvas. Collapsed, a small pill with the number of links stays visible."
       },
       "QuietMode": {
         "Name": "Quiet notifications",
@@ -34,8 +34,8 @@
         "Hint": "Opens the viewer automatically when the GM wants to show you a document, instead of a confirmation toast."
       },
       "ShowBell": {
-        "Name": "Show bell",
-        "Hint": "Toggles the notification bell next to the player list. The center stays reachable via the scene controls."
+        "Name": "Show the notification bell when there are unread notifications",
+        "Hint": "The bell appears at the top right next to the sidebar while notifications are unread. Turn it off to hide it entirely; the center stays reachable via the scene controls."
       },
       "AtlasUrl": {
         "Name": "Atlas URL",
@@ -65,13 +65,22 @@
       "Title": "Atlas Search",
       "Placeholder": "Search Atlas documents…",
       "NameOnly": "Names only",
+      "Types": "Types ({count})",
+      "AllTypes": "All types",
+      "FilterAll": "All",
+      "FilterNone": "None",
+      "Recent": "Recent searches",
+      "RecentClear": "Clear",
       "MinLength": "Type at least 2 characters to search.",
       "Searching": "Searching…",
       "NoResults": "Nothing found — you may not have access to matching documents.",
       "ResultCount": "{count} result(s)",
       "PermissionHint": "Results match your Atlas permissions.",
       "CustomModule": "Custom module",
-      "LinkAction": "Attach to a Foundry object…",
+      "Link": "Link…",
+      "UseAsTarget": "Use as target",
+      "EnlargeImage": "Click to enlarge",
+      "FocusHint": "Select a result to see the document here.",
       "KeybindingName": "Open Atlas Search"
     },
     "Viewer": {
@@ -79,7 +88,6 @@
       "Loading": "Loading…",
       "Unavailable": "This document is not available.",
       "Retry": "Retry",
-      "Refresh": "Refresh",
       "OpenInAtlas": "Open in Atlas",
       "RestrictedBadge": "Restricted",
       "UpdatedAt": "Last updated {date}",
@@ -122,7 +130,8 @@
       "LoggedOut": "Not connected — sign-in required.",
       "Linking": "Connecting…",
       "Connected": "Connected as {displayName} ({campaignName})",
-      "Reconnecting": "Reconnecting…",
+      "Connecting": "Connecting…",
+      "ConnectedNoLive": "Connected, live updates unavailable",
       "Revoked": "Link expired or revoked — sign in again.",
       "WorldMismatch": "This link belongs to a different Foundry world — sign in again.",
       "CampaignMismatch": "This sign-in belongs to a different campaign than this world — connect again."
@@ -133,6 +142,7 @@
       "Cancel": "Cancel",
       "PopupBlocked": "Your browser blocked the new tab — use \"Open Atlas again\" below to confirm the connection.",
       "StartFailed": "Could not start the Atlas login. Check the base URL in the settings and try again.",
+      "CampaignAliasUnknown": "Atlas has no campaign with the alias \"{slug}\". Check the Atlas URL in the settings.",
       "PollFailed": "Something went wrong while waiting for confirmation. Please try again.",
       "Denied": "The login was declined in Atlas.",
       "Expired": "The code expired before it was confirmed. Try connecting again.",
@@ -166,20 +176,20 @@
       "PickTargetSheet": "Open window: {name}",
       "NoTargets": "No target available — select a scene, a token, or open a sheet.",
       "Added": "\"{name}\" was linked.",
-      "SceneControlTool": "Scene's Atlas Links"
+      "SceneControlTool": "Scene's Atlas Links",
+      "ToggleBar": "Show scene links",
+      "Collapse": "Collapse links",
+      "ExpandPill": "Show {count} links",
+      "OverflowTitle": "{count} more links",
+      "OpenUnavailable": "This document could not be opened in Atlas — it may no longer exist or you may not have access."
     },
     "Quests": {
-      "Title": "Atlas Quests",
-      "ControlTool": "Atlas Quests",
-      "KeybindingName": "Open Atlas Quests",
-      "Filter": {
-        "open": "Open",
-        "completed": "Completed",
-        "failed": "Failed",
-        "all": "All"
-      },
-      "Empty": "No quests in this campaign.",
-      "GmOnlyHint": "Not visible to players"
+      "ToggleTool": "Show quest tracker",
+      "KeybindingName": "Toggle Atlas quest tracker",
+      "Collapse": "Collapse quest tracker",
+      "ExpandPill": "Show {count} quests",
+      "More": "+{count} more",
+      "AllInAtlas": "All quests in Atlas"
     },
     "Notifications": {
       "Title": "Atlas Notifications",
@@ -188,11 +198,11 @@
         "unread": "Unread",
         "all": "All"
       },
-      "MarkAllRead": "Mark all read",
-      "MarkAllReadManyHint": "Marking {count} notifications read one by one — this may take a moment.",
+      "MarkAllRead": "Acknowledge all",
+      "MarkAllReadManyHint": "Acknowledging {count} notifications one by one — this may take a moment.",
       "Empty": "No notifications.",
       "NoSubject": "Notification",
-      "MarkRead": "Mark as read",
+      "MarkRead": "Acknowledge",
       "Broadcast": "Show to all players",
       "BroadcastSent": "Suggestion sent to all players.",
       "SuggestOpenToast": "The GM wants to show you \"{name}\".",

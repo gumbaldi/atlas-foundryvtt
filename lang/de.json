@@ -22,8 +22,8 @@
       },
       "BaseUrlMissingScheme": "Der Basis-URL fehlt http:// oder https:// — Verbindungen schlagen fehl, bis das ergänzt wird.",
       "ShowSceneLinks": {
-        "Name": "Szenen-Verknüpfungsleiste anzeigen",
-        "Hint": "Blendet die Leiste mit Atlas-Verknüpfungen am oberen Canvas-Rand ein oder aus."
+        "Name": "Szenen-Verknüpfungsleiste ausgeklappt",
+        "Hint": "Klappt die Leiste mit Atlas-Verknüpfungen am oberen Canvas-Rand auf oder zu. Zugeklappt bleibt eine kleine Pille mit der Anzahl der Verknüpfungen sichtbar."
       },
       "QuietMode": {
         "Name": "Benachrichtigungen stumm",
@@ -34,8 +34,8 @@
         "Hint": "Öffnet den Viewer automatisch, wenn der Spielleiter ein Dokument zeigen möchte, statt einen Bestätigungs-Toast anzuzeigen."
       },
       "ShowBell": {
-        "Name": "Glocke anzeigen",
-        "Hint": "Blendet die Benachrichtigungs-Glocke neben der Spielerliste ein oder aus. Das Center bleibt über die Szenensteuerung erreichbar."
+        "Name": "Benachrichtigungs-Glocke bei ungelesenen Benachrichtigungen anzeigen",
+        "Hint": "Die Glocke erscheint oben rechts neben der Seitenleiste, solange Benachrichtigungen ungelesen sind. Ausgeschaltet bleibt sie ganz verborgen; das Center bleibt über die Szenensteuerung erreichbar."
       },
       "AtlasUrl": {
         "Name": "Atlas-URL",
@@ -65,13 +65,22 @@
       "Title": "Atlas-Suche",
       "Placeholder": "Atlas-Dokumente durchsuchen…",
       "NameOnly": "Nur Namen",
+      "Types": "Typen ({count})",
+      "AllTypes": "Alle Typen",
+      "FilterAll": "Alle",
+      "FilterNone": "Keine",
+      "Recent": "Letzte Suchen",
+      "RecentClear": "Leeren",
       "MinLength": "Gib mindestens 2 Zeichen ein, um zu suchen.",
       "Searching": "Suche läuft…",
       "NoResults": "Nichts gefunden — möglicherweise fehlt dir die Freigabe für passende Dokumente.",
       "ResultCount": "{count} Treffer",
       "PermissionHint": "Ergebnisse entsprechen deinen Atlas-Berechtigungen.",
       "CustomModule": "Custom-Modul",
-      "LinkAction": "An Foundry-Objekt anhängen…",
+      "Link": "Verknüpfen…",
+      "UseAsTarget": "Als Ziel verwenden",
+      "EnlargeImage": "Zum Vergrößern anklicken",
+      "FocusHint": "Wähle ein Ergebnis, um das Dokument hier zu sehen.",
       "KeybindingName": "Atlas-Suche öffnen"
     },
     "Viewer": {
@@ -79,7 +88,6 @@
       "Loading": "Lädt…",
       "Unavailable": "Dieses Dokument ist nicht verfügbar.",
       "Retry": "Erneut versuchen",
-      "Refresh": "Aktualisieren",
       "OpenInAtlas": "In Atlas öffnen",
       "RestrictedBadge": "Eingeschränkt",
       "UpdatedAt": "Zuletzt aktualisiert am {date}",
@@ -122,7 +130,8 @@
       "LoggedOut": "Nicht verbunden — Login erforderlich.",
       "Linking": "Verbindung wird hergestellt…",
       "Connected": "Verbunden als {displayName} ({campaignName})",
-      "Reconnecting": "Verbindung wird wiederhergestellt…",
+      "Connecting": "Verbindung wird aufgebaut…",
+      "ConnectedNoLive": "Verbunden, Live-Updates nicht verfügbar",
       "Revoked": "Verknüpfung abgelaufen oder widerrufen — neu anmelden.",
       "WorldMismatch": "Diese Verknüpfung gehört zu einer anderen Foundry-Welt — neu anmelden.",
       "CampaignMismatch": "Diese Anmeldung gehört zu einer anderen Kampagne als diese Welt — bitte neu verbinden."
@@ -133,6 +142,7 @@
       "Cancel": "Abbrechen",
       "PopupBlocked": "Dein Browser hat den neuen Tab blockiert — nutze unten „Atlas erneut öffnen“, um die Verbindung zu bestätigen.",
       "StartFailed": "Der Atlas-Login konnte nicht gestartet werden. Prüfe die Basis-URL in den Einstellungen und versuche es erneut.",
+      "CampaignAliasUnknown": "In Atlas gibt es keine Kampagne mit dem Alias „{slug}“. Prüfe die Atlas-URL in den Einstellungen.",
       "PollFailed": "Beim Warten auf die Bestätigung ist etwas schiefgelaufen. Bitte versuche es erneut.",
       "Denied": "Der Login wurde in Atlas abgelehnt.",
       "Expired": "Der Code ist abgelaufen, bevor er bestätigt wurde. Verbinde dich erneut.",
@@ -166,20 +176,20 @@
       "PickTargetSheet": "Offenes Fenster: {name}",
       "NoTargets": "Kein Ziel verfügbar — wähle eine Szene, ein Token oder öffne ein Sheet.",
       "Added": "„{name}“ wurde verknüpft.",
-      "SceneControlTool": "Atlas-Verknüpfungen der Szene"
+      "SceneControlTool": "Atlas-Verknüpfungen der Szene",
+      "ToggleBar": "Szenen-Verknüpfungen anzeigen",
+      "Collapse": "Verknüpfungen zuklappen",
+      "ExpandPill": "{count} Verknüpfungen anzeigen",
+      "OverflowTitle": "{count} weitere Verknüpfungen",
+      "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff."
     },
     "Quests": {
-      "Title": "Atlas-Quests",
-      "ControlTool": "Atlas-Quests",
-      "KeybindingName": "Atlas-Quests öffnen",
-      "Filter": {
-        "open": "Offen",
-        "completed": "Abgeschlossen",
-        "failed": "Gescheitert",
-        "all": "Alle"
-      },
-      "Empty": "Keine Quests in dieser Kampagne.",
-      "GmOnlyHint": "Für Spieler nicht sichtbar"
+      "ToggleTool": "Quest-Tracker anzeigen",
+      "KeybindingName": "Atlas-Quest-Tracker ein-/ausklappen",
+      "Collapse": "Quest-Tracker zuklappen",
+      "ExpandPill": "{count} Quests anzeigen",
+      "More": "+{count} weitere",
+      "AllInAtlas": "Alle Quests in Atlas"
     },
     "Notifications": {
       "Title": "Atlas-Benachrichtigungen",
@@ -188,11 +198,11 @@
         "unread": "Ungelesen",
         "all": "Alle"
       },
-      "MarkAllRead": "Alle als gelesen",
-      "MarkAllReadManyHint": "{count} Benachrichtigungen werden einzeln als gelesen markiert — das kann einen Moment dauern.",
+      "MarkAllRead": "Alle bestätigen",
+      "MarkAllReadManyHint": "{count} Benachrichtigungen werden einzeln bestätigt — das kann einen Moment dauern.",
       "Empty": "Keine Benachrichtigungen.",
       "NoSubject": "Benachrichtigung",
-      "MarkRead": "Als gelesen markieren",
+      "MarkRead": "Bestätigen",
       "Broadcast": "Allen Spielern zeigen",
       "BroadcastSent": "Vorschlag an alle Spieler gesendet.",
       "SuggestOpenToast": "Der Spielleiter möchte dir „{name}“ zeigen.",

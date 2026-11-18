@@ -9,7 +9,7 @@ import { registerLinkEntryPoints } from './links/link-entry-points';
 import { registerSceneLinksBar, renderSceneLinksBarNow } from './links/scene-links-bar';
 import { registerTokenHud } from './links/token-hud';
 import { pickLinkTarget } from './links/link-pick-target';
-import { openQuestPanel, registerQuestPanel } from './quests/quest-panel-app';
+import { registerQuestTracker, toggleQuestTracker } from './quests/quest-tracker';
 import { notificationStore } from './notifications/notification-store';
 import { registerBell } from './notifications/bell';
 import { openNotificationCenter, registerGmBroadcastReceiver, registerNotificationsControl } from './notifications/notification-center-app';
@@ -28,8 +28,8 @@ declare global {
     pickTarget?: (result: AtlasSearchResult) => void;
     /** Debug entry point for exercising the P5 picker contract from the console: `await AtlasFoundry.pickDocument()`. */
     pickDocument: (title?: string) => Promise<AtlasSearchResult | null>;
-    /** Opens the P7 quest panel — same entry point as the scene-controls tool. */
-    openQuests: () => void;
+    /** Expands or collapses the quest tracker — same switch as the scene-controls tool. */
+    toggleQuestTracker: () => Promise<boolean>;
     /** Opens the P8 notification center — same entry point as the bell/scene-controls tool. */
     openNotifications: () => void;
   };
@@ -70,7 +70,7 @@ function registerQuestsKeybinding(): void {
     name: 'ATLASFOUNDRY.Quests.KeybindingName',
     editable: [{ key: 'KeyQ', modifiers: ['Control', 'Shift'] }],
     onDown: () => {
-      openQuestPanel();
+      void toggleQuestTracker();
       return true;
     },
   });
@@ -96,7 +96,7 @@ Hooks.once('init', () => {
   registerLinkEntryPoints();
   registerSceneLinksBar();
   registerTokenHud();
-  registerQuestPanel();
+  registerQuestTracker();
   registerNotificationsControl();
 });
 
@@ -118,6 +118,6 @@ globalThis.AtlasFoundry = {
   logout: () => authManager.logout(),
   pickTarget: (result) => void pickLinkTarget(result),
   pickDocument: (title?: string) => SearchApp.pick({ title }),
-  openQuests: openQuestPanel,
+  toggleQuestTracker,
   openNotifications: openNotificationCenter,
 };

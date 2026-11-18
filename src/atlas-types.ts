@@ -142,10 +142,12 @@ export const AtlasQuestSchema = z.object({
   isGmOnly: z.boolean(),
   characterIds: z.array(z.string()),
   locationIds: z.array(z.string()),
+  /** Not sent by the backend yet; see the quest tracker's selection rule. */
+  isPinned: z.boolean().optional(),
   updatedAt: z.string(),
   createdAt: z.string(),
 });
-export type AtlasQuest = z.infer<typeof AtlasQuestSchema>;
+export type AtlasQuest= z.infer<typeof AtlasQuestSchema>;
 
 export const AtlasQuestRefSchema = z.object({
   id: z.string(),

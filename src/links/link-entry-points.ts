@@ -2,6 +2,7 @@ import { ensureAtlasGroup } from '../controls';
 import { openLinkManager } from './link-manager-app';
 import { openLinksPopover } from './link-popover';
 import { getLinks } from './link-store';
+import { getShowSceneLinks, setShowSceneLinks } from '../settings';
 
 interface ApplicationV2HeaderControl {
   icon: string;
@@ -99,7 +100,29 @@ function registerActiveSceneControlTool(): void {
   });
 }
 
+/**
+ * Toggle in the Atlas group (every user) that expands/collapses the scene
+ * link bar. The state is the client setting `showSceneLinks`; whenever it
+ * changes elsewhere (pill, collapse button, settings screen) the controls are
+ * re-rendered so the toggle follows.
+ */
+function registerLinksToggle(): void {
+  Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+    ensureAtlasGroup(controls).atlasLinksToggle = {
+      name: 'atlasLinksToggle',
+      title: 'ATLASFOUNDRY.Links.ToggleBar',
+      icon: 'fa-solid fa-link',
+      toggle: true,
+      active: getShowSceneLinks(),
+      order: 102,
+      onChange: (_event: unknown, active: boolean) => void setShowSceneLinks(active),
+    };
+  });
+  Hooks.on('atlas-foundry.showSceneLinksChanged', () => void ui.controls?.render());
+}
+
 export function registerLinkEntryPoints(): void {
+  registerLinksToggle();
   registerSheetHeaderButtons();
   registerSceneContextMenu();
   registerActiveSceneControlTool();

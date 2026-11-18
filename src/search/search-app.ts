@@ -1,20 +1,16 @@
 import { t } from '../i18n';
-import { MODULE_TYPES, MODULE_TYPE_ICONS, type ModuleType } from '../constants';
+import { MODULE_TYPES, type ModuleType } from '../constants';
+import { safeImageUrl } from '../render/image-url';
+import { getTypeStyle } from './type-style';
+import { highlightTerms } from './highlight';
 import { authManager } from '../auth/auth-manager';
 import { openLoginDialog } from '../auth/login-app';
-import { getCampaignId } from '../settings';
-import { atlasDocumentUrl } from '../deep-links';
-import { openDocumentViewer } from '../apps/viewer-app';
+import { getBaseUrl, getCampaignId } from '../settings';
+import { openInAtlas } from '../links/open-in-atlas';
 import { SearchController, type SearchControllerState } from './search-controller';
+import { renderFocusPane, renderFocusPaneHint } from './focus-pane';
+import { clearRecentSearches, getRecentSearches, saveRecentSearch } from './recent-searches';
 import type { AtlasSearchResult } from '../atlas-types';
-
-/**
- * "Verknüpfen…" (attach an Atlas result to a Foundry object) — P5's
- * feature, wired to `AtlasFoundry.pickTarget` (link-pick-target.ts). Link
- * management is GM-only (see plan's Auth-/Berechtigungsanforderungen), so
- * the button itself only ever renders for a GM.
- */
-const LINKING_ENABLED = true;
 
 export interface SearchAppOptions {
   title?: string;
@@ -25,6 +21,8 @@ let activeSearchApp: SearchApp | null = null;
 
 export function openSearch(): void {
   if (activeSearchApp) {
+    if (activeSearchApp.minimized) void activeSearchApp.maximize();
+    void activeSearchApp.render({ force: true });
     activeSearchApp.bringToFront();
     return;
   }
@@ -37,10 +35,10 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     id: 'atlas-search',
     classes: ['atlas-foundry', 'atlas-foundry-search'],
     window: { title: 'ATLASFOUNDRY.Search.Title', icon: 'fa-solid fa-search', resizable: true },
-    position: { width: 560, height: 640 },
+    position: { width: 960, height: 640 },
   };
 
-  /** Reused as the P5 link-picker (plan step 5/7): resolves with the chosen result instead of opening a viewer. */
+  /** Reused as the P5 link-picker (plan step 5/7): resolves with the result confirmed via "Use as target". */
   static pick(options: { title?: string } = {}): Promise<AtlasSearchResult | null> {
     return new Promise((resolve) => {
       const app = new SearchApp({ title: options.title, pickMode: true });
@@ -55,7 +53,10 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
   private readonly selectedTypes = new Set<ModuleType>();
   private nameOnly = false;
   private selectedIndex = -1;
+  private selectedItem: AtlasSearchResult | null = null;
+  private cancelFocus: (() => void) | null = null;
   private rootElement: HTMLElement | null = null;
+  private closeFilterMenu: (() => void) | null = null;
 
   constructor(options: SearchAppOptions = {}) {
     super({ window: { title: options.title ?? 'ATLASFOUNDRY.Search.Title' } });
@@ -73,22 +74,36 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     }
 
     root.innerHTML = `
-      <div class="atlas-foundry-row">
-        <input type="search" name="q" autofocus placeholder="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.Placeholder'))}">
+      <div class="atlas-foundry-search-split">
+        <div class="atlas-foundry-search-column">
+          <div class="atlas-foundry-row">
+            <input type="search" name="q" autofocus placeholder="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.Placeholder'))}">
+          </div>
+          <div class="atlas-foundry-search-filters">
+            <div class="atlas-foundry-filter" data-filter>
+              <button type="button" class="atlas-foundry-filter-button" data-filter-button aria-haspopup="true" aria-expanded="false"></button>
+              <div class="atlas-foundry-filter-menu" data-filter-menu hidden>
+                <div class="atlas-foundry-filter-shortcuts">
+                  <button type="button" data-filter-all>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.FilterAll'))}</button>
+                  <button type="button" data-filter-none>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.FilterNone'))}</button>
+                </div>
+                ${MODULE_TYPES.map(
+                  (type) =>
+                    `<label class="atlas-foundry-filter-option"><input type="checkbox" data-type="${type}"> ${foundry.utils.escapeHTML(t(`ATLASFOUNDRY.ModuleTypes.${type}`))}</label>`,
+                ).join('')}
+              </div>
+            </div>
+            <label class="atlas-foundry-toggle">
+              <input type="checkbox" name="nameOnly">
+              ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.NameOnly'))}
+            </label>
+          </div>
+          <div class="atlas-foundry-status" data-status></div>
+          <div class="atlas-foundry-search-results" data-results></div>
+          <footer class="atlas-foundry-search-footer">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.PermissionHint'))}</footer>
+        </div>
+        <div class="atlas-foundry-focus" data-focus></div>
       </div>
-      <div class="atlas-foundry-search-chips" data-chips>
-        ${MODULE_TYPES.map(
-          (type) =>
-            `<button type="button" class="atlas-foundry-chip" data-type="${type}">${foundry.utils.escapeHTML(t(`ATLASFOUNDRY.ModuleTypes.${type}`))}</button>`,
-        ).join('')}
-      </div>
-      <label class="atlas-foundry-toggle">
-        <input type="checkbox" name="nameOnly">
-        ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.NameOnly'))}
-      </label>
-      <div class="atlas-foundry-status" data-status></div>
-      <div class="atlas-foundry-search-results" data-results></div>
-      <footer class="atlas-foundry-search-footer">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.PermissionHint'))}</footer>
     `;
     return root;
   }
@@ -104,15 +119,20 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
 
     this.wireSearchUi(content);
     this.onSearchStateChange(this.controller.getState());
+    this.showFocus();
   }
 
   protected _onClose(options?: Record<string, unknown>): void {
     if (activeSearchApp === this) activeSearchApp = null;
+    this.closeFilterMenu?.();
+    this.closeFilterMenu = null;
     if (this.resolvePick) {
       const resolve = this.resolvePick;
       this.resolvePick = null;
       resolve(null);
     }
+    this.cancelFocus?.();
+    this.cancelFocus = null;
     this.controller.dispose();
     super._onClose(options);
   }
@@ -138,15 +158,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     input?.addEventListener('keydown', (event) => this.handleKeydown(event as KeyboardEvent));
     input?.focus();
 
-    content.querySelectorAll<HTMLButtonElement>('[data-chips] [data-type]').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const type = chip.dataset.type as ModuleType;
-        if (this.selectedTypes.has(type)) this.selectedTypes.delete(type);
-        else this.selectedTypes.add(type);
-        chip.classList.toggle('active');
-        this.triggerSearch(input?.value ?? '');
-      });
-    });
+    this.wireFilterMenu(content, () => this.triggerSearch(input?.value ?? ''));
 
     content.querySelector<HTMLInputElement>('input[name="nameOnly"]')?.addEventListener('change', (event) => {
       this.nameOnly = (event.target as HTMLInputElement).checked;
@@ -154,8 +166,76 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     });
   }
 
+  /** Popover with one checkbox per document kind; an empty selection means "all types". */
+  private wireFilterMenu(content: HTMLElement, onChange: () => void): void {
+    this.closeFilterMenu?.();
+    const button = content.querySelector<HTMLButtonElement>('[data-filter-button]');
+    const menu = content.querySelector<HTMLElement>('[data-filter-menu]');
+    const wrapper = content.querySelector<HTMLElement>('[data-filter]');
+    if (!button || !menu || !wrapper) return;
+    const boxes = [...menu.querySelectorAll<HTMLInputElement>('input[data-type]')];
+
+    const refresh = (): void => {
+      const n = this.selectedTypes.size;
+      button.textContent = n === 0 || n === MODULE_TYPES.length ? t('ATLASFOUNDRY.Search.AllTypes') : t('ATLASFOUNDRY.Search.Types', { count: n });
+      for (const box of boxes) box.checked = this.selectedTypes.has(box.dataset.type as ModuleType);
+    };
+
+    const onPointerDown = (event: Event): void => {
+      if (!wrapper.contains(event.target as Node)) close();
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      // Esc closes the menu only; it must not also close the search window.
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+    };
+    const close = (): void => {
+      menu.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+    };
+    const open = (): void => {
+      menu.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+      document.addEventListener('pointerdown', onPointerDown, true);
+      document.addEventListener('keydown', onKeyDown, true);
+    };
+    this.closeFilterMenu = close;
+
+    button.addEventListener('click', () => (menu.hidden ? open() : close()));
+    for (const box of boxes) {
+      box.addEventListener('change', () => {
+        const type = box.dataset.type as ModuleType;
+        if (box.checked) this.selectedTypes.add(type);
+        else this.selectedTypes.delete(type);
+        refresh();
+        onChange();
+      });
+    }
+    menu.querySelector('[data-filter-all]')?.addEventListener('click', () => {
+      MODULE_TYPES.forEach((type) => this.selectedTypes.add(type));
+      refresh();
+      onChange();
+    });
+    menu.querySelector('[data-filter-none]')?.addEventListener('click', () => {
+      this.selectedTypes.clear();
+      refresh();
+      onChange();
+    });
+    refresh();
+  }
+
+  private searchFilters(): { types: ModuleType[]; nameOnly: boolean } {
+    // Every type selected is the same as no restriction; keep the request small.
+    const types = this.selectedTypes.size === MODULE_TYPES.length ? [] : [...this.selectedTypes];
+    return { types, nameOnly: this.nameOnly };
+  }
+
   private triggerSearch(q: string): void {
-    this.controller.update(q, { types: [...this.selectedTypes], nameOnly: this.nameOnly });
+    this.controller.update(q, this.searchFilters());
   }
 
   private handleKeydown(event: KeyboardEvent): void {
@@ -170,27 +250,74 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       if (!state.results.length) return;
-      this.selectedIndex = Math.min(this.selectedIndex + 1, state.results.length - 1);
-      this.updateSelectionHighlight();
+      this.selectIndex(Math.min(this.selectedIndex + 1, state.results.length - 1));
       return;
     }
     if (event.key === 'ArrowUp') {
       event.preventDefault();
       if (!state.results.length) return;
-      this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
-      this.updateSelectionHighlight();
+      this.selectIndex(Math.max(this.selectedIndex - 1, 0));
       return;
     }
     if (event.key === 'Enter') {
       event.preventDefault();
-      const item = state.results[this.selectedIndex];
-      if (item) this.activateResult(item, this.selectedIndex);
+      if (event.ctrlKey || event.metaKey) {
+        if (this.selectedItem) {
+          void openInAtlas({ moduleType: this.selectedItem.moduleType, documentId: this.selectedItem.id, customModuleId: this.selectedItem.customModuleId });
+        }
+        return;
+      }
+      // Enter only searches (no debounce); it never opens a hit.
+      const value = (event.target as HTMLInputElement).value;
+      void saveRecentSearch(value).catch(() => undefined);
+      this.controller.searchNow(value, this.searchFilters());
     }
   }
 
   private onSearchStateChange(state: SearchControllerState): void {
-    this.selectedIndex = state.results.length ? 0 : -1;
+    if (state.status === 'done') {
+      // Keep the selection only while the selected hit is still in the new list.
+      const keep = this.selectedItem ? state.results.findIndex((r) => r.id === this.selectedItem!.id && r.moduleType === this.selectedItem!.moduleType) : -1;
+      if (keep >= 0) this.selectedIndex = keep;
+      else this.clearSelection();
+    } else if (state.status !== 'loading') {
+      this.clearSelection();
+    }
     this.renderResults(state);
+  }
+
+  private clearSelection(): void {
+    const hadSelection = this.selectedItem !== null;
+    this.selectedIndex = -1;
+    this.selectedItem = null;
+    if (hadSelection) this.showFocus();
+  }
+
+  private selectIndex(index: number): void {
+    const item = this.controller.getState().results[index];
+    if (!item) return;
+    this.selectedIndex = index;
+    this.selectedItem = item;
+    void saveRecentSearch(this.controller.getState().query).catch(() => undefined);
+    this.updateSelectionHighlight();
+    this.showFocus();
+  }
+
+  /** Loads the selected hit into the focus pane; an earlier, slower load is cancelled first. */
+  private showFocus(): void {
+    this.cancelFocus?.();
+    this.cancelFocus = null;
+    const container = this.rootElement?.querySelector<HTMLElement>('[data-focus]');
+    if (!container) return;
+    if (!this.selectedItem) {
+      renderFocusPaneHint(container);
+      return;
+    }
+    this.cancelFocus = renderFocusPane(container, this.selectedItem, {
+      pickMode: this.pickMode,
+      onUseAsTarget: (item) => this.resolveAndClose(item),
+      onLink: (item) => globalThis.AtlasFoundry.pickTarget?.(item),
+    });
   }
 
   private renderResults(state: SearchControllerState): void {
@@ -201,6 +328,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     if (state.status === 'idle') {
       status.textContent = t('ATLASFOUNDRY.Search.MinLength');
       results.replaceChildren();
+      this.renderRecent(results);
       return;
     }
     if (state.status === 'loading') {
@@ -217,50 +345,90 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
       ? t('ATLASFOUNDRY.Search.ResultCount', { count: state.results.length })
       : t('ATLASFOUNDRY.Search.NoResults');
     results.replaceChildren();
-    state.results.forEach((item, index) => results.appendChild(this.renderResultCard(item, index)));
+    state.results.forEach((item, index) => results.appendChild(this.renderResultCard(item, index, state.query)));
     this.updateSelectionHighlight();
   }
 
-  private renderResultCard(item: AtlasSearchResult, index: number): HTMLElement {
+  /** Last typed searches as quick choices while the query is empty or too short. */
+  private renderRecent(container: HTMLElement): void {
+    const recent = getRecentSearches();
+    if (!recent.length) return;
+
+    const box = document.createElement('div');
+    box.className = 'atlas-foundry-recent';
+    const header = document.createElement('div');
+    header.className = 'atlas-foundry-recent-header';
+    const title = document.createElement('strong');
+    title.textContent = t('ATLASFOUNDRY.Search.Recent');
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.textContent = t('ATLASFOUNDRY.Search.RecentClear');
+    clear.addEventListener('click', () => {
+      void clearRecentSearches()
+        .catch(() => undefined)
+        .then(() => this.renderResults(this.controller.getState()));
+    });
+    header.append(title, clear);
+    box.appendChild(header);
+
+    for (const query of recent) {
+      const entry = document.createElement('button');
+      entry.type = 'button';
+      entry.className = 'atlas-foundry-recent-entry';
+      entry.textContent = query;
+      entry.addEventListener('click', () => {
+        const input = this.rootElement?.querySelector<HTMLInputElement>('input[name="q"]');
+        if (input) {
+          input.value = query;
+          input.focus();
+        }
+        this.controller.searchNow(query, this.searchFilters());
+      });
+      box.appendChild(entry);
+    }
+    container.appendChild(box);
+  }
+
+  private renderResultCard(item: AtlasSearchResult, index: number, query: string): HTMLElement {
     const card = document.createElement('div');
     card.className = 'atlas-foundry-search-card';
     card.dataset.index = String(index);
 
-    const icon = item.moduleType === 'custom' ? 'fa-solid fa-puzzle-piece' : MODULE_TYPE_ICONS[item.moduleType];
+    const style = getTypeStyle(item.moduleType);
+    card.style.setProperty('--atlas-type-color', style.color);
     const typeLabel =
       item.moduleType === 'custom' ? (item.customModuleLabel ?? t('ATLASFOUNDRY.Search.CustomModule')) : t(`ATLASFOUNDRY.ModuleTypes.${item.moduleType}`);
-    // entryPlainText is plain text, not HTML (see search.service.ts's extractSnippet) —
-    // escaped for safe innerHTML insertion, not run through the P4 HTML sanitizer,
-    // which expects markup and would be the wrong tool for content that has none.
-    const snippet = item.entryPlainText ? foundry.utils.escapeHTML(item.entryPlainText) : '';
+    // entryPlainText is plain text, not HTML (see search.service.ts's extractSnippet);
+    // highlightTerms escapes it before marking, so it is safe for innerHTML.
+    const snippet = item.entryPlainText ? highlightTerms(item.entryPlainText, query) : '';
 
     card.innerHTML = `
+      <span class="atlas-foundry-search-card-thumb" data-thumb><i class="${style.icon}"></i></span>
       <div class="atlas-foundry-search-card-main">
-        <strong><i class="${icon}"></i> ${foundry.utils.escapeHTML(item.name)}${item.postTitle ? ` — ${foundry.utils.escapeHTML(item.postTitle)}` : ''}</strong>
-        <span class="atlas-foundry-search-card-type">${foundry.utils.escapeHTML(typeLabel)}</span>
+        <strong>${foundry.utils.escapeHTML(item.name)}${item.postTitle ? ` — ${foundry.utils.escapeHTML(item.postTitle)}` : ''}</strong>
+        <span class="atlas-foundry-search-card-type"><i class="${style.icon}"></i> ${foundry.utils.escapeHTML(typeLabel)}</span>
         ${snippet ? `<p class="atlas-foundry-search-card-snippet">${snippet}</p>` : ''}
         ${item.tags.length ? `<div class="atlas-foundry-search-card-badges">${item.tags.map((tag) => `<span class="atlas-foundry-tag">${foundry.utils.escapeHTML(tag)}</span>`).join('')}</div>` : ''}
       </div>
-      <div class="atlas-foundry-search-card-actions">
-        <button type="button" data-action="open-atlas" title="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Viewer.OpenInAtlas'))}"><i class="fa-solid fa-up-right-from-square"></i></button>
-        ${LINKING_ENABLED && game.user.isGM ? `<button type="button" data-action="link" title="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.LinkAction'))}"><i class="fa-solid fa-link"></i></button>` : ''}
-      </div>
     `;
 
-    card.addEventListener('click', (event) => {
-      if ((event.target as HTMLElement).closest('[data-action]')) return;
-      this.activateResult(item, index);
-    });
-    card.querySelector('[data-action="open-atlas"]')?.addEventListener('click', (event) => {
-      event.stopPropagation();
-      this.openInAtlas(item);
-    });
-    if (LINKING_ENABLED && game.user.isGM) {
-      card.querySelector('[data-action="link"]')?.addEventListener('click', (event) => {
-        event.stopPropagation();
-        globalThis.AtlasFoundry.pickTarget?.(item);
-      });
+    // The backend may not fill imageUrl; without one (or when it fails to load) the
+    // coloured icon tile stays. The image carries no data-action: clicking it only
+    // selects the card, it never opens anything.
+    const src = safeImageUrl(item.imageUrl ?? undefined, getBaseUrl());
+    const thumb = card.querySelector<HTMLElement>('[data-thumb]');
+    if (src && thumb) {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = '';
+      img.draggable = false;
+      img.addEventListener('load', () => thumb.classList.add('has-image'));
+      img.addEventListener('error', () => img.remove());
+      img.src = src;
+      thumb.appendChild(img);
     }
+
+    card.addEventListener('click', () => this.selectIndex(index));
 
     return card;
   }
@@ -272,26 +440,6 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
       card.classList.toggle('selected', Number((card as HTMLElement).dataset.index) === this.selectedIndex);
     });
     results.querySelector('.atlas-foundry-search-card.selected')?.scrollIntoView({ block: 'nearest' });
-  }
-
-  private activateResult(item: AtlasSearchResult, index: number): void {
-    this.selectedIndex = index;
-    if (this.pickMode) {
-      this.resolveAndClose(item);
-      return;
-    }
-    openDocumentViewer({ moduleType: item.moduleType, documentId: item.id, name: item.name });
-  }
-
-  private openInAtlas(item: AtlasSearchResult): void {
-    const campaignId = authManager.getLinkedCampaignId();
-    if (!campaignId) return;
-    const url =
-      item.moduleType === 'custom'
-        ? // Search results carry customModuleId directly (search.service.ts's DTO), unlike mentions.
-          atlasDocumentUrl(campaignId, 'custom', item.id, item.customModuleId!)
-        : atlasDocumentUrl(campaignId, item.moduleType, item.id);
-    window.open(url, '_blank');
   }
 
   private resolveAndClose(item: AtlasSearchResult | null): void {

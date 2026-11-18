@@ -10,6 +10,9 @@ export type SocketStatus = 'disconnected' | 'connecting' | 'connected' | 'degrad
  * replaces V1's GM-only, statically-authed socket, see plan A1/F7). The auth
  * callback re-runs `ensureAccessToken()` on every (re)connect attempt, so a
  * long-lived session survives the 15-minute JWT expiry without any timer.
+ * Uses the Socket.IO default transports (HTTP long-polling first, then an
+ * upgrade to WebSocket), so a proxy that blocks the WebSocket upgrade still
+ * yields a working live connection.
  */
 class AtlasSocket {
   private socket: Socket | null = null;
@@ -26,7 +29,6 @@ class AtlasSocket {
 
     this.setStatus('connecting');
     this.socket = io(`${baseUrl}/ws`, {
-      transports: ['websocket'],
       auth: (cb) => {
         authManager
           .ensureAccessToken()
@@ -38,8 +40,9 @@ class AtlasSocket {
     this.socket.on('connect', () => this.setStatus('connected'));
     this.socket.on('disconnect', () => this.setStatus('degraded'));
     this.socket.on('connect_error', (err: unknown) => {
+      // Log only when entering `degraded`, not on every reconnect attempt.
+      if (this.status !== 'degraded') log.warn('Atlas Foundry: socket connect_error', err);
       this.setStatus('degraded');
-      log.warn('Atlas Foundry: socket connect_error', err);
     });
     // Generic bridge so other modules (P4 cache-invalidation, P8 notifications)
     // can subscribe via Hooks instead of importing this module directly.

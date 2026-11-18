@@ -9,7 +9,7 @@ export interface StatusInfo {
   messageData?: Record<string, unknown>;
 }
 
-/** Shared by settings-app.ts and browser-app.ts so both status displays agree. */
+/** Status shown by settings-app.ts. */
 export function getConnectionStatus(): StatusInfo {
   const state = authManager.getState();
 
@@ -35,5 +35,9 @@ export function getConnectionStatus(): StatusInfo {
       messageData: { displayName: me?.displayName ?? '', campaignName: me?.campaignName ?? '' },
     };
   }
-  return { color: 'yellow', messageKey: 'ATLASFOUNDRY.Status.Reconnecting' };
+  // The REST connection works in every remaining state; only the live socket differs.
+  if (socketStatus === 'degraded') {
+    return { color: 'yellow', messageKey: 'ATLASFOUNDRY.Status.ConnectedNoLive' };
+  }
+  return { color: 'yellow', messageKey: 'ATLASFOUNDRY.Status.Connecting' };
 }

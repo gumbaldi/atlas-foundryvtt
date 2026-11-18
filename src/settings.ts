@@ -110,7 +110,7 @@ export function registerSettings(): void {
     type: String,
     default: '',
   });
-  // Client-scoped so each player can hide the overlay independently (plan P5 UI/UX note).
+  // Client-scoped so each player can fold the overlay away independently; true = expanded, false = collapsed to a counter pill.
   // config: true — shown in Foundry's own "Configure Settings" screen, no custom UI needed.
   game.settings.register(MODULE_ID, 'showSceneLinks', {
     name: 'ATLASFOUNDRY.Settings.ShowSceneLinks.Name',
@@ -121,13 +121,22 @@ export function registerSettings(): void {
     default: true,
     onChange: () => Hooks.callAll('atlas-foundry.showSceneLinksChanged'),
   });
-  // Client-scoped, no UI (config: false) — written by quest-panel-app.ts on
-  // close, read back on the next open so the panel reopens where it was left.
-  game.settings.register(MODULE_ID, 'questPanelPosition', {
+  // Client-scoped, no settings-screen entry (config: false) — toggled through the Atlas toolbar
+  // tool, the Ctrl+Shift+Q keybinding, or the tracker's own collapse button / pill.
+  game.settings.register(MODULE_ID, 'showQuestTracker', {
     scope: 'client',
     config: false,
-    type: Object,
-    default: {},
+    type: Boolean,
+    default: true,
+    onChange: () => Hooks.callAll('atlas-foundry.showQuestTrackerChanged'),
+  });
+  // Client-scoped list of the last typed search queries (text only, no document content);
+  // cleared on logout / session reset.
+  game.settings.register(MODULE_ID, 'recentSearches', {
+    scope: 'client',
+    config: false,
+    type: Array,
+    default: [],
   });
   // Client-scoped (plan P8 UI/UX note) — suppresses the "new notification"
   // toast only; the bell badge/count always stays accurate regardless.
@@ -239,19 +248,26 @@ export function getShowSceneLinks(): boolean {
   return game.settings.get<boolean>(MODULE_ID, 'showSceneLinks') ?? true;
 }
 
-export interface QuestPanelPosition {
-  top?: number;
-  left?: number;
-  width?: number;
-  height?: number;
+export function setShowSceneLinks(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showSceneLinks', value);
 }
 
-export function getQuestPanelPosition(): QuestPanelPosition {
-  return game.settings.get<QuestPanelPosition>(MODULE_ID, 'questPanelPosition') ?? {};
+/** Recent search texts; anything that is not an array of strings reads as empty. */
+export function getRecentSearchList(): string[] {
+  const value = game.settings.get<unknown>(MODULE_ID, 'recentSearches');
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
 }
 
-export async function setQuestPanelPosition(position: QuestPanelPosition): Promise<void> {
-  await game.settings.set(MODULE_ID, 'questPanelPosition', position);
+export function setRecentSearchList(list: string[]): Promise<string[]> {
+  return game.settings.set<string[]>(MODULE_ID, 'recentSearches', list);
+}
+
+export function getShowQuestTracker(): boolean {
+  return game.settings.get<boolean>(MODULE_ID, 'showQuestTracker') ?? true;
+}
+
+export function setShowQuestTracker(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showQuestTracker', value);
 }
 
 export function getQuietMode(): boolean {

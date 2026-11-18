@@ -1,3 +1,41 @@
+- batchNumber: 5
+  batch: 005-2026-11-18-foundry-ui-rework
+  branch: cfq/005-2026-11-18-foundry-ui-rework
+  base: cfq/004-2026-11-18-slug-check-after-login
+  started: 2026-11-19
+  status: done
+  finished: 2026-11-19
+  phases:
+    - phase: "01-atlas-group-icon-and-search-tool"
+      status: "green"
+      summary: "Atlas toolbar group uses fa-solid fa-book-atlas with no activeTool; openSearch() re-renders, un-minimizes and brings an already open search window to the front; custom icon CSS and SVG removed"
+    - phase: "02-honest-connection-status"
+      status: "green"
+      summary: "Honest connection states (Connecting / ConnectedNoLive) in the status helper, Socket.IO default transports with connect_error logged only on entering degraded, new lang keys, changelog line"
+    - phase: "03-open-in-atlas-helper"
+      status: "green"
+      summary: "openInAtlas/resolveAtlasUrl/notificationAtlasTarget helper; links, link manager and notifications open Atlas directly in a new tab"
+    - phase: "04-link-bar-redesign"
+      status: "green"
+      summary: "Compact thumbnailed link chips (cap 10, +N popover), collapse button and counter pill, atlasLinksToggle toolbar tool, safeImageUrl and resolveLinkThumbnails helpers"
+    - phase: "05-bell-and-acknowledgement"
+      status: "green"
+      summary: "Bell only for unread notifications in a new shared right-hand HUD column (src/hud-right.ts) with pulse and badge; explicit Acknowledge / Acknowledge all, opening an item no longer marks it read"
+    - phase: "06-quest-tracker"
+      status: "green"
+      summary: "Permanent collapsible quest tracker in the right HUD column replacing the quest window, with isPinned selection, toggle tool/setting/keybinding and Atlas deep links"
+    - phase: "07-search-split-view"
+      status: "green"
+      summary: "Search window as split view with focus pane, searchNow, image lightbox helper; detail window (viewer-app) removed"
+    - phase: "08-search-atlas-look"
+      status: "green"
+      summary: "Search hit cards with 48px thumbnail or coloured type-icon tile, type colour accent, highlighted 3-line excerpt (highlightTerms, getTypeStyle)"
+    - phase: "09-search-filter-and-recents"
+      status: "green"
+      summary: "Types filter popover replacing the chip row, recent searches (pure addRecent/clearRecent, recentSearches client setting, list in empty results area, cleared on session reset), CSS, lang en/de, changelog"
+    - phase: "10-release-wrap-up"
+      status: "green"
+      summary: "README, SMOKE-TEST and CHANGELOG describe the reworked UI; version raised to 0.4.0"
 - batchNumber: 4
   batch: 004-2026-11-18-slug-check-after-login
   branch: cfq/004-2026-11-18-slug-check-after-login

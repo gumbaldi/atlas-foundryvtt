@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { atlasCampaignDashboardUrl, atlasDocumentUrl, resolveLocale } from './deep-links';
+import { atlasCampaignDashboardUrl, atlasDocumentUrl, atlasQuestsUrl, resolveLocale } from './deep-links';
 
 function mockGame(lang: string, baseUrl: string) {
   globalThis.game = {
@@ -48,6 +48,15 @@ describe('atlasDocumentUrl', () => {
     expect(atlasDocumentUrl('camp-1', 'custom', 'doc-3', 'module-9')).toBe(
       'https://atlas.example.com/en/campaigns/camp-1/custom/module-9/doc-3',
     );
+  });
+});
+
+describe('atlasQuestsUrl', () => {
+  it('builds the quest list link with the resolved locale', () => {
+    mockGame('de', 'https://atlas.example.com');
+    expect(atlasQuestsUrl('camp-1')).toBe('https://atlas.example.com/de/campaigns/camp-1/quests');
+    mockGame('en', 'https://atlas.example.com');
+    expect(atlasQuestsUrl('camp-1')).toBe('https://atlas.example.com/en/campaigns/camp-1/quests');
   });
 });
 

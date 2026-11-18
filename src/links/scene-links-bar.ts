@@ -1,15 +1,17 @@
 import { t } from '../i18n';
-import { MODULE_TYPE_ICONS } from '../constants';
+import { MODULE_TYPE_ICONS, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
-import { getShowSceneLinks } from '../settings';
+import { getDocument } from '../api/documents';
+import { safeImageUrl } from '../render/image-url';
+import { getBaseUrl, getShowSceneLinks, setShowSceneLinks } from '../settings';
 import { getLinks, removeLink, type AtlasLink } from './link-store';
 import { linkVisibility, toRefs } from './link-visibility';
 import { openLink } from './link-actions';
 import { openLinksPopover } from './link-popover';
+import { partitionChips, resolveLinkThumbnails } from './link-thumbnails';
 
 const BAR_ID = 'atlas-foundry-scene-links-bar';
-const MAX_VISIBLE_CHIPS = 6;
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 // Re-entrancy guard: canvasReady/updateScene/authChanged can all fire in a
@@ -27,6 +29,18 @@ function iconFor(moduleType: string): string {
 
 type ChipState = 'visible' | 'broken' | 'unknown';
 
+interface BuiltChip {
+  chip: HTMLElement;
+  /** Where the thumbnail goes once it resolves; holds the type icon until then (and again if the image fails). */
+  thumb: HTMLElement;
+}
+
+function setThumbIcon(thumb: HTMLElement, moduleType: string): void {
+  const icon = document.createElement('i');
+  icon.className = iconFor(moduleType);
+  thumb.replaceChildren(icon);
+}
+
 /**
  * `broken` (confirmed: the check ran and this ref wasn't returned — deleted
  * or otherwise gone) gets a GM-only remove shortcut. `unknown` (the check
@@ -34,13 +48,28 @@ type ChipState = 'visible' | 'broken' | 'unknown';
  * mere outage from an actually-deleted target (plan: GM sees "?", not a
  * false "delete this").
  */
-function buildChip(link: AtlasLink, name: string, state: ChipState): HTMLElement {
+function buildChip(link: AtlasLink, name: string, state: ChipState): BuiltChip {
+  const label = link.label ?? name;
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = `atlas-foundry-scene-link-chip atlas-foundry-scene-link-chip-${state}`;
-  chip.title = link.label ?? name;
-  const badge = state === 'unknown' ? '<i class="fa-solid fa-question"></i> ' : '';
-  chip.innerHTML = `${badge}<i class="${iconFor(link.moduleType)}"></i> <span>${foundry.utils.escapeHTML(link.label ?? name)}</span>`;
+  chip.title = label;
+
+  const thumb = document.createElement('span');
+  thumb.className = 'atlas-foundry-scene-link-thumb';
+  setThumbIcon(thumb, link.moduleType);
+  chip.appendChild(thumb);
+
+  if (state === 'unknown') {
+    const badge = document.createElement('i');
+    badge.className = 'fa-solid fa-question';
+    chip.appendChild(badge);
+  }
+
+  const text = document.createElement('span');
+  text.className = 'atlas-foundry-scene-link-label';
+  text.textContent = label;
+  chip.appendChild(text);
 
   if (state === 'broken') {
     const remove = document.createElement('span');
@@ -54,22 +83,67 @@ function buildChip(link: AtlasLink, name: string, state: ChipState): HTMLElement
       void removeLink(scene, link.id).then(() => void renderSceneLinksBar());
     });
     chip.appendChild(remove);
-    return chip;
+    return { chip, thumb };
   }
 
-  chip.addEventListener('click', (event) => {
-    openLink(link, { external: event.shiftKey || event.ctrlKey || event.metaKey, currentName: name });
-  });
-  return chip;
+  chip.addEventListener('click', () => openLink(link));
+  return { chip, thumb };
 }
 
 function buildOverflowChip(links: AtlasLink[]): HTMLElement {
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = 'atlas-foundry-scene-link-chip atlas-foundry-scene-link-chip-overflow';
+  chip.title = t('ATLASFOUNDRY.Links.OverflowTitle', { count: links.length });
   chip.textContent = `+${links.length}`;
   chip.addEventListener('click', () => void openLinksPopover(links, chip));
   return chip;
+}
+
+function buildCollapseButton(): HTMLElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'atlas-foundry-scene-links-collapse';
+  button.title = t('ATLASFOUNDRY.Links.Collapse');
+  button.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+  button.addEventListener('click', () => void setShowSceneLinks(false));
+  return button;
+}
+
+function buildPill(count: number): HTMLElement {
+  const pill = document.createElement('button');
+  pill.type = 'button';
+  pill.className = 'atlas-foundry-scene-links-pill';
+  pill.title = t('ATLASFOUNDRY.Links.ExpandPill', { count });
+  const icon = document.createElement('i');
+  icon.className = 'fa-solid fa-link';
+  const number = document.createElement('span');
+  number.textContent = String(count);
+  pill.append(icon, number);
+  pill.addEventListener('click', () => void setShowSceneLinks(true));
+  return pill;
+}
+
+/** Patches resolved title images into the already rendered chips; an unusable URL or a load error keeps the type icon. */
+async function patchThumbnails(token: number, bar: HTMLElement, entries: Array<{ link: AtlasLink; thumb: HTMLElement }>): Promise<void> {
+  if (entries.length === 0) return;
+  const images = await resolveLinkThumbnails(
+    toRefs(entries.map((e) => e.link)),
+    { getDocument: (moduleType, documentId) => getDocument(moduleType as ModuleType | 'custom', documentId) },
+  );
+  if (token !== renderToken || !bar.isConnected) return; // superseded while loading
+
+  const baseUrl = getBaseUrl();
+  for (const { link, thumb } of entries) {
+    const src = safeImageUrl(images.get(link.documentId) ?? undefined, baseUrl);
+    if (!src) continue;
+    const img = document.createElement('img');
+    img.loading = 'lazy';
+    img.alt = '';
+    img.addEventListener('error', () => setThumbIcon(thumb, link.moduleType));
+    img.src = src;
+    thumb.replaceChildren(img);
+  }
 }
 
 /**
@@ -77,13 +151,15 @@ function buildOverflowChip(links: AtlasLink[]): HTMLElement {
  * currently on canvas. Deliberately DOM-appended to `#ui-top` (Foundry's own
  * top interface layer), never drawn onto the PIXI canvas — see plan's
  * "discreet horizontal bar at the top edge of the canvas". An empty bar is not
- * rendered at all (no UI noise for scenes with no links).
+ * rendered at all (no UI noise for scenes with no links). Collapsed
+ * (`showSceneLinks` off), only a small pill with the number of visible links
+ * stays.
  */
 export async function renderSceneLinksBar(): Promise<void> {
   const token = ++renderToken;
   const scene = canvas?.scene;
 
-  if (!scene || !getShowSceneLinks() || !authManager.isLinked()) {
+  if (!scene || !authManager.isLinked()) {
     removeBar();
     return;
   }
@@ -112,22 +188,40 @@ export async function renderSceneLinksBar(): Promise<void> {
     return;
   }
 
+  const expanded = getShowSceneLinks();
+  if (!expanded && visible.length === 0) {
+    // Collapsed pill counts visible links only; a GM with nothing but broken ones sees no pill.
+    removeBar();
+    return;
+  }
+
   const bar = document.getElementById(BAR_ID) ?? document.createElement('div');
   bar.id = BAR_ID;
-  bar.className = 'atlas-foundry atlas-foundry-scene-links-bar';
+  bar.className = `atlas-foundry atlas-foundry-scene-links-bar${expanded ? '' : ' atlas-foundry-scene-links-bar-collapsed'}`;
   bar.replaceChildren();
 
-  const shown = visible.slice(0, MAX_VISIBLE_CHIPS);
-  const overflow = visible.slice(MAX_VISIBLE_CHIPS);
-  shown.forEach(({ link, name }) => bar.appendChild(buildChip(link, name, 'visible')));
-  broken.forEach((link) => bar.appendChild(buildChip(link, link.nameSnapshot, 'broken')));
-  unknown.forEach((link) => bar.appendChild(buildChip(link, link.nameSnapshot, 'unknown')));
-  if (overflow.length > 0) bar.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
+  const thumbEntries: Array<{ link: AtlasLink; thumb: HTMLElement }> = [];
+  if (expanded) {
+    const { shown, overflow } = partitionChips(visible);
+    shown.forEach(({ link, name }) => {
+      const built = buildChip(link, name, 'visible');
+      bar.appendChild(built.chip);
+      thumbEntries.push({ link, thumb: built.thumb });
+    });
+    broken.forEach((link) => bar.appendChild(buildChip(link, link.nameSnapshot, 'broken').chip));
+    unknown.forEach((link) => bar.appendChild(buildChip(link, link.nameSnapshot, 'unknown').chip));
+    if (overflow.length > 0) bar.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
+    bar.appendChild(buildCollapseButton());
+  } else {
+    bar.appendChild(buildPill(visible.length));
+  }
 
   if (!bar.isConnected) {
     const host = document.getElementById('ui-top') ?? document.body;
     host.appendChild(bar);
   }
+
+  void patchThumbnails(token, bar, thumbEntries);
 }
 
 function scheduleRender(): void {

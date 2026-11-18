@@ -23,6 +23,13 @@ export function atlasDocumentUrl(campaignId: string, moduleType: ModuleType | 'c
   return `${baseUrl}/${locale}/campaigns/${campaignId}/${routeModulePath}/${documentId}`;
 }
 
+/** The campaign's quest list in Atlas (`…/campaigns/{id}/quests`), used by the quest tracker's "+N more" line. */
+export function atlasQuestsUrl(campaignId: string): string {
+  const baseUrl = getBaseUrl();
+  const locale = resolveLocale();
+  return `${baseUrl}/${locale}/campaigns/${campaignId}/quests`;
+}
+
 /** Fallback deep-link (P8) for notifications with no document reference — Atlas has no appointment/conversation id fields on Message yet, so this is also today's route for those. */
 export function atlasCampaignDashboardUrl(campaignId: string): string {
   const baseUrl = getBaseUrl();
