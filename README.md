@@ -10,7 +10,7 @@ per user, with that user's own Atlas rights.
 - **Document viewer**: Atlas entries with images and clickable mentions, plus deep links back to Atlas.
 - **Context links**: attach Atlas documents to scenes, actors, tokens, journal entries, items and
   tiles. Visibility is checked per player on the server.
-- **Quest panel**: quests grouped by status, with sub-quests and character/location references
+- **Quest tracker**: the pinned open quests next to the sidebar as compact cards, collapsible to a pill
   (`Ctrl+Shift+Q`).
 - **Notifications**: a bell with an unread badge and a notification center. The GM can send a
   document-linked notification to all players.

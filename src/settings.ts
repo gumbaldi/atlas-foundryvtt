@@ -121,13 +121,14 @@ export function registerSettings(): void {
     default: true,
     onChange: () => Hooks.callAll('atlas-foundry.showSceneLinksChanged'),
   });
-  // Client-scoped, no UI (config: false) — written by quest-panel-app.ts on
-  // close, read back on the next open so the panel reopens where it was left.
-  game.settings.register(MODULE_ID, 'questPanelPosition', {
+  // Client-scoped, no settings-screen entry (config: false) — toggled through the Atlas toolbar
+  // tool, the Ctrl+Shift+Q keybinding, or the tracker's own collapse button / pill.
+  game.settings.register(MODULE_ID, 'showQuestTracker', {
     scope: 'client',
     config: false,
-    type: Object,
-    default: {},
+    type: Boolean,
+    default: true,
+    onChange: () => Hooks.callAll('atlas-foundry.showQuestTrackerChanged'),
   });
   // Client-scoped (plan P8 UI/UX note) — suppresses the "new notification"
   // toast only; the bell badge/count always stays accurate regardless.
@@ -243,19 +244,12 @@ export function setShowSceneLinks(value: boolean): Promise<boolean> {
   return game.settings.set<boolean>(MODULE_ID, 'showSceneLinks', value);
 }
 
-export interface QuestPanelPosition {
-  top?: number;
-  left?: number;
-  width?: number;
-  height?: number;
+export function getShowQuestTracker(): boolean {
+  return game.settings.get<boolean>(MODULE_ID, 'showQuestTracker') ?? true;
 }
 
-export function getQuestPanelPosition(): QuestPanelPosition {
-  return game.settings.get<QuestPanelPosition>(MODULE_ID, 'questPanelPosition') ?? {};
-}
-
-export async function setQuestPanelPosition(position: QuestPanelPosition): Promise<void> {
-  await game.settings.set(MODULE_ID, 'questPanelPosition', position);
+export function setShowQuestTracker(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showQuestTracker', value);
 }
 
 export function getQuietMode(): boolean {

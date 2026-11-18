@@ -176,17 +176,12 @@
       "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff."
     },
     "Quests": {
-      "Title": "Atlas-Quests",
-      "ControlTool": "Atlas-Quests",
-      "KeybindingName": "Atlas-Quests öffnen",
-      "Filter": {
-        "open": "Offen",
-        "completed": "Abgeschlossen",
-        "failed": "Gescheitert",
-        "all": "Alle"
-      },
-      "Empty": "Keine Quests in dieser Kampagne.",
-      "GmOnlyHint": "Für Spieler nicht sichtbar"
+      "ToggleTool": "Quest-Tracker anzeigen",
+      "KeybindingName": "Atlas-Quest-Tracker ein-/ausklappen",
+      "Collapse": "Quest-Tracker zuklappen",
+      "ExpandPill": "{count} Quests anzeigen",
+      "More": "+{count} weitere",
+      "AllInAtlas": "Alle Quests in Atlas"
     },
     "Notifications": {
       "Title": "Atlas-Benachrichtigungen",

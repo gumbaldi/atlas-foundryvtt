@@ -23,6 +23,15 @@ before `compatibility.verified` in `module.json` is raised — see
   red count at the top right next to the sidebar (no longer in the lower left corner).
 - Notifications are acknowledged explicitly: opening the list or an item marks nothing as read; use
   "Acknowledge" per notification or "Acknowledge all".
+- The quest window is replaced by a quest tracker next to the sidebar: the pinned open quests (at most
+  three) are always visible as compact cards with the quest name and the start of its description.
+  A card opens the quest in Atlas; "+N more" opens the quest list in Atlas. The tracker can be
+  collapsed (button, the "Show quest tracker" switch in the Atlas toolbar group, or Ctrl+Shift+Q);
+  collapsed, a small pill with the quest count stays visible.
+
+### Notes
+- Pinned quests need the Atlas backend to send `isPinned` for quests. Until it does, the tracker
+  shows the first three open top-level quests.
 
 ### Fixed
 - The module starts again on Foundry 14: the quest panel no longer reads a setting while the

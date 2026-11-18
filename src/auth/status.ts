@@ -9,7 +9,7 @@ export interface StatusInfo {
   messageData?: Record<string, unknown>;
 }
 
-/** Shared by settings-app.ts and quest-panel-app.ts so both status displays agree. */
+/** Status shown by settings-app.ts. */
 export function getConnectionStatus(): StatusInfo {
   const state = authManager.getState();
 

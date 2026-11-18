@@ -80,7 +80,7 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
 
     root.innerHTML = `
       <header class="atlas-foundry-notification-center-header">
-        <div class="atlas-foundry-quest-panel-filters">
+        <div class="atlas-foundry-notification-center-filters">
           ${(['unread', 'all'] as ListFilter[])
             .map(
               (f) =>

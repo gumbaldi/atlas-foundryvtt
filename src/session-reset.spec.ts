@@ -4,7 +4,7 @@ const documentCacheClear = vi.fn();
 const clearInFlightGets = vi.fn();
 const visibilityClear = vi.fn();
 const closeAllViewers = vi.fn();
-const closeQuestPanel = vi.fn();
+const clearQuestTracker = vi.fn();
 const closeSearch = vi.fn();
 const closeAllLinkManagers = vi.fn();
 
@@ -12,7 +12,7 @@ vi.mock('./api/cache', () => ({ documentCache: { clear: documentCacheClear } }))
 vi.mock('./api/client', () => ({ clearInFlightGets }));
 vi.mock('./links/link-visibility', () => ({ linkVisibility: { clear: visibilityClear } }));
 vi.mock('./apps/viewer-app', () => ({ closeAllViewers }));
-vi.mock('./quests/quest-panel-app', () => ({ closeQuestPanel }));
+vi.mock('./quests/quest-tracker', () => ({ clearQuestTracker }));
 vi.mock('./search/search-app', () => ({ closeSearch }));
 vi.mock('./links/link-manager-app', () => ({ closeAllLinkManagers }));
 
@@ -22,7 +22,7 @@ describe('resetSessionData', () => {
   it('clears every cache and closes every window that shows Atlas content', () => {
     resetSessionData();
 
-    for (const fn of [documentCacheClear, clearInFlightGets, visibilityClear, closeAllViewers, closeQuestPanel, closeSearch, closeAllLinkManagers]) {
+    for (const fn of [documentCacheClear, clearInFlightGets, visibilityClear, closeAllViewers, clearQuestTracker, closeSearch, closeAllLinkManagers]) {
       expect(fn).toHaveBeenCalledOnce();
     }
   });
