@@ -4,6 +4,8 @@
  * `getSceneControlButtons` listener and call this without importing the others.
  * The group is ordered after every other group so it sits at the bottom of the
  * left toolbar. No `layer` is set: clicking the group switches no canvas layer.
+ * No `activeTool` either: Foundry would activate it on a group click and the
+ * search tool is a button tool, so the group click would open search.
  */
 export function ensureAtlasGroup(controls: Record<string, any>): Record<string, any> {
   if (!controls.atlas) {
@@ -14,9 +16,8 @@ export function ensureAtlasGroup(controls: Record<string, any>): Record<string, 
     controls.atlas = {
       name: 'atlas',
       title: 'ATLASFOUNDRY.Controls.Group',
-      icon: 'atlas-foundry-group-icon',
+      icon: 'fa-solid fa-book-atlas',
       order: maxOrder + 1,
-      activeTool: 'atlasSearch',
       visible: true,
       tools: {},
     };

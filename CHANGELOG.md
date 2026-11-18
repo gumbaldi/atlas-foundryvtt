@@ -25,6 +25,8 @@ before `compatibility.verified` in `module.json` is raised — see
   be reached fails them instead of silently using old fixtures.
 
 ### Changed
+- The Atlas toolbar button looks like the other toolbar buttons and no longer opens search by itself;
+  the magnifier tool brings an already open search window to the front on every click.
 - A campaign alias in the Atlas URL (e.g. `…/campaigns/dvl`) is sent to Atlas when the login starts, so
   the confirmation page shows that campaign directly instead of asking for one again. Needs the
   matching Atlas backend (build 118). An alias Atlas does not know gets its own error message.

@@ -189,9 +189,11 @@ declare global {
           constructor(options?: ApplicationV2Options);
           /** Reactive after first render — `{top,left,width,height}` in pixels (plus a `scale` Foundry itself ignores here). */
           position: ApplicationV2PositionOptions;
-          render(force?: boolean): Promise<this>;
+          render(force?: boolean | { force?: boolean }): Promise<this>;
           close(options?: Record<string, unknown>): Promise<this>;
           bringToFront(): void;
+          readonly minimized: boolean;
+          maximize(): Promise<void>;
           protected _renderHTML(context?: unknown, options?: unknown): Promise<HTMLElement>;
           protected _replaceHTML(result: HTMLElement, content: HTMLElement, options?: unknown): Promise<void>;
           protected _onClose(options?: Record<string, unknown>): void;

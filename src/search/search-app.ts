@@ -25,6 +25,8 @@ let activeSearchApp: SearchApp | null = null;
 
 export function openSearch(): void {
   if (activeSearchApp) {
+    if (activeSearchApp.minimized) void activeSearchApp.maximize();
+    void activeSearchApp.render({ force: true });
     activeSearchApp.bringToFront();
     return;
   }
