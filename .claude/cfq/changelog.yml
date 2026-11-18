@@ -1,3 +1,9 @@
+- batchNumber: 5
+  batch: 005-2026-11-18-foundry-ui-rework
+  branch: cfq/005-2026-11-18-foundry-ui-rework
+  base: cfq/004-2026-11-18-slug-check-after-login
+  started: 2026-11-19
+  status: in-progress
 - batchNumber: 4
   batch: 004-2026-11-18-slug-check-after-login
   branch: cfq/004-2026-11-18-slug-check-after-login
