@@ -34,8 +34,8 @@
         "Hint": "Öffnet den Viewer automatisch, wenn der Spielleiter ein Dokument zeigen möchte, statt einen Bestätigungs-Toast anzuzeigen."
       },
       "ShowBell": {
-        "Name": "Glocke anzeigen",
-        "Hint": "Blendet die Benachrichtigungs-Glocke neben der Spielerliste ein oder aus. Das Center bleibt über die Szenensteuerung erreichbar."
+        "Name": "Benachrichtigungs-Glocke bei ungelesenen Benachrichtigungen anzeigen",
+        "Hint": "Die Glocke erscheint oben rechts neben der Seitenleiste, solange Benachrichtigungen ungelesen sind. Ausgeschaltet bleibt sie ganz verborgen; das Center bleibt über die Szenensteuerung erreichbar."
       },
       "AtlasUrl": {
         "Name": "Atlas-URL",
@@ -195,11 +195,11 @@
         "unread": "Ungelesen",
         "all": "Alle"
       },
-      "MarkAllRead": "Alle als gelesen",
-      "MarkAllReadManyHint": "{count} Benachrichtigungen werden einzeln als gelesen markiert — das kann einen Moment dauern.",
+      "MarkAllRead": "Alle bestätigen",
+      "MarkAllReadManyHint": "{count} Benachrichtigungen werden einzeln bestätigt — das kann einen Moment dauern.",
       "Empty": "Keine Benachrichtigungen.",
       "NoSubject": "Benachrichtigung",
-      "MarkRead": "Als gelesen markieren",
+      "MarkRead": "Bestätigen",
       "Broadcast": "Allen Spielern zeigen",
       "BroadcastSent": "Vorschlag an alle Spieler gesendet.",
       "SuggestOpenToast": "Der Spielleiter möchte dir „{name}“ zeigen.",

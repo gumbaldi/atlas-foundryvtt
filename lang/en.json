@@ -34,8 +34,8 @@
         "Hint": "Opens the viewer automatically when the GM wants to show you a document, instead of a confirmation toast."
       },
       "ShowBell": {
-        "Name": "Show bell",
-        "Hint": "Toggles the notification bell next to the player list. The center stays reachable via the scene controls."
+        "Name": "Show the notification bell when there are unread notifications",
+        "Hint": "The bell appears at the top right next to the sidebar while notifications are unread. Turn it off to hide it entirely; the center stays reachable via the scene controls."
       },
       "AtlasUrl": {
         "Name": "Atlas URL",
@@ -195,11 +195,11 @@
         "unread": "Unread",
         "all": "All"
       },
-      "MarkAllRead": "Mark all read",
-      "MarkAllReadManyHint": "Marking {count} notifications read one by one — this may take a moment.",
+      "MarkAllRead": "Acknowledge all",
+      "MarkAllReadManyHint": "Acknowledging {count} notifications one by one — this may take a moment.",
       "Empty": "No notifications.",
       "NoSubject": "Notification",
-      "MarkRead": "Mark as read",
+      "MarkRead": "Acknowledge",
       "Broadcast": "Show to all players",
       "BroadcastSent": "Suggestion sent to all players.",
       "SuggestOpenToast": "The GM wants to show you \"{name}\".",

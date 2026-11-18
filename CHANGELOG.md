@@ -19,6 +19,10 @@ before `compatibility.verified` in `module.json` is raised — see
   `+N`).
 - The scene link bar can be collapsed (button on the bar, or the new "Show scene links" switch in the
   Atlas toolbar group); collapsed, a small pill with the number of links stays visible.
+- The notification bell is shown only while notifications are unread, as a larger pulsing bell with a
+  red count at the top right next to the sidebar (no longer in the lower left corner).
+- Notifications are acknowledged explicitly: opening the list or an item marks nothing as read; use
+  "Acknowledge" per notification or "Acknowledge all".
 
 ### Fixed
 - The module starts again on Foundry 14: the quest panel no longer reads a setting while the

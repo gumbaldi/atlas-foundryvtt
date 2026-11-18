@@ -668,36 +668,84 @@
 
 /* --- P8: Notifications (bell, center, GM-broadcast toast) --- */
 
+/* Shared right-hand HUD column next to the sidebar (bell on top, quest tracker below). */
+.atlas-foundry-hud-right {
+  position: absolute;
+  top: 0.5rem;
+  right: 100%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-right: 0.5rem;
+  pointer-events: none;
+}
+
+.atlas-foundry-hud-right.atlas-foundry-hud-right-fixed {
+  position: fixed;
+  right: 0.5rem;
+  margin-right: 0;
+}
+
+.atlas-foundry-hud-right > * {
+  pointer-events: auto;
+}
+
 .atlas-foundry-bell {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  margin: 0.25rem auto;
-  font-size: 1.1rem;
-  color: inherit;
-  background: none;
-  border: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  font-size: 1.5rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--color-border-light-tertiary, #666);
+  border-radius: 50%;
   cursor: pointer;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .atlas-foundry-bell {
+    animation: atlas-foundry-bell-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes atlas-foundry-bell-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(221, 51, 51, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(221, 51, 51, 0);
+  }
 }
 
 .atlas-foundry-bell-badge {
   position: absolute;
-  top: -0.15rem;
-  right: -0.15rem;
-  min-width: 1.1rem;
-  height: 1.1rem;
-  padding: 0 0.2rem;
+  top: -0.2rem;
+  right: -0.2rem;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #fff;
   background: var(--color-level-error, #d33);
   border-radius: 999px;
+}
+
+.atlas-foundry-acknowledge {
+  width: auto;
+  padding: 0 0.5rem;
+  white-space: nowrap;
 }
 
 .atlas-foundry-notification-center {
