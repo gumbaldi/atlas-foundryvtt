@@ -11,7 +11,7 @@ import { openLinksPopover } from './link-popover';
 import { partitionChips, resolveLinkThumbnails } from './link-thumbnails';
 
 const BAR_ID = 'atlas-foundry-scene-links-bar';
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 // Re-entrancy guard: canvasReady/updateScene/authChanged can all fire in a

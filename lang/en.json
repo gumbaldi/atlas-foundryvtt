@@ -71,7 +71,10 @@
       "ResultCount": "{count} result(s)",
       "PermissionHint": "Results match your Atlas permissions.",
       "CustomModule": "Custom module",
-      "LinkAction": "Attach to a Foundry object…",
+      "Link": "Link…",
+      "UseAsTarget": "Use as target",
+      "EnlargeImage": "Click to enlarge",
+      "FocusHint": "Select a result to see the document here.",
       "KeybindingName": "Open Atlas Search"
     },
     "Viewer": {
@@ -79,7 +82,6 @@
       "Loading": "Loading…",
       "Unavailable": "This document is not available.",
       "Retry": "Retry",
-      "Refresh": "Refresh",
       "OpenInAtlas": "Open in Atlas",
       "RestrictedBadge": "Restricted",
       "UpdatedAt": "Last updated {date}",

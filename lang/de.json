@@ -71,7 +71,10 @@
       "ResultCount": "{count} Treffer",
       "PermissionHint": "Ergebnisse entsprechen deinen Atlas-Berechtigungen.",
       "CustomModule": "Custom-Modul",
-      "LinkAction": "An Foundry-Objekt anhängen…",
+      "Link": "Verknüpfen…",
+      "UseAsTarget": "Als Ziel verwenden",
+      "EnlargeImage": "Zum Vergrößern anklicken",
+      "FocusHint": "Wähle ein Ergebnis, um das Dokument hier zu sehen.",
       "KeybindingName": "Atlas-Suche öffnen"
     },
     "Viewer": {
@@ -79,7 +82,6 @@
       "Loading": "Lädt…",
       "Unavailable": "Dieses Dokument ist nicht verfügbar.",
       "Retry": "Erneut versuchen",
-      "Refresh": "Aktualisieren",
       "OpenInAtlas": "In Atlas öffnen",
       "RestrictedBadge": "Eingeschränkt",
       "UpdatedAt": "Zuletzt aktualisiert am {date}",

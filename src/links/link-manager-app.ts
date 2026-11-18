@@ -5,7 +5,7 @@ import { SearchApp } from '../search/search-app';
 import { addLink, getLinks, removeLink, updateLinkLabel, type AtlasLink, type FlagCapableDocument } from './link-store';
 import { linkVisibility, toLinkRowState, toRefs, type LinkRowState } from './link-visibility';
 
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 export interface LinkManagerTarget {

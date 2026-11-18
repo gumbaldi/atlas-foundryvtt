@@ -28,6 +28,11 @@ before `compatibility.verified` in `module.json` is raised — see
   A card opens the quest in Atlas; "+N more" opens the quest list in Atlas. The tracker can be
   collapsed (button, the "Show quest tracker" switch in the Atlas toolbar group, or Ctrl+Shift+Q);
   collapsed, a small pill with the quest count stays visible.
+- The search window is a split view: hits on the left, the selected document on the right with its
+  title image (click it to see it large), text and "Open in Atlas" (plus "Link…" for the game
+  master). Nothing is preselected and Enter only runs the search at once; Ctrl+Enter opens the
+  selected hit in Atlas. When picking a link target, a "Use as target" button confirms the choice.
+- The separate document detail window is removed.
 
 ### Notes
 - Pinned quests need the Atlas backend to send `isPinned` for quests. Until it does, the tracker

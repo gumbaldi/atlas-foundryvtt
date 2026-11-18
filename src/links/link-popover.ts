@@ -4,7 +4,7 @@ import { linkVisibility, toRefs } from './link-visibility';
 import { openLink } from './link-actions';
 import type { AtlasLink } from './link-store';
 
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 let activePopover: HTMLElement | null = null;

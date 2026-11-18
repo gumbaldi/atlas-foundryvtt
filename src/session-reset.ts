@@ -1,7 +1,6 @@
 import { documentCache } from './api/cache';
 import { clearInFlightGets } from './api/client';
 import { linkVisibility } from './links/link-visibility';
-import { closeAllViewers } from './apps/viewer-app';
 import { clearQuestTracker } from './quests/quest-tracker';
 import { closeSearch } from './search/search-app';
 import { closeAllLinkManagers } from './links/link-manager-app';
@@ -15,7 +14,6 @@ export function resetSessionData(): void {
   documentCache.clear();
   clearInFlightGets();
   linkVisibility.clear();
-  closeAllViewers();
   clearQuestTracker();
   closeSearch();
   closeAllLinkManagers();

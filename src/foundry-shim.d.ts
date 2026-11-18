@@ -234,6 +234,19 @@ declare global {
         }
       }
 
+      namespace apps {
+        interface ImagePopoutOptions {
+          src: string;
+          window?: { title?: string };
+        }
+
+        /** Not verified for every Foundry version — callers must check for it at runtime (see render/lightbox.ts). */
+        class ImagePopout {
+          constructor(options: ImagePopoutOptions);
+          render(force?: boolean): Promise<this>;
+        }
+      }
+
       namespace ux {
         interface TextEditorImplementation {
           enrichHTML(content: string, options?: Record<string, unknown>): Promise<string>;
