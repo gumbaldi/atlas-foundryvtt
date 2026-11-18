@@ -11,6 +11,8 @@ export interface FoundryMe {
   displayName: string;
   campaignId: string;
   campaignName: string;
+  /** Alias of the campaign; `null`/missing when it has none. */
+  campaignSlug?: string | null;
   role: string;
 }
 

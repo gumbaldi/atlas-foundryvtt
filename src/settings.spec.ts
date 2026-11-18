@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  applyAtlasUrl,
   clearUserToken,
   discardLegacyUserToken,
   getBaseUrl,
   getCampaignId,
+  getCampaignSlug,
   getUserToken,
   getUserTokenId,
   setUserToken,
@@ -11,6 +13,7 @@ import {
   parseAtlasUrl,
   setBaseUrl,
   setCampaignId,
+  setCampaignSlug,
   validateBaseUrl,
 } from './settings';
 
@@ -53,27 +56,44 @@ describe('normalizeBaseUrl', () => {
 });
 
 describe('parseAtlasUrl', () => {
+  const ID = '6af153b44755e79bfcd90d83';
+
   it('derives base URL and campaign id from a campaign URL', () => {
-    expect(parseAtlasUrl('https://atlas.ucuri.de/de/campaigns/dvl')).toEqual({
+    expect(parseAtlasUrl(`https://atlas.ucuri.de/de/campaigns/${ID}`)).toEqual({
       baseUrl: 'https://atlas.ucuri.de',
-      campaignId: 'dvl',
+      campaignId: ID,
+      campaignSlug: '',
+    });
+  });
+
+  it('keeps a lowercased alias as campaignSlug', () => {
+    expect(parseAtlasUrl('https://atlas.example/de/campaigns/DVL')).toEqual({
+      baseUrl: 'https://atlas.example',
+      campaignId: '',
+      campaignSlug: 'dvl',
     });
   });
 
   it('ignores sub-pages, query, hash, whitespace and a missing locale', () => {
-    expect(parseAtlasUrl(' https://atlas.example/campaigns/c1/quests/x?a=1#h ')).toEqual({
+    expect(parseAtlasUrl(` https://atlas.example/campaigns/${ID}/quests/x?a=1#h `)).toEqual({
       baseUrl: 'https://atlas.example',
-      campaignId: 'c1',
+      campaignId: ID,
+      campaignSlug: '',
+    });
+    expect(parseAtlasUrl('https://atlas.example/en/campaigns/dvl/quests/x?a=1#h')).toEqual({
+      baseUrl: 'https://atlas.example',
+      campaignId: '',
+      campaignSlug: 'dvl',
     });
   });
 
   it('keeps a path prefix in front of the locale', () => {
-    expect(parseAtlasUrl('https://example.com/atlas/en/campaigns/c1').baseUrl).toBe('https://example.com/atlas');
+    expect(parseAtlasUrl('https://example.com/atlas/en/campaigns/dvl').baseUrl).toBe('https://example.com/atlas');
   });
 
   it('treats a plain base URL as base URL without campaign', () => {
-    expect(parseAtlasUrl('https://atlas.example/')).toEqual({ baseUrl: 'https://atlas.example', campaignId: '' });
-    expect(parseAtlasUrl('')).toEqual({ baseUrl: '', campaignId: '' });
+    expect(parseAtlasUrl('https://atlas.example/')).toEqual({ baseUrl: 'https://atlas.example', campaignId: '', campaignSlug: '' });
+    expect(parseAtlasUrl('')).toEqual({ baseUrl: '', campaignId: '', campaignSlug: '' });
   });
 });
 
@@ -111,6 +131,47 @@ describe('settings helpers', () => {
   it('round-trips campaignId', async () => {
     await setCampaignId('64f0000000000000000000ab');
     expect(getCampaignId()).toBe('64f0000000000000000000ab');
+  });
+
+  it('round-trips campaignSlug', async () => {
+    await setCampaignSlug('dvl');
+    expect(getCampaignSlug()).toBe('dvl');
+  });
+});
+
+describe('applyAtlasUrl', () => {
+  const ID = '64f0000000000000000000ab';
+  const OTHER_ID = '64f0000000000000000000cd';
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = { baseUrl: 'https://atlas.example', campaignId: ID, campaignSlug: 'dvl' };
+    mockGame(store);
+  });
+
+  it('stores an id URL and clears the alias', async () => {
+    await applyAtlasUrl({ baseUrl: 'https://atlas.example', campaignId: OTHER_ID, campaignSlug: '' });
+    expect(store).toMatchObject({ baseUrl: 'https://atlas.example', campaignId: OTHER_ID, campaignSlug: '' });
+  });
+
+  it('clears a pinned id when the alias changes', async () => {
+    await applyAtlasUrl({ baseUrl: 'https://atlas.example', campaignId: '', campaignSlug: 'other' });
+    expect(store).toMatchObject({ campaignId: '', campaignSlug: 'other' });
+  });
+
+  it('keeps the pinned id when alias and base URL are unchanged', async () => {
+    await applyAtlasUrl({ baseUrl: 'https://atlas.example', campaignId: '', campaignSlug: 'dvl' });
+    expect(store).toMatchObject({ campaignId: ID, campaignSlug: 'dvl' });
+  });
+
+  it('clears the pinned id when only the base URL changes', async () => {
+    await applyAtlasUrl({ baseUrl: 'https://atlas.other', campaignId: '', campaignSlug: 'dvl' });
+    expect(store).toMatchObject({ baseUrl: 'https://atlas.other', campaignId: '', campaignSlug: 'dvl' });
+  });
+
+  it('clears id and alias for a plain base URL', async () => {
+    await applyAtlasUrl({ baseUrl: 'https://atlas.example', campaignId: '', campaignSlug: '' });
+    expect(store).toMatchObject({ baseUrl: 'https://atlas.example', campaignId: '', campaignSlug: '' });
   });
 });
 

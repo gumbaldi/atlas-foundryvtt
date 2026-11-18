@@ -4,16 +4,19 @@ const startDeviceFlow = vi.fn();
 const pollDeviceFlow = vi.fn();
 const login = vi.fn();
 const setLinking = vi.fn();
-const getMe = vi.fn(() => ({ displayName: 'Bob', campaignName: 'Kampagne' }));
+const logout = vi.fn(async () => undefined);
+const defaultMe = (): Record<string, unknown> | null => ({ displayName: 'Bob', campaignName: 'Kampagne' });
+const getMe = vi.fn(defaultMe);
 const getCampaignId = vi.fn(() => '');
+const getCampaignSlug = vi.fn(() => '');
 const setCampaignId = vi.fn(async () => undefined);
 
 vi.mock('./device-flow', () => ({ startDeviceFlow, pollDeviceFlow }));
 vi.mock('./auth-manager', () => ({
-  authManager: { login, setLinking, getMe },
+  authManager: { login, logout, setLinking, getMe },
   revokeUnlinkedToken: vi.fn(),
 }));
-vi.mock('../settings', () => ({ getCampaignId, setCampaignId }));
+vi.mock('../settings', () => ({ getCampaignId, getCampaignSlug, setCampaignId }));
 vi.mock('../log', () => ({ log: { error: vi.fn(), warn: vi.fn(), info: vi.fn() }, notifyError: vi.fn() }));
 
 const START = {
@@ -38,6 +41,8 @@ let promptImpl: (options: any) => Promise<unknown>;
 beforeEach(() => {
   vi.clearAllMocks();
   getCampaignId.mockReturnValue('');
+  getCampaignSlug.mockReturnValue('');
+  getMe.mockImplementation(defaultMe);
   startDeviceFlow.mockResolvedValue(START);
   login.mockResolvedValue(undefined);
 
@@ -148,5 +153,80 @@ describe('openLoginDialog', () => {
     await flush();
 
     expect(setCampaignId).not.toHaveBeenCalled();
+  });
+
+  describe('campaign alias check after login', () => {
+    async function runApproved() {
+      pollDeviceFlow.mockResolvedValue(APPROVED);
+      const openLoginDialog = await loadOpenLoginDialog();
+      void openLoginDialog();
+      await flush();
+    }
+
+    function expectSignedOut() {
+      expect(logout).toHaveBeenCalledTimes(1);
+      expect(setCampaignId).not.toHaveBeenCalled();
+      expect(ui.notifications.error).toHaveBeenCalledTimes(1);
+    }
+
+    it('pins the world when the confirmed campaign has the stored alias', async () => {
+      getCampaignSlug.mockReturnValue('dvl');
+      getMe.mockReturnValue({ displayName: 'Bob', campaignName: 'K', campaignSlug: 'dvl' });
+      await runApproved();
+
+      expect(setCampaignId).toHaveBeenCalledWith('c1');
+      expect(logout).not.toHaveBeenCalled();
+    });
+
+    it('compares the alias case-insensitively', async () => {
+      getCampaignSlug.mockReturnValue('dvl');
+      getMe.mockReturnValue({ displayName: 'Bob', campaignName: 'K', campaignSlug: 'DVL' });
+      await runApproved();
+
+      expect(setCampaignId).toHaveBeenCalledWith('c1');
+      expect(logout).not.toHaveBeenCalled();
+    });
+
+    it('signs out when the confirmed campaign has a different alias', async () => {
+      getCampaignSlug.mockReturnValue('dvl');
+      getMe.mockReturnValue({ displayName: 'Bob', campaignName: 'K', campaignSlug: 'other' });
+      await runApproved();
+
+      expectSignedOut();
+    });
+
+    it('signs out when the confirmed campaign has no alias', async () => {
+      getCampaignSlug.mockReturnValue('dvl');
+      getMe.mockReturnValue({ displayName: 'Bob', campaignName: 'K', campaignSlug: null });
+      await runApproved();
+
+      expectSignedOut();
+    });
+
+    it('signs out when /foundry/me could not be refreshed', async () => {
+      getCampaignSlug.mockReturnValue('dvl');
+      getMe.mockReturnValue(null);
+      await runApproved();
+
+      expectSignedOut();
+    });
+
+    it('does not check anything without a stored alias', async () => {
+      getMe.mockReturnValue({ displayName: 'Bob', campaignName: 'K', campaignSlug: 'other' });
+      await runApproved();
+
+      expect(setCampaignId).toHaveBeenCalledWith('c1');
+      expect(logout).not.toHaveBeenCalled();
+    });
+
+    it('does not check the alias of an already pinned world', async () => {
+      getCampaignId.mockReturnValue('c1');
+      getCampaignSlug.mockReturnValue('dvl');
+      getMe.mockReturnValue({ displayName: 'Bob', campaignName: 'K', campaignSlug: 'other' });
+      await runApproved();
+
+      expect(logout).not.toHaveBeenCalled();
+      expect(ui.notifications.error).not.toHaveBeenCalled();
+    });
   });
 });

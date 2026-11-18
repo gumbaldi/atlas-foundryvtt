@@ -39,11 +39,14 @@
       },
       "AtlasUrl": {
         "Name": "Atlas URL",
-        "Hint": "Paste the URL of your campaign from the browser, e.g. https://atlas.example.com/en/campaigns/<id> — address and campaign are derived from it. A plain address without a campaign also works; the campaign is then set by the GM sign-in below. /api/v1 and /socket.io must be reachable there."
+        "Hint": "Paste the URL of your campaign from the browser, e.g. https://atlas.example.com/en/campaigns/dvl — the address is derived from it. You confirm the campaign on the Atlas page during the sign-in below; it is then set automatically. /api/v1 and /socket.io must be reachable at that address."
       },
       "CampaignId": {
         "Name": "Atlas campaign ID",
         "Hint": "Set automatically once a GM signs in through the login flow below. You can also paste it manually."
+      },
+      "CampaignSlug": {
+        "Name": "Atlas campaign alias"
       },
       "Login": "Connect to Atlas",
       "Logout": "Disconnect"
@@ -134,6 +137,7 @@
       "Denied": "The login was declined in Atlas.",
       "Expired": "The code expired before it was confirmed. Try connecting again.",
       "CampaignMismatch": "You confirmed a different campaign than the one already linked to this world. The token was discarded and revoked — ask your GM if this world should be relinked.",
+      "SlugMismatch": "The campaign you confirmed in Atlas does not match the alias \"{slug}\" from the URL (or could not be checked). You were signed out — connect again.",
       "ExchangeFailed": "The login was confirmed, but Atlas rejected the resulting token. Please try again.",
       "Success": "Connected as {displayName} ({campaignName}).",
       "PlayerWaitingForGm": "Your GM needs to link this world to an Atlas campaign first (sign in as GM) before players can connect.",

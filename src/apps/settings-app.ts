@@ -1,5 +1,5 @@
 import { t } from '../i18n';
-import { getBaseUrl, getCampaignId, parseAtlasUrl, setBaseUrl, setCampaignId, validateBaseUrl } from '../settings';
+import { applyAtlasUrl, getBaseUrl, getCampaignId, getCampaignSlug, parseAtlasUrl, validateBaseUrl } from '../settings';
 import { atlasCampaignDashboardUrl } from '../deep-links';
 import { testConnection, formatConnectionTestResult } from '../connection-test';
 import { notifyError } from '../log';
@@ -20,8 +20,10 @@ function renderStatus(dialogElement: HTMLElement): void {
   }
 }
 
-/** The single URL field shows the full campaign URL once linked, otherwise just the base URL. */
+/** The single URL field shows the stored alias URL, else the campaign-id URL, else just the base URL. */
 function currentAtlasUrl(): string {
+  const campaignSlug = getCampaignSlug();
+  if (campaignSlug) return atlasCampaignDashboardUrl(campaignSlug);
   const campaignId = getCampaignId();
   return campaignId ? atlasCampaignDashboardUrl(campaignId) : getBaseUrl();
 }
@@ -71,9 +73,8 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
 
   static async onSubmit(_event: Event, _form: HTMLFormElement, formData: { object: Record<string, unknown> }): Promise<void> {
     const parsed = parseAtlasUrl(String(formData.object.atlasUrl ?? ''));
-    const { normalized, warningKey } = validateBaseUrl(parsed.baseUrl);
-    await setBaseUrl(normalized);
-    await setCampaignId(parsed.campaignId);
+    const { warningKey } = validateBaseUrl(parsed.baseUrl);
+    await applyAtlasUrl(parsed);
 
     if (warningKey) ui.notifications.warn(t(warningKey));
   }
@@ -137,8 +138,7 @@ export class AtlasSettingsApp extends foundry.applications.api.ApplicationV2 {
       ui.notifications.warn(t('ATLASFOUNDRY.ConnectionTest.MissingBaseUrl'));
       throw new Error('Atlas Foundry: base URL missing');
     }
-    await setBaseUrl(normalized);
-    await setCampaignId(parsed.campaignId);
+    await applyAtlasUrl(parsed);
     if (warningKey) ui.notifications.warn(t(warningKey));
   }
 
