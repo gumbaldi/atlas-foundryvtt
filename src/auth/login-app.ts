@@ -1,6 +1,6 @@
 import { t } from '../i18n';
 import { notifyError, log } from '../log';
-import { getCampaignId, setCampaignId } from '../settings';
+import { getCampaignId, getCampaignSlug, setCampaignId } from '../settings';
 import { authManager, revokeUnlinkedToken } from './auth-manager';
 import { startDeviceFlow, pollDeviceFlow, type DeviceFlowStart } from './device-flow';
 
@@ -138,6 +138,17 @@ async function runFlow(
   } catch (err) {
     notifyError(err, 'ATLASFOUNDRY.Login.ExchangeFailed');
     return;
+  }
+
+  // A GM who pinned the world via an alias URL: the confirmed campaign must carry that alias.
+  const slug = getCampaignSlug();
+  if (!worldCampaignId && game.user.isGM && slug) {
+    const serverSlug = (authManager.getMe()?.campaignSlug ?? '').toLowerCase();
+    if (serverSlug !== slug.toLowerCase()) {
+      await authManager.logout();
+      ui.notifications.error(t('ATLASFOUNDRY.Login.SlugMismatch', { slug }));
+      return;
+    }
   }
 
   // Pin the world to the campaign only once the token really works.

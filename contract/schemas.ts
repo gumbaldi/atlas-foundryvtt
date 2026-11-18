@@ -37,6 +37,7 @@ export const FoundryMeSchema = z.object({
   displayName: z.string(),
   campaignId: z.string(),
   campaignName: z.string().optional(),
+  campaignSlug: z.string().nullable(),
   role: z.string(),
 });
 
