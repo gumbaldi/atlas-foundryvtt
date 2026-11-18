@@ -137,6 +137,7 @@
       "Denied": "The login was declined in Atlas.",
       "Expired": "The code expired before it was confirmed. Try connecting again.",
       "CampaignMismatch": "You confirmed a different campaign than the one already linked to this world. The token was discarded and revoked — ask your GM if this world should be relinked.",
+      "SlugMismatch": "The campaign you confirmed in Atlas does not match the alias \"{slug}\" from the URL (or could not be checked). You were signed out — connect again.",
       "ExchangeFailed": "The login was confirmed, but Atlas rejected the resulting token. Please try again.",
       "Success": "Connected as {displayName} ({campaignName}).",
       "PlayerWaitingForGm": "Your GM needs to link this world to an Atlas campaign first (sign in as GM) before players can connect.",

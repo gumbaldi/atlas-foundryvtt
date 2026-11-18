@@ -50,6 +50,8 @@ before `compatibility.verified` in `module.json` is raised — see
   recipient's own Atlas rights.
 
 ### Added
+- The Atlas settings take one campaign URL instead of a base URL plus campaign ID. A campaign alias in
+  that URL (e.g. `dvl`) is verified after the login; a different or unverifiable campaign signs you out again.
 - Deadlines document type: icon, label, search filter and a state / due-day line in the viewer.
 - The Atlas tools now live in their own Atlas group in the scene controls, with the Atlas logo
   as icon.

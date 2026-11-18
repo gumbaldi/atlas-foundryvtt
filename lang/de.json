@@ -137,6 +137,7 @@
       "Denied": "Der Login wurde in Atlas abgelehnt.",
       "Expired": "Der Code ist abgelaufen, bevor er bestätigt wurde. Verbinde dich erneut.",
       "CampaignMismatch": "Du hast eine andere Kampagne bestätigt als die, die bereits mit dieser Welt verknüpft ist. Das Token wurde verworfen und widerrufen — frag deinen Spielleiter, ob diese Welt neu verknüpft werden muss.",
+      "SlugMismatch": "Die in Atlas bestätigte Kampagne passt nicht zum Alias „{slug}“ aus der URL (oder konnte nicht geprüft werden). Du wurdest abgemeldet — verbinde dich erneut.",
       "ExchangeFailed": "Der Login wurde bestätigt, aber Atlas hat das resultierende Token abgelehnt. Bitte versuche es erneut.",
       "Success": "Verbunden als {displayName} ({campaignName}).",
       "PlayerWaitingForGm": "Dein Spielleiter muss diese Welt zuerst mit einer Atlas-Kampagne verknüpfen (als GM anmelden), bevor sich Spieler verbinden können.",
