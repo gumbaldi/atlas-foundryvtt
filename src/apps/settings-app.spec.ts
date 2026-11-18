@@ -47,8 +47,8 @@ describe('AtlasSettingsApp', () => {
     const result = (await (app as any)._renderHTML()) as HTMLElement;
 
     expect(result.querySelector('form')).toBeNull();
-    expect(result.querySelector<HTMLInputElement>('input[name="baseUrl"]')?.value).toBe('https://atlas.old');
-    expect(result.querySelector<HTMLInputElement>('input[name="campaignId"]')?.value).toBe('old-campaign');
+    expect(result.querySelector<HTMLInputElement>('input[name="atlasUrl"]')?.value).toBe('https://atlas.old/en/campaigns/old-campaign');
+    expect(result.querySelector('input[name="campaignId"]')).toBeNull();
     expect(result.querySelector('button[type="submit"]')).not.toBeNull();
   });
 
@@ -58,10 +58,10 @@ describe('AtlasSettingsApp', () => {
     expect(AtlasSettingsApp.DEFAULT_OPTIONS.form?.handler).toBe(AtlasSettingsApp.onSubmit);
   });
 
-  it('stores the trimmed base URL and campaign id on submit', async () => {
+  it('derives base URL and campaign id from the campaign URL on submit', async () => {
     const { AtlasSettingsApp } = await import('./settings-app');
     await AtlasSettingsApp.onSubmit({} as Event, {} as HTMLFormElement, {
-      object: { baseUrl: ' https://atlas.example/ ', campaignId: ' c1 ' },
+      object: { atlasUrl: ' https://atlas.example/de/campaigns/c1 ' },
     });
 
     expect(store.baseUrl).toBe('https://atlas.example');
@@ -72,11 +72,21 @@ describe('AtlasSettingsApp', () => {
   it('still saves a base URL without scheme but warns', async () => {
     const { AtlasSettingsApp } = await import('./settings-app');
     await AtlasSettingsApp.onSubmit({} as Event, {} as HTMLFormElement, {
-      object: { baseUrl: 'atlas.example', campaignId: 'c2' },
+      object: { atlasUrl: 'atlas.example/campaigns/c2' },
     });
 
     expect(store.baseUrl).toBe('atlas.example');
     expect(store.campaignId).toBe('c2');
     expect(ui.notifications.warn).toHaveBeenCalledWith('ATLASFOUNDRY.Settings.BaseUrlMissingScheme');
+  });
+
+  it('clears the campaign id when only a base URL is entered', async () => {
+    const { AtlasSettingsApp } = await import('./settings-app');
+    await AtlasSettingsApp.onSubmit({} as Event, {} as HTMLFormElement, {
+      object: { atlasUrl: 'https://atlas.example/' },
+    });
+
+    expect(store.baseUrl).toBe('https://atlas.example');
+    expect(store.campaignId).toBe('');
   });
 });
