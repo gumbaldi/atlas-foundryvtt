@@ -168,7 +168,8 @@
       "PickTargetSheet": "Open window: {name}",
       "NoTargets": "No target available — select a scene, a token, or open a sheet.",
       "Added": "\"{name}\" was linked.",
-      "SceneControlTool": "Scene's Atlas Links"
+      "SceneControlTool": "Scene's Atlas Links",
+      "OpenUnavailable": "This document could not be opened in Atlas — it may no longer exist or you may not have access."
     },
     "Quests": {
       "Title": "Atlas Quests",

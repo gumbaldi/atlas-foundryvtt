@@ -4,7 +4,7 @@ import { SOCKET_EVENT, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
 import { getAutoOpenGmSuggestions } from '../settings';
 import { notificationStore } from './notification-store';
-import { openDocumentViewer } from '../apps/viewer-app';
+import { notificationAtlasTarget, openInAtlas } from '../links/open-in-atlas';
 import { atlasCampaignDashboardUrl } from '../deep-links';
 import type { AtlasMessage } from '../atlas-types';
 
@@ -171,8 +171,9 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
   private openItem(item: AtlasMessage): void {
     if (!item.isRead) void notificationStore.markRead(item.id);
 
-    if (item.documentId && item.documentModuleType) {
-      openDocumentViewer({ moduleType: item.documentModuleType, documentId: item.documentId, name: item.documentName });
+    const target = notificationAtlasTarget(item);
+    if (target.kind === 'document') {
+      void openInAtlas(target.ref);
       return;
     }
     // No appointment/conversation reference fields exist on Message yet
@@ -262,7 +263,7 @@ export function registerGmBroadcastReceiver(): void {
     const payload = data as { type?: string; moduleType?: ModuleType | 'custom'; documentId?: string; documentName?: string } | null;
     if (payload?.type !== 'suggest-open' || !payload.moduleType || !payload.documentId) return;
 
-    const openIt = () => openDocumentViewer({ moduleType: payload.moduleType!, documentId: payload.documentId!, name: payload.documentName });
+    const openIt = () => void openInAtlas({ moduleType: payload.moduleType!, documentId: payload.documentId! });
 
     if (getAutoOpenGmSuggestions()) {
       openIt();

@@ -57,9 +57,7 @@ function buildChip(link: AtlasLink, name: string, state: ChipState): HTMLElement
     return chip;
   }
 
-  chip.addEventListener('click', (event) => {
-    openLink(link, { external: event.shiftKey || event.ctrlKey || event.metaKey, currentName: name });
-  });
+  chip.addEventListener('click', () => openLink(link));
   return chip;
 }
 

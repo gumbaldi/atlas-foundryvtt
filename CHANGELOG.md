@@ -10,6 +10,11 @@ before `compatibility.verified` in `module.json` is raised — see
 
 ## [Unreleased]
 
+### Changed
+- Links (scene bar, popover, token HUD, link manager) and notifications open the document directly
+  in Atlas in a new browser tab instead of the in-Foundry detail window, including documents of
+  custom modules.
+
 ### Fixed
 - The module starts again on Foundry 14: the quest panel no longer reads a setting while the
   script loads, which aborted the whole import and left every Atlas button, menu and search missing.

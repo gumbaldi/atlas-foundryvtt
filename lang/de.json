@@ -168,7 +168,8 @@
       "PickTargetSheet": "Offenes Fenster: {name}",
       "NoTargets": "Kein Ziel verfügbar — wähle eine Szene, ein Token oder öffne ein Sheet.",
       "Added": "„{name}“ wurde verknüpft.",
-      "SceneControlTool": "Atlas-Verknüpfungen der Szene"
+      "SceneControlTool": "Atlas-Verknüpfungen der Szene",
+      "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff."
     },
     "Quests": {
       "Title": "Atlas-Quests",
