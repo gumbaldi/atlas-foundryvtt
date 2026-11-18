@@ -118,7 +118,7 @@ export class AuthManager {
       return;
     }
     try {
-      await this.revokeOnServer(tokenId, accessToken);
+      await revokeOnServer(tokenId, accessToken);
     } catch (err) {
       log.warn('Atlas Foundry: server-side token revoke failed', err);
       ui.notifications.warn(t('ATLASFOUNDRY.Auth.LogoutOfflineHint'));
@@ -176,11 +176,7 @@ export class AuthManager {
     // Network failures are left for the caller (atlas-socket's auth callback,
     // typically) to interpret as "degraded" — they must not touch auth state,
     // since the stored token itself may still be perfectly valid.
-    const response = await fetch(`${baseUrl}/api/v1/foundry/token-exchange`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: userToken, worldId: game.world.id }),
-    });
+    const response = await postTokenExchange(userToken);
 
     // The stored token may have changed (logout, new login) while this request
     // was in flight — its result must not touch the newer session.
@@ -201,7 +197,7 @@ export class AuthManager {
     const worldCampaignId = getCampaignId();
     if (worldCampaignId && body.campaignId !== worldCampaignId) {
       const tokenId = getUserTokenId();
-      await this.revokeOnServer(tokenId, body.accessToken).catch((err) =>
+      await revokeOnServer(tokenId, body.accessToken).catch((err) =>
         log.warn('Atlas Foundry: failed to revoke a wrong-campaign token', err),
       );
       await this.enterRevoked('campaign-mismatch');
@@ -231,15 +227,6 @@ export class AuthManager {
     this.notifyChange();
   }
 
-  private async revokeOnServer(tokenId: string, accessToken: string): Promise<void> {
-    const baseUrl = getBaseUrl();
-    const response = await fetch(`${baseUrl}/api/v1/users/me/foundry-tokens/${encodeURIComponent(tokenId)}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok) throw new Error(`Atlas Foundry: server-side revoke failed (HTTP ${response.status})`);
-  }
-
   private setState(state: AuthState): void {
     if (this.state === state) return;
     this.state = state;
@@ -253,6 +240,24 @@ export class AuthManager {
 
 export const authManager = new AuthManager();
 
+async function postTokenExchange(userToken: string): Promise<Response> {
+  const baseUrl = getBaseUrl();
+  return fetch(`${baseUrl}/api/v1/foundry/token-exchange`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: userToken, worldId: game.world.id }),
+  });
+}
+
+async function revokeOnServer(tokenId: string, accessToken: string): Promise<void> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/v1/users/me/foundry-tokens/${encodeURIComponent(tokenId)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) throw new Error(`Atlas Foundry: server-side revoke failed (HTTP ${response.status})`);
+}
+
 /**
  * Best-effort revoke for a device token the user never actually linked to
  * (wrong-campaign confirmation, see login-app.ts) — exchanges once just to
@@ -263,17 +268,10 @@ export async function revokeUnlinkedToken(rawToken: string, tokenId: string): Pr
   const baseUrl = getBaseUrl();
   if (!baseUrl) return;
   try {
-    const exchangeResponse = await fetch(`${baseUrl}/api/v1/foundry/token-exchange`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: rawToken, worldId: game.world.id }),
-    });
+    const exchangeResponse = await postTokenExchange(rawToken);
     if (!exchangeResponse.ok) return;
     const { accessToken } = (await exchangeResponse.json()) as TokenExchangeResponse;
-    await fetch(`${baseUrl}/api/v1/users/me/foundry-tokens/${encodeURIComponent(tokenId)}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    await revokeOnServer(tokenId, accessToken);
   } catch (err) {
     log.warn('Atlas Foundry: failed to revoke a rejected device token', err);
   }
