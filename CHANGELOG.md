@@ -33,6 +33,8 @@ before `compatibility.verified` in `module.json` is raised — see
   master). Nothing is preselected and Enter only runs the search at once; Ctrl+Enter opens the
   selected hit in Atlas. When picking a link target, a "Use as target" button confirms the choice.
 - The separate document detail window is removed.
+- Search hits show a small picture of the document's title image (the type icon in a coloured tile when
+  there is none), a type colour accent, and the search words highlighted in a three-line excerpt.
 
 ### Notes
 - Pinned quests need the Atlas backend to send `isPinned` for quests. Until it does, the tracker

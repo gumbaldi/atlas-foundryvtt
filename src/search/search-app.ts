@@ -1,8 +1,11 @@
 import { t } from '../i18n';
-import { MODULE_TYPES, MODULE_TYPE_ICONS, type ModuleType } from '../constants';
+import { MODULE_TYPES, type ModuleType } from '../constants';
+import { safeImageUrl } from '../render/image-url';
+import { getTypeStyle } from './type-style';
+import { highlightTerms } from './highlight';
 import { authManager } from '../auth/auth-manager';
 import { openLoginDialog } from '../auth/login-app';
-import { getCampaignId } from '../settings';
+import { getBaseUrl, getCampaignId } from '../settings';
 import { openInAtlas } from '../links/open-in-atlas';
 import { SearchController, type SearchControllerState } from './search-controller';
 import { renderFocusPane, renderFocusPaneHint } from './focus-pane';
@@ -269,31 +272,48 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
       ? t('ATLASFOUNDRY.Search.ResultCount', { count: state.results.length })
       : t('ATLASFOUNDRY.Search.NoResults');
     results.replaceChildren();
-    state.results.forEach((item, index) => results.appendChild(this.renderResultCard(item, index)));
+    state.results.forEach((item, index) => results.appendChild(this.renderResultCard(item, index, state.query)));
     this.updateSelectionHighlight();
   }
 
-  private renderResultCard(item: AtlasSearchResult, index: number): HTMLElement {
+  private renderResultCard(item: AtlasSearchResult, index: number, query: string): HTMLElement {
     const card = document.createElement('div');
     card.className = 'atlas-foundry-search-card';
     card.dataset.index = String(index);
 
-    const icon = item.moduleType === 'custom' ? 'fa-solid fa-puzzle-piece' : MODULE_TYPE_ICONS[item.moduleType];
+    const style = getTypeStyle(item.moduleType);
+    card.style.setProperty('--atlas-type-color', style.color);
     const typeLabel =
       item.moduleType === 'custom' ? (item.customModuleLabel ?? t('ATLASFOUNDRY.Search.CustomModule')) : t(`ATLASFOUNDRY.ModuleTypes.${item.moduleType}`);
-    // entryPlainText is plain text, not HTML (see search.service.ts's extractSnippet) —
-    // escaped for safe innerHTML insertion, not run through the P4 HTML sanitizer,
-    // which expects markup and would be the wrong tool for content that has none.
-    const snippet = item.entryPlainText ? foundry.utils.escapeHTML(item.entryPlainText) : '';
+    // entryPlainText is plain text, not HTML (see search.service.ts's extractSnippet);
+    // highlightTerms escapes it before marking, so it is safe for innerHTML.
+    const snippet = item.entryPlainText ? highlightTerms(item.entryPlainText, query) : '';
 
     card.innerHTML = `
+      <span class="atlas-foundry-search-card-thumb" data-thumb><i class="${style.icon}"></i></span>
       <div class="atlas-foundry-search-card-main">
-        <strong><i class="${icon}"></i> ${foundry.utils.escapeHTML(item.name)}${item.postTitle ? ` — ${foundry.utils.escapeHTML(item.postTitle)}` : ''}</strong>
-        <span class="atlas-foundry-search-card-type">${foundry.utils.escapeHTML(typeLabel)}</span>
+        <strong>${foundry.utils.escapeHTML(item.name)}${item.postTitle ? ` — ${foundry.utils.escapeHTML(item.postTitle)}` : ''}</strong>
+        <span class="atlas-foundry-search-card-type"><i class="${style.icon}"></i> ${foundry.utils.escapeHTML(typeLabel)}</span>
         ${snippet ? `<p class="atlas-foundry-search-card-snippet">${snippet}</p>` : ''}
         ${item.tags.length ? `<div class="atlas-foundry-search-card-badges">${item.tags.map((tag) => `<span class="atlas-foundry-tag">${foundry.utils.escapeHTML(tag)}</span>`).join('')}</div>` : ''}
       </div>
     `;
+
+    // The backend may not fill imageUrl; without one (or when it fails to load) the
+    // coloured icon tile stays. The image carries no data-action: clicking it only
+    // selects the card, it never opens anything.
+    const src = safeImageUrl(item.imageUrl ?? undefined, getBaseUrl());
+    const thumb = card.querySelector<HTMLElement>('[data-thumb]');
+    if (src && thumb) {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = '';
+      img.draggable = false;
+      img.addEventListener('load', () => thumb.classList.add('has-image'));
+      img.addEventListener('error', () => img.remove());
+      img.src = src;
+      thumb.appendChild(img);
+    }
 
     card.addEventListener('click', () => this.selectIndex(index));
 
