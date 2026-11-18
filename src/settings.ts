@@ -170,8 +170,14 @@ export async function setBaseUrl(value: string): Promise<void> {
   await game.settings.set(MODULE_ID, 'baseUrl', normalizeBaseUrl(value));
 }
 
+/**
+ * The pinned campaign id. Only a real Mongo id counts: older module versions stored a pasted
+ * alias (e.g. `dvl`) here, and the backend rejects that as `campaignId` (HTTP 400), so such a
+ * stale value is treated as "not pinned" instead of breaking the login.
+ */
 export function getCampaignId(): string {
-  return game.settings.get<string>(MODULE_ID, 'campaignId') ?? '';
+  const value = game.settings.get<string>(MODULE_ID, 'campaignId') ?? '';
+  return /^[0-9a-f]{24}$/i.test(value) ? value : '';
 }
 
 export async function setCampaignId(value: string): Promise<void> {
