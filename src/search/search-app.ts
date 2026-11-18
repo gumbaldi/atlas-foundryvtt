@@ -9,6 +9,7 @@ import { getBaseUrl, getCampaignId } from '../settings';
 import { openInAtlas } from '../links/open-in-atlas';
 import { SearchController, type SearchControllerState } from './search-controller';
 import { renderFocusPane, renderFocusPaneHint } from './focus-pane';
+import { clearRecentSearches, getRecentSearches, saveRecentSearch } from './recent-searches';
 import type { AtlasSearchResult } from '../atlas-types';
 
 export interface SearchAppOptions {
@@ -55,6 +56,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
   private selectedItem: AtlasSearchResult | null = null;
   private cancelFocus: (() => void) | null = null;
   private rootElement: HTMLElement | null = null;
+  private closeFilterMenu: (() => void) | null = null;
 
   constructor(options: SearchAppOptions = {}) {
     super({ window: { title: options.title ?? 'ATLASFOUNDRY.Search.Title' } });
@@ -77,16 +79,25 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
           <div class="atlas-foundry-row">
             <input type="search" name="q" autofocus placeholder="${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.Placeholder'))}">
           </div>
-          <div class="atlas-foundry-search-chips" data-chips>
-            ${MODULE_TYPES.map(
-              (type) =>
-                `<button type="button" class="atlas-foundry-chip" data-type="${type}">${foundry.utils.escapeHTML(t(`ATLASFOUNDRY.ModuleTypes.${type}`))}</button>`,
-            ).join('')}
+          <div class="atlas-foundry-search-filters">
+            <div class="atlas-foundry-filter" data-filter>
+              <button type="button" class="atlas-foundry-filter-button" data-filter-button aria-haspopup="true" aria-expanded="false"></button>
+              <div class="atlas-foundry-filter-menu" data-filter-menu hidden>
+                <div class="atlas-foundry-filter-shortcuts">
+                  <button type="button" data-filter-all>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.FilterAll'))}</button>
+                  <button type="button" data-filter-none>${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.FilterNone'))}</button>
+                </div>
+                ${MODULE_TYPES.map(
+                  (type) =>
+                    `<label class="atlas-foundry-filter-option"><input type="checkbox" data-type="${type}"> ${foundry.utils.escapeHTML(t(`ATLASFOUNDRY.ModuleTypes.${type}`))}</label>`,
+                ).join('')}
+              </div>
+            </div>
+            <label class="atlas-foundry-toggle">
+              <input type="checkbox" name="nameOnly">
+              ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.NameOnly'))}
+            </label>
           </div>
-          <label class="atlas-foundry-toggle">
-            <input type="checkbox" name="nameOnly">
-            ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.NameOnly'))}
-          </label>
           <div class="atlas-foundry-status" data-status></div>
           <div class="atlas-foundry-search-results" data-results></div>
           <footer class="atlas-foundry-search-footer">${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.PermissionHint'))}</footer>
@@ -113,6 +124,8 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
 
   protected _onClose(options?: Record<string, unknown>): void {
     if (activeSearchApp === this) activeSearchApp = null;
+    this.closeFilterMenu?.();
+    this.closeFilterMenu = null;
     if (this.resolvePick) {
       const resolve = this.resolvePick;
       this.resolvePick = null;
@@ -145,15 +158,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     input?.addEventListener('keydown', (event) => this.handleKeydown(event as KeyboardEvent));
     input?.focus();
 
-    content.querySelectorAll<HTMLButtonElement>('[data-chips] [data-type]').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const type = chip.dataset.type as ModuleType;
-        if (this.selectedTypes.has(type)) this.selectedTypes.delete(type);
-        else this.selectedTypes.add(type);
-        chip.classList.toggle('active');
-        this.triggerSearch(input?.value ?? '');
-      });
-    });
+    this.wireFilterMenu(content, () => this.triggerSearch(input?.value ?? ''));
 
     content.querySelector<HTMLInputElement>('input[name="nameOnly"]')?.addEventListener('change', (event) => {
       this.nameOnly = (event.target as HTMLInputElement).checked;
@@ -161,8 +166,72 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     });
   }
 
+  /** Popover with one checkbox per document kind; an empty selection means "all types". */
+  private wireFilterMenu(content: HTMLElement, onChange: () => void): void {
+    this.closeFilterMenu?.();
+    const button = content.querySelector<HTMLButtonElement>('[data-filter-button]');
+    const menu = content.querySelector<HTMLElement>('[data-filter-menu]');
+    const wrapper = content.querySelector<HTMLElement>('[data-filter]');
+    if (!button || !menu || !wrapper) return;
+    const boxes = [...menu.querySelectorAll<HTMLInputElement>('input[data-type]')];
+
+    const refresh = (): void => {
+      const n = this.selectedTypes.size;
+      button.textContent = n === 0 || n === MODULE_TYPES.length ? t('ATLASFOUNDRY.Search.AllTypes') : t('ATLASFOUNDRY.Search.Types', { count: n });
+      for (const box of boxes) box.checked = this.selectedTypes.has(box.dataset.type as ModuleType);
+    };
+
+    const onPointerDown = (event: Event): void => {
+      if (!wrapper.contains(event.target as Node)) close();
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      // Esc closes the menu only; it must not also close the search window.
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+    };
+    const close = (): void => {
+      menu.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+    };
+    const open = (): void => {
+      menu.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+      document.addEventListener('pointerdown', onPointerDown, true);
+      document.addEventListener('keydown', onKeyDown, true);
+    };
+    this.closeFilterMenu = close;
+
+    button.addEventListener('click', () => (menu.hidden ? open() : close()));
+    for (const box of boxes) {
+      box.addEventListener('change', () => {
+        const type = box.dataset.type as ModuleType;
+        if (box.checked) this.selectedTypes.add(type);
+        else this.selectedTypes.delete(type);
+        refresh();
+        onChange();
+      });
+    }
+    menu.querySelector('[data-filter-all]')?.addEventListener('click', () => {
+      MODULE_TYPES.forEach((type) => this.selectedTypes.add(type));
+      refresh();
+      onChange();
+    });
+    menu.querySelector('[data-filter-none]')?.addEventListener('click', () => {
+      this.selectedTypes.clear();
+      refresh();
+      onChange();
+    });
+    refresh();
+  }
+
   private searchFilters(): { types: ModuleType[]; nameOnly: boolean } {
-    return { types: [...this.selectedTypes], nameOnly: this.nameOnly };
+    // Every type selected is the same as no restriction; keep the request small.
+    const types = this.selectedTypes.size === MODULE_TYPES.length ? [] : [...this.selectedTypes];
+    return { types, nameOnly: this.nameOnly };
   }
 
   private triggerSearch(q: string): void {
@@ -199,7 +268,9 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
         return;
       }
       // Enter only searches (no debounce); it never opens a hit.
-      this.controller.searchNow((event.target as HTMLInputElement).value, this.searchFilters());
+      const value = (event.target as HTMLInputElement).value;
+      void saveRecentSearch(value).catch(() => undefined);
+      this.controller.searchNow(value, this.searchFilters());
     }
   }
 
@@ -227,6 +298,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     if (!item) return;
     this.selectedIndex = index;
     this.selectedItem = item;
+    void saveRecentSearch(this.controller.getState().query).catch(() => undefined);
     this.updateSelectionHighlight();
     this.showFocus();
   }
@@ -256,6 +328,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     if (state.status === 'idle') {
       status.textContent = t('ATLASFOUNDRY.Search.MinLength');
       results.replaceChildren();
+      this.renderRecent(results);
       return;
     }
     if (state.status === 'loading') {
@@ -274,6 +347,46 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     results.replaceChildren();
     state.results.forEach((item, index) => results.appendChild(this.renderResultCard(item, index, state.query)));
     this.updateSelectionHighlight();
+  }
+
+  /** Last typed searches as quick choices while the query is empty or too short. */
+  private renderRecent(container: HTMLElement): void {
+    const recent = getRecentSearches();
+    if (!recent.length) return;
+
+    const box = document.createElement('div');
+    box.className = 'atlas-foundry-recent';
+    const header = document.createElement('div');
+    header.className = 'atlas-foundry-recent-header';
+    const title = document.createElement('strong');
+    title.textContent = t('ATLASFOUNDRY.Search.Recent');
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.textContent = t('ATLASFOUNDRY.Search.RecentClear');
+    clear.addEventListener('click', () => {
+      void clearRecentSearches()
+        .catch(() => undefined)
+        .then(() => this.renderResults(this.controller.getState()));
+    });
+    header.append(title, clear);
+    box.appendChild(header);
+
+    for (const query of recent) {
+      const entry = document.createElement('button');
+      entry.type = 'button';
+      entry.className = 'atlas-foundry-recent-entry';
+      entry.textContent = query;
+      entry.addEventListener('click', () => {
+        const input = this.rootElement?.querySelector<HTMLInputElement>('input[name="q"]');
+        if (input) {
+          input.value = query;
+          input.focus();
+        }
+        this.controller.searchNow(query, this.searchFilters());
+      });
+      box.appendChild(entry);
+    }
+    container.appendChild(box);
   }
 
   private renderResultCard(item: AtlasSearchResult, index: number, query: string): HTMLElement {

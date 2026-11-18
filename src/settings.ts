@@ -130,6 +130,14 @@ export function registerSettings(): void {
     default: true,
     onChange: () => Hooks.callAll('atlas-foundry.showQuestTrackerChanged'),
   });
+  // Client-scoped list of the last typed search queries (text only, no document content);
+  // cleared on logout / session reset.
+  game.settings.register(MODULE_ID, 'recentSearches', {
+    scope: 'client',
+    config: false,
+    type: Array,
+    default: [],
+  });
   // Client-scoped (plan P8 UI/UX note) — suppresses the "new notification"
   // toast only; the bell badge/count always stays accurate regardless.
   game.settings.register(MODULE_ID, 'quietMode', {
@@ -242,6 +250,16 @@ export function getShowSceneLinks(): boolean {
 
 export function setShowSceneLinks(value: boolean): Promise<boolean> {
   return game.settings.set<boolean>(MODULE_ID, 'showSceneLinks', value);
+}
+
+/** Recent search texts; anything that is not an array of strings reads as empty. */
+export function getRecentSearchList(): string[] {
+  const value = game.settings.get<unknown>(MODULE_ID, 'recentSearches');
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+export function setRecentSearchList(list: string[]): Promise<string[]> {
+  return game.settings.set<string[]>(MODULE_ID, 'recentSearches', list);
 }
 
 export function getShowQuestTracker(): boolean {

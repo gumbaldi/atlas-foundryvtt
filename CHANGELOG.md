@@ -35,6 +35,9 @@ before `compatibility.verified` in `module.json` is raised — see
 - The separate document detail window is removed.
 - Search hits show a small picture of the document's title image (the type icon in a coloured tile when
   there is none), a type colour accent, and the search words highlighted in a three-line excerpt.
+- The search filter is one compact "Types" menu with a checkbox per document kind (plus "All" and
+  "None") instead of thirteen buttons. An empty search box offers your last 8 searches as quick
+  choices; they are stored per browser and cleared on sign-out.
 
 ### Notes
 - Pinned quests need the Atlas backend to send `isPinned` for quests. Until it does, the tracker

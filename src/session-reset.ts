@@ -4,6 +4,7 @@ import { linkVisibility } from './links/link-visibility';
 import { clearQuestTracker } from './quests/quest-tracker';
 import { closeSearch } from './search/search-app';
 import { closeAllLinkManagers } from './links/link-manager-app';
+import { clearRecentSearches } from './search/recent-searches';
 
 /**
  * Runs on `atlas-foundry.sessionReset` (sign-in, sign-out, revoked token,
@@ -17,4 +18,6 @@ export function resetSessionData(): void {
   clearQuestTracker();
   closeSearch();
   closeAllLinkManagers();
+  // The typed search texts may reveal what a previous user looked for on a shared browser.
+  void clearRecentSearches();
 }

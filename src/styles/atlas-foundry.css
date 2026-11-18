@@ -16,10 +16,92 @@
   flex: 1;
 }
 
-.atlas-foundry-search-chips {
+.atlas-foundry-search-filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.atlas-foundry-filter {
+  position: relative;
+}
+
+.atlas-foundry-filter-button {
+  font: inherit;
+  font-size: 0.85rem;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  padding: 0.15rem 0.6rem;
+  cursor: pointer;
+}
+
+.atlas-foundry-filter-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 11rem;
+  max-height: 320px;
+  overflow: auto;
+  margin-top: 0.2rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-bg-option, #1b1b1f);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.atlas-foundry-filter-menu[hidden] {
+  display: none;
+}
+
+.atlas-foundry-filter-shortcuts {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.atlas-foundry-filter-shortcuts button {
+  flex: 1;
+  font-size: 0.78rem;
+}
+
+.atlas-foundry-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.atlas-foundry-recent {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.atlas-foundry-recent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.atlas-foundry-recent-header button {
+  flex: none;
+  width: auto;
+  font-size: 0.78rem;
+  padding: 0 0.5rem;
+}
+
+.atlas-foundry-recent-entry {
+  text-align: left;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .atlas-foundry-chip {
