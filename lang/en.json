@@ -122,7 +122,8 @@
       "LoggedOut": "Not connected — sign-in required.",
       "Linking": "Connecting…",
       "Connected": "Connected as {displayName} ({campaignName})",
-      "Reconnecting": "Reconnecting…",
+      "Connecting": "Connecting…",
+      "ConnectedNoLive": "Connected, live updates unavailable",
       "Revoked": "Link expired or revoked — sign in again.",
       "WorldMismatch": "This link belongs to a different Foundry world — sign in again.",
       "CampaignMismatch": "This sign-in belongs to a different campaign than this world — connect again."

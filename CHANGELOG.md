@@ -23,6 +23,9 @@ before `compatibility.verified` in `module.json` is raised — see
 - The link manager shows "could not be checked" instead of "target not found" when Atlas is unreachable.
 - Contract tests no longer depend on a file of the old combined repository, and a backend that cannot
   be reached fails them instead of silently using old fixtures.
+- The connection status no longer claims "Reconnecting" while the module works: it now says
+  "Connecting…" or "Connected, live updates unavailable", and the live connection falls back to
+  polling when WebSockets are blocked.
 
 ### Changed
 - The Atlas toolbar button looks like the other toolbar buttons and no longer opens search by itself;

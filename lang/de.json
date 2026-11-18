@@ -122,7 +122,8 @@
       "LoggedOut": "Nicht verbunden — Login erforderlich.",
       "Linking": "Verbindung wird hergestellt…",
       "Connected": "Verbunden als {displayName} ({campaignName})",
-      "Reconnecting": "Verbindung wird wiederhergestellt…",
+      "Connecting": "Verbindung wird aufgebaut…",
+      "ConnectedNoLive": "Verbunden, Live-Updates nicht verfügbar",
       "Revoked": "Verknüpfung abgelaufen oder widerrufen — neu anmelden.",
       "WorldMismatch": "Diese Verknüpfung gehört zu einer anderen Foundry-Welt — neu anmelden.",
       "CampaignMismatch": "Diese Anmeldung gehört zu einer anderen Kampagne als diese Welt — bitte neu verbinden."
