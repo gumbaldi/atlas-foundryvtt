@@ -7,13 +7,11 @@ import {
   getUserToken,
   getUserTokenId,
   setUserToken,
-  migrateLegacyIntegrationToken,
   normalizeBaseUrl,
   setBaseUrl,
   setCampaignId,
   validateBaseUrl,
 } from './settings';
-import { MODULE_ID } from './constants';
 
 function mockGame(store: Record<string, unknown>, isGM = true, userId = 'u1') {
   globalThis.game = {
@@ -75,7 +73,7 @@ describe('settings helpers', () => {
   let store: Record<string, unknown>;
 
   beforeEach(() => {
-    store = { baseUrl: '', campaignId: '', integrationToken: '' };
+    store = { baseUrl: '', campaignId: '' };
     mockGame(store);
   });
 
@@ -87,32 +85,6 @@ describe('settings helpers', () => {
   it('round-trips campaignId', async () => {
     await setCampaignId('64f0000000000000000000ab');
     expect(getCampaignId()).toBe('64f0000000000000000000ab');
-  });
-
-  it('clears a legacy integration token and warns the GM', async () => {
-    store.integrationToken = 'atlas_foundry_legacy';
-    await migrateLegacyIntegrationToken();
-
-    expect(store.integrationToken).toBe('');
-    expect(globalThis.ui.notifications.warn).toHaveBeenCalledOnce();
-  });
-
-  it('does nothing when there is no legacy token', async () => {
-    await migrateLegacyIntegrationToken();
-
-    expect(globalThis.game.settings.set).not.toHaveBeenCalledWith(MODULE_ID, 'integrationToken', '');
-    expect(globalThis.ui.notifications.warn).not.toHaveBeenCalled();
-  });
-
-  it('does not attempt to write the world-scoped setting on a player client', async () => {
-    store.integrationToken = 'atlas_foundry_legacy';
-    mockGame(store, false);
-
-    await migrateLegacyIntegrationToken();
-
-    expect(store.integrationToken).toBe('atlas_foundry_legacy');
-    expect(globalThis.game.settings.set).not.toHaveBeenCalled();
-    expect(globalThis.ui.notifications.warn).not.toHaveBeenCalled();
   });
 });
 

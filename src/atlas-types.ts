@@ -32,6 +32,17 @@ export const AtlasDocumentSummarySchema = z.object({
 });
 export type AtlasDocumentSummary = z.infer<typeof AtlasDocumentSummarySchema>;
 
+export const DeadlineStateSchema = z.enum(['upcoming', 'due', 'kept', 'archived']);
+export type DeadlineState = z.infer<typeof DeadlineStateSchema>;
+
+/** In-world calendar day (numbers only, the backend sends no month names). */
+export const DeadlineDaySchema = z.object({
+  year: z.number().int(),
+  month: z.number().int(),
+  day: z.number().int(),
+});
+export type DeadlineDay = z.infer<typeof DeadlineDaySchema>;
+
 export const AtlasDocumentDetailSchema = AtlasDocumentSummarySchema.extend({
   entry: z.string(),
   readAccess: z.array(z.string()),
@@ -39,6 +50,13 @@ export const AtlasDocumentDetailSchema = AtlasDocumentSummarySchema.extend({
   /** Only present when `moduleType === 'custom'` (see foundry-user-documents.service.ts's toDto). */
   customModuleId: z.string().optional(),
   customModuleLabel: z.string().optional(),
+  /** Deadline documents only; all optional so an older backend that sends none still validates. */
+  startDate: DeadlineDaySchema.optional(),
+  dueDate: DeadlineDaySchema.optional(),
+  deadlineState: DeadlineStateSchema.optional(),
+  /** Negative when overdue, `null` when it cannot be derived. */
+  daysRemaining: z.number().nullable().optional(),
+  calendarName: z.string().optional(),
 });
 export type AtlasDocumentDetail = z.infer<typeof AtlasDocumentDetailSchema>;
 

@@ -10,6 +10,7 @@ export {
   ModuleTypeOrCustomSchema,
   AtlasDocumentSummarySchema,
   AtlasDocumentDetailSchema,
+  DeadlineStateSchema,
   AtlasNotificationPayloadSchema,
   TokenExchangeResponseSchema,
   AtlasSearchResultSchema,

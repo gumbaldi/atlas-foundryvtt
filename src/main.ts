@@ -1,4 +1,4 @@
-import { registerSettings, migrateLegacyIntegrationToken, discardLegacyUserToken } from './settings';
+import { registerSettings, discardLegacyUserToken } from './settings';
 import { registerControls } from './controls';
 import { AtlasSettingsApp, openSettingsDialog } from './apps/settings-app';
 import { openLoginDialog } from './auth/login-app';
@@ -102,7 +102,6 @@ Hooks.once('init', () => {
 
 // Runtime work only: auth state, DOM, game.socket, network.
 Hooks.once('ready', async () => {
-  await migrateLegacyIntegrationToken();
   await discardLegacyUserToken();
   registerBell();
   registerGmBroadcastReceiver();

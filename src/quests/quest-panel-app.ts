@@ -1,3 +1,4 @@
+import { ensureAtlasGroup } from '../controls';
 import { t } from '../i18n';
 import { authManager } from '../auth/auth-manager';
 import { openLoginDialog } from '../auth/login-app';
@@ -336,9 +337,7 @@ export class QuestPanelApp extends foundry.applications.api.ApplicationV2 {
  */
 export function registerQuestPanel(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
-    const tokens = controls.tokens;
-    if (!tokens?.tools) return;
-    tokens.tools.atlasQuests = {
+    ensureAtlasGroup(controls).atlasQuests = {
       name: 'atlasQuests',
       title: 'ATLASFOUNDRY.Quests.ControlTool',
       icon: 'fa-solid fa-scroll',

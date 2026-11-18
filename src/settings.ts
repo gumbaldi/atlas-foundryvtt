@@ -1,8 +1,6 @@
 import { MODULE_ID } from './constants';
 import { t } from './i18n';
 
-const LEGACY_INTEGRATION_TOKEN_KEY = 'integrationToken';
-
 /** Strips trailing slashes / whitespace. Pure, no Foundry globals — kept testable. */
 export function normalizeBaseUrl(url: string): string {
   return url.trim().replace(/\/+$/, '');
@@ -24,10 +22,8 @@ export function validateBaseUrl(url: string): BaseUrlValidation {
 
 /**
  * Registers world-scoped settings. Per S1 fix, no secret is stored here:
- * `baseUrl` and `campaignId` are both non-sensitive. `integrationToken` stays
- * registered only long enough to detect and clear a pre-P1 value — see
- * `migrateLegacyIntegrationToken()`. `worldId` is intentionally not a
- * setting; Foundry always provides it live via `game.world.id`.
+ * `baseUrl` and `campaignId` are both non-sensitive. `worldId` is intentionally
+ * not a setting; Foundry always provides it live via `game.world.id`.
  */
 export function registerSettings(): void {
   game.settings.register(MODULE_ID, 'baseUrl', {
@@ -43,12 +39,6 @@ export function registerSettings(): void {
   });
   game.settings.register(MODULE_ID, 'campaignId', {
     name: 'ATLASFOUNDRY.Settings.CampaignId.Name',
-    scope: 'world',
-    config: false,
-    type: String,
-    default: '',
-  });
-  game.settings.register(MODULE_ID, LEGACY_INTEGRATION_TOKEN_KEY, {
     scope: 'world',
     config: false,
     type: String,
@@ -218,23 +208,4 @@ export async function discardLegacyUserToken(): Promise<void> {
   await game.settings.set(MODULE_ID, 'userToken', '');
   await game.settings.set(MODULE_ID, 'userTokenId', '');
   if (legacyToken) ui.notifications.info(t('ATLASFOUNDRY.Auth.LegacyTokenDiscarded'));
-}
-
-/**
- * One-time migration off the removed world-scoped integration token (S1).
- * Clears any leftover value and tells the GM to revoke it in Atlas and use
- * the new login flow (P3). Call once from the `ready` hook.
- *
- * GM-only: world-scoped settings can only be written by a GM client, so a
- * player client running this would fail the `set` call (and would have
- * nothing useful to migrate on behalf of everyone else anyway).
- */
-export async function migrateLegacyIntegrationToken(): Promise<void> {
-  if (!game.user.isGM) return;
-
-  const legacyValue = game.settings.get<string>(MODULE_ID, LEGACY_INTEGRATION_TOKEN_KEY);
-  if (!legacyValue) return;
-
-  await game.settings.set(MODULE_ID, LEGACY_INTEGRATION_TOKEN_KEY, '');
-  ui.notifications.warn(t('ATLASFOUNDRY.Settings.LegacyTokenMigrated'));
 }

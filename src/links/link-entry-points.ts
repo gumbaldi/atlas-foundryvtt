@@ -1,3 +1,4 @@
+import { ensureAtlasGroup } from '../controls';
 import { openLinkManager } from './link-manager-app';
 import { openLinksPopover } from './link-popover';
 import { getLinks } from './link-store';
@@ -83,10 +84,7 @@ function registerSceneContextMenu(): void {
 function registerActiveSceneControlTool(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
     if (!game.user.isGM) return;
-    const tokens = controls.tokens;
-    if (!tokens?.tools) return;
-
-    tokens.tools.atlasSceneLinks = {
+    ensureAtlasGroup(controls).atlasSceneLinks = {
       name: 'atlasSceneLinks',
       title: 'ATLASFOUNDRY.Links.SceneControlTool',
       icon: 'fa-solid fa-link',

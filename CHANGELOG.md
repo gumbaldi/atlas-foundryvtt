@@ -50,6 +50,9 @@ before `compatibility.verified` in `module.json` is raised — see
   recipient's own Atlas rights.
 
 ### Added
+- Deadlines document type: icon, label, search filter and a state / due-day line in the viewer.
+- The Atlas tools now live in their own Atlas group in the scene controls, with the Atlas logo
+  as icon.
 - A Foundry category in the Atlas repository's `scripts/test-api.sh` suite: device-flow token
   issuance, a default-deny regression matrix, and per-user visibility checks across documents,
   search, quests, `visibility-check`, and messages.

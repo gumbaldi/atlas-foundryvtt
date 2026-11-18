@@ -1,0 +1,43 @@
+- batchNumber: 3
+  batch: 003-2026-11-18-maintenance-findings-cleanup
+  branch: cfq/003-2026-11-18-maintenance-findings-cleanup
+  base: deadlines-support
+  started: 2026-11-18
+  status: done
+  finished: 2026-11-18
+  phases:
+    - phase: "01-use-native-abort-signal-any"
+      status: "green"
+      summary: "performRequest now combines the caller's signal and the timeout with AbortSignal.any/AbortSignal.timeout; timer/listener plumbing removed; timeout test rewritten with a real 20 ms timeout, plus caller-abort and signal-passed tests added"
+    - phase: "02-share-token-revoke-helpers"
+      status: "green"
+      summary: "Extracted module-level postTokenExchange and revokeOnServer in auth-manager.ts, rebuilt revokeUnlinkedToken on them (failed DELETE now logged), added five revokeUnlinkedToken spec cases"
+    - phase: "03-remove-legacy-integration-token"
+      status: "green"
+      summary: "Removed the legacy integrationToken setting, its migration function, call, i18n key and CLAUDE.md mention"
+    - phase: "04-drop-redundant-npm-ci"
+      status: "green"
+      summary: "Removed the trailing npm ci from update_module.sh and corrected the script's description in CLAUDE.md"
+- batchNumber: 2
+  batch: 002-2026-11-09-atlas-scene-control-group
+  branch: cfq/002-2026-11-09-atlas-scene-control-group
+  base: test
+  started: 2026-11-16
+  status: done
+  finished: 2026-11-16
+  phases:
+    - phase: "01-atlas-scene-control-group"
+      status: "green"
+      summary: "Added idempotent ensureAtlasGroup in controls.ts and moved the four Atlas scene-control tools into a new last-ordered atlas group; lang keys, docs and tests updated"
+    - phase: "02-atlas-group-svg-icon"
+      status: "green"
+      summary: "Atlas scene-control group now uses a single-colour Atlas logo SVG painted via CSS mask, copied by the build"
+- batchNumber: 1
+  batch: 001-2026-11-09-v14-startup-login-and-session-fixes
+  branch: batch/001-v14-startup-login-and-session-fixes
+  started: 2026-11-09
+  status: done
+  finished: 2026-11-16
+- batchNumber: 1
+  batch: 001-2026-11-09-v14-startup-login-and-session-fixes
+  status: parked

@@ -1,3 +1,4 @@
+import { ensureAtlasGroup } from '../controls';
 import { t } from '../i18n';
 import { SOCKET_EVENT, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
@@ -238,9 +239,7 @@ function showSuggestOpenToast(documentName: string, onOpen: () => void): void {
 /** Fallback entry point (plan: "the center stays reachable via the scene control") for when the bell is hidden or its DOM anchor collides with another module. */
 export function registerNotificationsControl(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
-    const tokens = controls.tokens;
-    if (!tokens?.tools) return;
-    tokens.tools.atlasNotifications = {
+    ensureAtlasGroup(controls).atlasNotifications = {
       name: 'atlasNotifications',
       title: 'ATLASFOUNDRY.Notifications.ControlTool',
       icon: 'fa-solid fa-bell',

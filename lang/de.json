@@ -4,6 +4,7 @@
       "Title": "Atlas"
     },
     "Controls": {
+      "Group": "Atlas",
       "OpenSearch": "Atlas-Suche"
     },
     "Settings": {
@@ -40,7 +41,6 @@
         "Name": "Atlas-Kampagnen-ID",
         "Hint": "Wird automatisch gesetzt, sobald sich ein Spielleiter über den Login-Flow unten anmeldet. Du kannst sie auch manuell eintragen."
       },
-      "LegacyTokenMigrated": "Ein altes Atlas-Integrationstoken wurde gefunden und aus Sicherheitsgründen entfernt. Bitte widerrufe es in Atlas und melde dich über den Login-Flow unten neu an.",
       "Login": "Mit Atlas verbinden",
       "Logout": "Trennen"
     },
@@ -75,7 +75,22 @@
       "Refresh": "Aktualisieren",
       "OpenInAtlas": "In Atlas öffnen",
       "RestrictedBadge": "Eingeschränkt",
-      "UpdatedAt": "Zuletzt aktualisiert am {date}"
+      "UpdatedAt": "Zuletzt aktualisiert am {date}",
+      "Deadline": {
+        "State": {
+          "upcoming": "Bevorstehend",
+          "due": "Fällig",
+          "kept": "Eingehalten",
+          "archived": "Archiviert"
+        },
+        "Remaining": {
+          "InDays": "in {count} Tagen",
+          "InDay": "in {count} Tag",
+          "Today": "heute",
+          "DaysOverdue": "{count} Tage überfällig",
+          "DayOverdue": "{count} Tag überfällig"
+        }
+      }
     },
     "Entry": {
       "ImageUnavailable": "Bild nicht erreichbar — prüfe MINIO_ENDPOINT/Firewall."
@@ -193,7 +208,8 @@
       "cultures": "Kulturen",
       "session-logs": "Sitzungsprotokolle",
       "chronicles": "Chroniken",
-      "calendars": "Kalender"
+      "calendars": "Kalender",
+      "deadlines": "Fristen"
     }
   }
 }
