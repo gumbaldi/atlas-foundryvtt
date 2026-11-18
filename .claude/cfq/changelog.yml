@@ -1,3 +1,9 @@
+- batchNumber: 3
+  batch: 003-2026-11-18-maintenance-findings-cleanup
+  branch: cfq/003-2026-11-18-maintenance-findings-cleanup
+  base: deadlines-support
+  started: 2026-11-18
+  status: in-progress
 - batchNumber: 2
   batch: 002-2026-11-09-atlas-scene-control-group
   branch: cfq/002-2026-11-09-atlas-scene-control-group
