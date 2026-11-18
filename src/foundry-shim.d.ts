@@ -135,6 +135,8 @@ declare global {
 
   interface Ui {
     notifications: UiNotifications;
+    /** The scene controls (left toolbar); `render()` rebuilds them, re-running `getSceneControlButtons`. */
+    controls?: { render(options?: unknown): unknown };
     /** Registry of every currently-rendered Application (v1 back-compat layer, still populated in v14) — DocumentSheet instances expose `.document`. */
     windows?: Record<string, unknown>;
   }

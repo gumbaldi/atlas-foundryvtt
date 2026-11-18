@@ -22,8 +22,8 @@
       },
       "BaseUrlMissingScheme": "The base URL is missing http:// or https:// — connections will fail until it's added.",
       "ShowSceneLinks": {
-        "Name": "Show scene links bar",
-        "Hint": "Toggles the Atlas links bar at the top of the canvas."
+        "Name": "Scene links bar expanded",
+        "Hint": "Expands or collapses the Atlas links bar at the top of the canvas. Collapsed, a small pill with the number of links stays visible."
       },
       "QuietMode": {
         "Name": "Quiet notifications",
@@ -169,6 +169,10 @@
       "NoTargets": "No target available — select a scene, a token, or open a sheet.",
       "Added": "\"{name}\" was linked.",
       "SceneControlTool": "Scene's Atlas Links",
+      "ToggleBar": "Show scene links",
+      "Collapse": "Collapse links",
+      "ExpandPill": "Show {count} links",
+      "OverflowTitle": "{count} more links",
       "OpenUnavailable": "This document could not be opened in Atlas — it may no longer exist or you may not have access."
     },
     "Quests": {

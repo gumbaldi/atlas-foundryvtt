@@ -22,8 +22,8 @@
       },
       "BaseUrlMissingScheme": "Der Basis-URL fehlt http:// oder https:// — Verbindungen schlagen fehl, bis das ergänzt wird.",
       "ShowSceneLinks": {
-        "Name": "Szenen-Verknüpfungsleiste anzeigen",
-        "Hint": "Blendet die Leiste mit Atlas-Verknüpfungen am oberen Canvas-Rand ein oder aus."
+        "Name": "Szenen-Verknüpfungsleiste ausgeklappt",
+        "Hint": "Klappt die Leiste mit Atlas-Verknüpfungen am oberen Canvas-Rand auf oder zu. Zugeklappt bleibt eine kleine Pille mit der Anzahl der Verknüpfungen sichtbar."
       },
       "QuietMode": {
         "Name": "Benachrichtigungen stumm",
@@ -169,6 +169,10 @@
       "NoTargets": "Kein Ziel verfügbar — wähle eine Szene, ein Token oder öffne ein Sheet.",
       "Added": "„{name}“ wurde verknüpft.",
       "SceneControlTool": "Atlas-Verknüpfungen der Szene",
+      "ToggleBar": "Szenen-Verknüpfungen anzeigen",
+      "Collapse": "Verknüpfungen zuklappen",
+      "ExpandPill": "{count} Verknüpfungen anzeigen",
+      "OverflowTitle": "{count} weitere Verknüpfungen",
       "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff."
     },
     "Quests": {

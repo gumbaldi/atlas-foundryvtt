@@ -110,7 +110,7 @@ export function registerSettings(): void {
     type: String,
     default: '',
   });
-  // Client-scoped so each player can hide the overlay independently (plan P5 UI/UX note).
+  // Client-scoped so each player can fold the overlay away independently; true = expanded, false = collapsed to a counter pill.
   // config: true — shown in Foundry's own "Configure Settings" screen, no custom UI needed.
   game.settings.register(MODULE_ID, 'showSceneLinks', {
     name: 'ATLASFOUNDRY.Settings.ShowSceneLinks.Name',
@@ -237,6 +237,10 @@ export async function setUserToken(token: string, tokenId: string): Promise<void
 
 export function getShowSceneLinks(): boolean {
   return game.settings.get<boolean>(MODULE_ID, 'showSceneLinks') ?? true;
+}
+
+export function setShowSceneLinks(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showSceneLinks', value);
 }
 
 export interface QuestPanelPosition {

@@ -14,6 +14,11 @@ before `compatibility.verified` in `module.json` is raised — see
 - Links (scene bar, popover, token HUD, link manager) and notifications open the document directly
   in Atlas in a new browser tab instead of the in-Foundry detail window, including documents of
   custom modules.
+- The scene link bar is more compact: links sit side by side in at most two rows as narrow chips with
+  a small picture of the document's title image, and only the first ten are shown (the rest is behind
+  `+N`).
+- The scene link bar can be collapsed (button on the bar, or the new "Show scene links" switch in the
+  Atlas toolbar group); collapsed, a small pill with the number of links stays visible.
 
 ### Fixed
 - The module starts again on Foundry 14: the quest panel no longer reads a setting while the
