@@ -1,3 +1,9 @@
+- batchNumber: 4
+  batch: 004-2026-11-18-slug-check-after-login
+  branch: cfq/004-2026-11-18-slug-check-after-login
+  base: cfq/003-2026-11-18-maintenance-findings-cleanup
+  started: 2026-11-18
+  status: in-progress
 - batchNumber: 3
   batch: 003-2026-11-18-maintenance-findings-cleanup
   branch: cfq/003-2026-11-18-maintenance-findings-cleanup
