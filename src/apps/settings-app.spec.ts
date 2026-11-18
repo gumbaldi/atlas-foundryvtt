@@ -52,6 +52,15 @@ describe('AtlasSettingsApp', () => {
     expect(result.querySelector('button[type="submit"]')).not.toBeNull();
   });
 
+  it('prefills the alias URL when an alias is stored', async () => {
+    store.campaignSlug = 'dvl';
+    const { AtlasSettingsApp } = await import('./settings-app');
+    const app = new AtlasSettingsApp();
+    const result = (await (app as any)._renderHTML()) as HTMLElement;
+
+    expect(result.querySelector<HTMLInputElement>('input[name="atlasUrl"]')?.value).toBe('https://atlas.old/en/campaigns/dvl');
+  });
+
   it('is configured as a form application with a submit handler', async () => {
     const { AtlasSettingsApp } = await import('./settings-app');
     expect(AtlasSettingsApp.DEFAULT_OPTIONS.tag).toBe('form');
@@ -78,6 +87,17 @@ describe('AtlasSettingsApp', () => {
     expect(store.baseUrl).toBe('atlas.example');
     expect(store.campaignId).toBe('6af153b44755e79bfcd90d84');
     expect(ui.notifications.warn).toHaveBeenCalledWith('ATLASFOUNDRY.Settings.BaseUrlMissingScheme');
+  });
+
+  it('stores the alias from an alias URL on submit', async () => {
+    const { AtlasSettingsApp } = await import('./settings-app');
+    await AtlasSettingsApp.onSubmit({} as Event, {} as HTMLFormElement, {
+      object: { atlasUrl: 'https://atlas.example/de/campaigns/DVL' },
+    });
+
+    expect(store.baseUrl).toBe('https://atlas.example');
+    expect(store.campaignSlug).toBe('dvl');
+    expect(store.campaignId).toBe('');
   });
 
   it('clears the campaign id when only a base URL is entered', async () => {

@@ -45,6 +45,9 @@
         "Name": "Atlas campaign ID",
         "Hint": "Set automatically once a GM signs in through the login flow below. You can also paste it manually."
       },
+      "CampaignSlug": {
+        "Name": "Atlas campaign alias"
+      },
       "Login": "Connect to Atlas",
       "Logout": "Disconnect"
     },

@@ -8,8 +8,10 @@ export function normalizeBaseUrl(url: string): string {
 
 export interface ParsedAtlasUrl {
   baseUrl: string;
-  /** Empty unless the URL carries a real campaign id (24 hex chars) — a slug can't be resolved before login. */
+  /** Empty unless the URL carries a real campaign id (24 hex chars). */
   campaignId: string;
+  /** Lowercased campaign alias (e.g. `dvl`) when the URL's campaign segment is not a Mongo id, else empty. */
+  campaignSlug: string;
 }
 
 /**
@@ -17,21 +19,25 @@ export interface ParsedAtlasUrl {
  * (`https://atlas.example.com`) or a campaign URL from the browser
  * (`https://atlas.example.com/de/campaigns/<id>[/...]`) — base URL and campaign id are derived
  * from it. A locale segment (`de`/`en`) before `/campaigns/` is dropped. A segment that is not a
- * Mongo id (e.g. the slug `dvl`) is ignored: the backend rejects it, and the campaign is then
- * confirmed on the Atlas page and pinned after login. Pure, no Foundry globals.
+ * Mongo id (e.g. the alias `dvl`) is returned lowercased as `campaignSlug`: the backend only
+ * resolves an alias after login, so it is kept apart from the campaign id. Pure, no Foundry globals.
  */
 export function parseAtlasUrl(input: string): ParsedAtlasUrl {
   const cleaned = input.trim().replace(/[?#].*$/, '');
   const match = /^(.*?)(?:\/(?:de|en))?\/campaigns\/([^/]+)(?:\/.*)?$/i.exec(cleaned);
-  if (!match) return { baseUrl: normalizeBaseUrl(cleaned), campaignId: '' };
-  let campaignId = match[2] ?? '';
+  if (!match) return { baseUrl: normalizeBaseUrl(cleaned), campaignId: '', campaignSlug: '' };
+  let segment = match[2] ?? '';
   try {
-    campaignId = decodeURIComponent(campaignId);
+    segment = decodeURIComponent(segment);
   } catch {
     // keep the raw segment
   }
-  if (!/^[0-9a-f]{24}$/i.test(campaignId)) campaignId = '';
-  return { baseUrl: normalizeBaseUrl(match[1] ?? ''), campaignId };
+  const isId = /^[0-9a-f]{24}$/i.test(segment);
+  return {
+    baseUrl: normalizeBaseUrl(match[1] ?? ''),
+    campaignId: isId ? segment : '',
+    campaignSlug: isId ? '' : segment.toLowerCase(),
+  };
 }
 
 export interface BaseUrlValidation {
@@ -67,6 +73,14 @@ export function registerSettings(): void {
   });
   game.settings.register(MODULE_ID, 'campaignId', {
     name: 'ATLASFOUNDRY.Settings.CampaignId.Name',
+    scope: 'world',
+    config: false,
+    type: String,
+    default: '',
+  });
+  // The alias from a pasted campaign URL (e.g. `dvl`); not a secret, resolved by Atlas after login.
+  game.settings.register(MODULE_ID, 'campaignSlug', {
+    name: 'ATLASFOUNDRY.Settings.CampaignSlug.Name',
     scope: 'world',
     config: false,
     type: String,
@@ -162,6 +176,36 @@ export function getCampaignId(): string {
 
 export async function setCampaignId(value: string): Promise<void> {
   await game.settings.set(MODULE_ID, 'campaignId', value);
+}
+
+export function getCampaignSlug(): string {
+  return game.settings.get<string>(MODULE_ID, 'campaignSlug') ?? '';
+}
+
+export async function setCampaignSlug(value: string): Promise<void> {
+  await game.settings.set(MODULE_ID, 'campaignSlug', value);
+}
+
+/**
+ * Stores a parsed Atlas URL. The base URL is always stored. A campaign id replaces the alias; an
+ * alias keeps the already pinned campaign id only when alias and base URL are unchanged
+ * (otherwise a new login pins it again); a plain base URL clears both.
+ */
+export async function applyAtlasUrl(parsed: ParsedAtlasUrl): Promise<void> {
+  const previousBaseUrl = getBaseUrl();
+  const previousSlug = getCampaignSlug();
+  const baseUrl = normalizeBaseUrl(parsed.baseUrl);
+  await setBaseUrl(baseUrl);
+  if (parsed.campaignId) {
+    await setCampaignId(parsed.campaignId);
+    await setCampaignSlug('');
+  } else if (parsed.campaignSlug) {
+    if (parsed.campaignSlug !== previousSlug || baseUrl !== previousBaseUrl) await setCampaignId('');
+    await setCampaignSlug(parsed.campaignSlug);
+  } else {
+    await setCampaignId('');
+    await setCampaignSlug('');
+  }
 }
 
 interface StoredUserToken {

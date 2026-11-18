@@ -45,6 +45,9 @@
         "Name": "Atlas-Kampagnen-ID",
         "Hint": "Wird automatisch gesetzt, sobald sich ein Spielleiter über den Login-Flow unten anmeldet. Du kannst sie auch manuell eintragen."
       },
+      "CampaignSlug": {
+        "Name": "Atlas-Kampagnen-Alias"
+      },
       "Login": "Mit Atlas verbinden",
       "Logout": "Trennen"
     },
