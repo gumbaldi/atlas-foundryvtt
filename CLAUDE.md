@@ -20,7 +20,7 @@ npm run test:contract      # replays contract/fixtures against zod schemas (no n
 npm run test:contract:record   # live mode: ATLAS_TEST_URL + ATLAS_TEST_EMAIL/ATLAS_TEST_PASSWORD (env only, localhost only); re-records fixtures with secrets replaced by placeholders
 npm run typecheck:contract
 npm run package            # build + deterministic zip + manifest in release/ (needs `zip` CLI)
-./update_module.sh         # npm ci, lint, typecheck, test, patch-bump version, commit, push
+./update_module.sh         # npm install, npm audit fix, lint, typecheck, test, patch-bump version, commit, push
 ```
 
 To try the module in Foundry, symlink `dist/` to `{Foundry userData}/Data/modules/atlas-foundry`.
