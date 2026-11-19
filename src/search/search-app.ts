@@ -2,6 +2,7 @@ import { t } from '../i18n';
 import { MODULE_TYPES, type ModuleType } from '../constants';
 import { safeImageUrl } from '../render/image-url';
 import { getTypeStyle } from './type-style';
+import { formatDocumentTitle } from '../render/document-title';
 import { highlightTerms } from './highlight';
 import { authManager } from '../auth/auth-manager';
 import { openLoginDialog } from '../auth/login-app';
@@ -451,7 +452,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     card.innerHTML = `
       <span class="atlas-foundry-search-card-thumb" data-thumb><i class="${style.icon}"></i></span>
       <div class="atlas-foundry-search-card-main">
-        <strong>${foundry.utils.escapeHTML(item.name)}${item.postTitle ? ` — ${foundry.utils.escapeHTML(item.postTitle)}` : ''}</strong>
+        <strong>${foundry.utils.escapeHTML(formatDocumentTitle(item.moduleType, item.name, item.sessionNumber))}${item.postTitle ? ` — ${foundry.utils.escapeHTML(item.postTitle)}` : ''}</strong>
         <span class="atlas-foundry-search-card-type"><i class="${style.icon}"></i> ${foundry.utils.escapeHTML(typeLabel)}</span>
         ${snippet ? `<p class="atlas-foundry-search-card-snippet">${snippet}</p>` : ''}
         ${item.tags.length ? `<div class="atlas-foundry-search-card-badges">${item.tags.map((tag) => `<span class="atlas-foundry-tag">${foundry.utils.escapeHTML(tag)}</span>`).join('')}</div>` : ''}

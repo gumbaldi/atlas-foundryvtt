@@ -25,6 +25,8 @@ export const AtlasDocumentSummarySchema = z.object({
   campaignId: z.string(),
   moduleType: ModuleTypeOrCustomSchema,
   name: z.string(),
+  /** Session logs only; Kanka imports often lack it (the number is then part of the name). */
+  sessionNumber: z.number().nullable().optional(),
   imageUrl: z.string().optional(),
   heroImageUrl: z.string().optional(),
   tags: z.array(z.string()),
@@ -98,6 +100,7 @@ export const AtlasSearchResultSchema = z.object({
   moduleType: ModuleTypeOrCustomSchema,
   name: z.string(),
   postTitle: z.string().optional(),
+  sessionNumber: z.number().nullable().optional(),
   entryPlainText: z.string().optional(),
   imageUrl: z.string().optional(),
   tags: z.array(z.string()),

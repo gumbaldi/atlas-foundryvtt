@@ -1,3 +1,4 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { MODULE_TYPE_ICONS } from '../constants';
 import { linkVisibility, toRefs } from './link-visibility';
@@ -70,7 +71,7 @@ export async function openLinksPopover(links: AtlasLink[], anchor: HTMLElement):
   panel.innerHTML = visibleLinks
     .map((link) => {
       const icon = link.moduleType === 'custom' ? CUSTOM_MODULE_ICON : ((MODULE_TYPE_ICONS as Record<string, string | undefined>)[link.moduleType] ?? CUSTOM_MODULE_ICON);
-      const label = link.label ?? result.nameFor(link) ?? link.nameSnapshot;
+      const label = link.label ?? result.nameFor(link) ?? formatDocumentTitle(link.moduleType, link.nameSnapshot);
       return `
         <button type="button" class="atlas-foundry-links-popover-item" data-link-id="${foundry.utils.escapeHTML(link.id)}">
           <i class="${icon}"></i> <span>${foundry.utils.escapeHTML(label)}</span>

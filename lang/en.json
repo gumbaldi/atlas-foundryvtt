@@ -78,7 +78,8 @@
       "EnlargeImage": "Click to enlarge",
       "FocusHint": "Select a result to see the document here.",
       "KeybindingName": "Open Atlas Search",
-      "OpenWindow": "Open the search window"
+      "OpenWindow": "Open the search window",
+      "HudPlaceholder": "Search…"
     },
     "Viewer": {
       "Title": "Atlas Document",
@@ -186,7 +187,8 @@
       "ToggleTool": "Show quests and links",
       "KeybindingName": "Toggle Atlas quests and links",
       "Collapse": "Collapse quests and links",
-      "Expand": "Show quests and links ({count})"
+      "Expand": "Show quests and links ({count})",
+      "SwitchTool": "Show Atlas HUD"
     },
     "Notifications": {
       "Title": "Atlas Notifications",

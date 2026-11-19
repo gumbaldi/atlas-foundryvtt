@@ -1,3 +1,4 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { MODULE_TYPE_ICONS, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
@@ -164,7 +165,7 @@ export async function renderSceneLinksBar(): Promise<void> {
   if (token !== renderToken || canvas?.scene !== scene) return; // superseded while awaiting
 
   const isGm = game.user.isGM;
-  const visible = links.filter((link) => result.isVisible(link)).map((link) => ({ link, name: result.nameFor(link) ?? link.nameSnapshot }));
+  const visible = links.filter((link) => result.isVisible(link)).map((link) => ({ link, name: result.nameFor(link) ?? formatDocumentTitle(link.moduleType, link.nameSnapshot) }));
   // failed → we couldn't confirm anything either way, so a GM sees "?" chips
   // instead of the (wrong) inference that every ref is broken/deleted.
   const broken = isGm && !result.failed ? links.filter((link) => !result.isVisible(link)) : [];
@@ -199,8 +200,8 @@ export async function renderSceneLinksBar(): Promise<void> {
     chips.appendChild(built.chip);
     thumbEntries.push({ link, thumb: built.thumb });
   });
-  broken.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'broken').chip));
-  unknown.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'unknown').chip));
+  broken.forEach((link) => chips.appendChild(buildChip(link, formatDocumentTitle(link.moduleType, link.nameSnapshot), 'broken').chip));
+  unknown.forEach((link) => chips.appendChild(buildChip(link, formatDocumentTitle(link.moduleType, link.nameSnapshot), 'unknown').chip));
   if (overflow.length > 0) chips.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
   bar.appendChild(chips);
 

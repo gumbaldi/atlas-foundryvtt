@@ -1,3 +1,4 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { ensureAtlasGroup } from '../controls';
 import { t } from '../i18n';
 import { SOCKET_EVENT, type ModuleType } from '../constants';
@@ -113,7 +114,8 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
     row.dataset.messageId = item.id;
 
     const icon = KIND_ICONS[item.kind] ?? 'fa-solid fa-bell';
-    const title = item.subject || item.documentName || t('ATLASFOUNDRY.Notifications.NoSubject');
+    const documentTitle = item.documentName ? formatDocumentTitle(item.documentModuleType ?? '', item.documentName) : undefined;
+    const title = item.subject || documentTitle || t('ATLASFOUNDRY.Notifications.NoSubject');
     const canBroadcast = game.user.isGM && !!item.documentId && !!item.documentModuleType;
 
     row.innerHTML = `
@@ -188,7 +190,7 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
       type: 'suggest-open',
       moduleType: item.documentModuleType,
       documentId: item.documentId,
-      documentName: item.documentName,
+      documentName: item.documentName ? formatDocumentTitle(item.documentModuleType ?? '', item.documentName) : item.documentName,
     });
     ui.notifications.info(t('ATLASFOUNDRY.Notifications.BroadcastSent'));
   }
@@ -269,6 +271,6 @@ export function registerGmBroadcastReceiver(): void {
       openIt();
       return;
     }
-    showSuggestOpenToast(payload.documentName ?? '', openIt);
+    showSuggestOpenToast(formatDocumentTitle(payload.moduleType ?? '', payload.documentName ?? ''), openIt);
   });
 }

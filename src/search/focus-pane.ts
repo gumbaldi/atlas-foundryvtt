@@ -1,3 +1,4 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { log } from '../log';
 import { MODULE_TYPE_ICONS } from '../constants';
@@ -69,6 +70,7 @@ export function renderFocusPane(container: HTMLElement, selection: AtlasSearchRe
     const typeLabel =
       doc.moduleType === 'custom' ? (doc.customModuleLabel ?? t('ATLASFOUNDRY.Search.CustomModule')) : t(`ATLASFOUNDRY.ModuleTypes.${doc.moduleType}`);
 
+    const title = formatDocumentTitle(doc.moduleType, doc.name, selection.sessionNumber ?? doc.sessionNumber);
     const deadline = describeDeadline(doc);
     const deadlineLine = deadline
       ? `<div class="atlas-foundry-focus-deadline">${[
@@ -90,7 +92,7 @@ export function renderFocusPane(container: HTMLElement, selection: AtlasSearchRe
       <header class="atlas-foundry-focus-header">
         <div class="atlas-foundry-focus-image" data-image hidden></div>
         <div class="atlas-foundry-focus-heading">
-          <h2>${esc(doc.name)}</h2>
+          <h2>${esc(title)}</h2>
           <div class="atlas-foundry-focus-badges">
             <span class="atlas-foundry-badge"><i class="${icon}"></i> ${esc(typeLabel)}</span>
             ${!isPublic ? `<span class="atlas-foundry-badge atlas-foundry-badge-restricted">${esc(t('ATLASFOUNDRY.Viewer.RestrictedBadge'))}</span>` : ''}
@@ -113,11 +115,11 @@ export function renderFocusPane(container: HTMLElement, selection: AtlasSearchRe
     const imageSlot = root.querySelector<HTMLElement>('[data-image]');
     if (imageSrc && imageSlot) {
       const img = document.createElement('img');
-      img.alt = doc.name;
+      img.alt = title;
       img.title = t('ATLASFOUNDRY.Search.EnlargeImage');
       img.addEventListener('load', () => (imageSlot.hidden = false));
       img.addEventListener('error', () => imageSlot.remove());
-      img.addEventListener('click', () => openImageLightbox(imageSrc, doc.name));
+      img.addEventListener('click', () => openImageLightbox(imageSrc, title));
       img.src = imageSrc;
       imageSlot.appendChild(img);
     }

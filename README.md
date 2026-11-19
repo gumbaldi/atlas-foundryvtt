@@ -11,10 +11,14 @@ per user, with that user's own Atlas rights.
   hits and your last searches are offered as quick choices. Results match what the same account sees
   on the Atlas web UI.
 - **Right-hand HUD**: everything Atlas shows on screen is stacked at the right edge, next to the sidebar,
-  top to bottom: the notification bell (only while something is unread), a search field (typing lists the
-  first hits right there, a click on one opens it in the search window, Enter or the magnifier opens the
-  window with your text), the quests and the scene's links. Quests and links fold away together with one
-  button (`Ctrl+Shift+Q`) into a pill with the entry count.
+  top to bottom: the notification bell (only while something is unread), a compact search field (typing
+  lists the first hits right there with title image, module icon and title; a click on one opens it in the
+  search window, Enter or the magnifier opens the window with your text), the quests and the scene's
+  links. Quests and links fold away together with one button (`Ctrl+Shift+Q`); collapsed, one pill shows
+  an icon and the item count for each panel that has entries. The whole HUD can be switched off with the
+  "Show Atlas HUD" tool in the Atlas toolbar group.
+- **Session logs**: wherever a session log title appears (search, viewer, links, notifications) it starts
+  with the session number: `#12 - Title`.
 - **Context links**: attach Atlas documents to scenes, actors, tokens, journal entries, items and
   tiles. The scene's links appear under a "Links" heading as a right-aligned stack of compact chips with a
   thumbnail (the rest behind `+N`). A click opens the document in Atlas in a new tab. Visibility is
