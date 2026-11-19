@@ -1,3 +1,4 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { MODULE_TYPE_ICONS } from '../constants';
 import { openInAtlas } from './open-in-atlas';
@@ -91,7 +92,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
 
   private renderRow(row: RowState): string {
     const icon = row.link.moduleType === 'custom' ? CUSTOM_MODULE_ICON : (MODULE_TYPE_ICONS as Record<string, string | undefined>)[row.link.moduleType] ?? CUSTOM_MODULE_ICON;
-    const displayName = row.currentName ?? row.link.nameSnapshot;
+    const displayName = row.currentName ?? formatDocumentTitle(row.link.moduleType, row.link.nameSnapshot);
     const typeLabel =
       row.link.moduleType === 'custom' ? t('ATLASFOUNDRY.Search.CustomModule') : (t(`ATLASFOUNDRY.ModuleTypes.${row.link.moduleType}`) || row.link.moduleType);
 
@@ -140,7 +141,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
     await addLink(this.target.doc, {
       documentId: picked.id,
       moduleType: picked.moduleType,
-      nameSnapshot: picked.name,
+      nameSnapshot: formatDocumentTitle(picked.moduleType, picked.name, picked.sessionNumber),
     });
     await this.load();
   }

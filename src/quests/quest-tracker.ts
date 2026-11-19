@@ -4,7 +4,7 @@ import { getRightHud, removeRightHudIfEmpty } from '../hud-right';
 import { reportHudSection } from '../hud-panels';
 import { atlasQuestsUrl } from '../deep-links';
 import { openInAtlas } from '../links/open-in-atlas';
-import { getShowHudPanels } from '../settings';
+import { getShowHud, getShowHudPanels } from '../settings';
 import { fetchQuests, refreshQuests } from './quests-api';
 import { countTrackedQuests, selectTrackedQuests } from './quest-selection';
 import type { AtlasQuest } from '../atlas-types';
@@ -32,9 +32,9 @@ function stopPolling(): void {
   pollTimer = null;
 }
 
-/** Polls only while the tracker is expanded and the user is signed in. */
+/** Polls only while the HUD and the tracker are expanded and the user is signed in. */
 function syncPolling(): void {
-  const shouldPoll = authManager.isLinked() && getShowHudPanels();
+  const shouldPoll = authManager.isLinked() && getShowHud() && getShowHudPanels();
   if (!shouldPoll) {
     stopPolling();
     return;
@@ -176,9 +176,11 @@ export function registerQuestTracker(): void {
     const moduleType = (payload as { documentModuleType?: string } | null)?.documentModuleType;
     if (moduleType === 'quests') void load(true);
   });
-  Hooks.on('atlas-foundry.showHudPanelsChanged', () => {
+  const onVisibilityChanged = (): void => {
     renderQuestTracker();
     syncPolling();
-  });
+  };
+  Hooks.on('atlas-foundry.showHudPanelsChanged', onVisibilityChanged);
+  Hooks.on('atlas-foundry.showHudChanged', onVisibilityChanged);
   Hooks.on('renderSidebar', renderQuestTracker);
 }

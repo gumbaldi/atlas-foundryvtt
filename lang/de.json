@@ -78,7 +78,8 @@
       "EnlargeImage": "Zum Vergrößern anklicken",
       "FocusHint": "Wähle ein Ergebnis, um das Dokument hier zu sehen.",
       "KeybindingName": "Atlas-Suche öffnen",
-      "OpenWindow": "Suchfenster öffnen"
+      "OpenWindow": "Suchfenster öffnen",
+      "HudPlaceholder": "Suche…"
     },
     "Viewer": {
       "Title": "Atlas-Dokument",
@@ -186,7 +187,8 @@
       "ToggleTool": "Quests und Verknüpfungen anzeigen",
       "KeybindingName": "Atlas-Quests und -Verknüpfungen ein-/ausklappen",
       "Collapse": "Quests und Verknüpfungen zuklappen",
-      "Expand": "Quests und Verknüpfungen anzeigen ({count})"
+      "Expand": "Quests und Verknüpfungen anzeigen ({count})",
+      "SwitchTool": "Atlas-HUD anzeigen"
     },
     "Notifications": {
       "Title": "Atlas-Benachrichtigungen",

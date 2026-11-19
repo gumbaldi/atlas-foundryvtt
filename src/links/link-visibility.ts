@@ -2,6 +2,7 @@ import { TtlCache } from '../api/cache';
 import { request } from '../api/client';
 import { authManager } from '../auth/auth-manager';
 import { AtlasAuthError } from '../api/errors';
+import { formatDocumentTitle } from '../render/document-title';
 import type { AtlasLink } from './link-store';
 
 export interface LinkRef {
@@ -10,7 +11,7 @@ export interface LinkRef {
 }
 
 interface VisibilityCheckResponse {
-  visible: Array<{ documentId: string; moduleType: string; name: string }>;
+  visible: Array<{ documentId: string; moduleType: string; name: string; sessionNumber?: number | null }>;
 }
 
 /** What a batch of `check()` calls resolved to — absence from `visible` means "server didn't confirm", not necessarily "deleted" (see plan's no-existence-oracle rule). */
@@ -138,7 +139,7 @@ export class LinkVisibilityChecker {
           body: { refs: batch.map((ref) => ({ documentId: ref.documentId, moduleType: ref.moduleType })) },
         });
         for (const item of response.visible) {
-          visibleByKey.set(`${item.moduleType}:${item.documentId}`, item.name);
+          visibleByKey.set(`${item.moduleType}:${item.documentId}`, formatDocumentTitle(item.moduleType, item.name, item.sessionNumber));
         }
       }
       for (const [key, resolver] of resolvers) {

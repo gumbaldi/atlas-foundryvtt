@@ -2,6 +2,9 @@ import { t } from '../i18n';
 import { authManager } from '../auth/auth-manager';
 import { getRightHud, removeRightHudIfEmpty } from '../hud-right';
 import { getTypeStyle } from './type-style';
+import { formatDocumentTitle } from '../render/document-title';
+import { safeImageUrl } from '../render/image-url';
+import { getBaseUrl } from '../settings';
 import { openSearch } from './search-app';
 import { SearchController, type SearchControllerState } from './search-controller';
 
@@ -52,11 +55,25 @@ function renderHits(list: HTMLElement, state: SearchControllerState, onPick: () 
     row.style.setProperty('--atlas-type-color', style.color);
     row.title = typeLabel(hit.moduleType, hit.customModuleLabel);
 
+    // Title image first (a tile in the type colour until it loads, or when the hit has none), then the module icon, then the title.
+    const thumb = document.createElement('span');
+    thumb.className = 'atlas-foundry-search-hud-thumb';
+    const src = safeImageUrl(hit.imageUrl ?? undefined, getBaseUrl());
+    if (src) {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = '';
+      img.draggable = false;
+      img.addEventListener('error', () => img.remove());
+      img.src = src;
+      thumb.appendChild(img);
+    }
     const icon = document.createElement('i');
     icon.className = style.icon;
     const name = document.createElement('span');
-    name.textContent = hit.name;
-    row.append(icon, name);
+    name.className = 'atlas-foundry-search-hud-name';
+    name.textContent = formatDocumentTitle(hit.moduleType, hit.name, hit.sessionNumber);
+    row.append(thumb, icon, name);
 
     row.addEventListener('click', () => {
       onPick();
@@ -93,7 +110,7 @@ function buildSearch(): HTMLElement {
   field.className = 'atlas-foundry-search-hud-field';
   const input = document.createElement('input');
   input.type = 'search';
-  input.placeholder = t('ATLASFOUNDRY.Search.Placeholder');
+  input.placeholder = t('ATLASFOUNDRY.Search.HudPlaceholder');
   input.autocomplete = 'off';
   const lens = document.createElement('button');
   lens.type = 'button';

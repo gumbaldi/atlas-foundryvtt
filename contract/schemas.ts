@@ -64,6 +64,7 @@ export const VisibilityCheckResponseSchema = z.object({
       documentId: z.string(),
       moduleType: z.string(),
       name: z.string(),
+      sessionNumber: z.number().nullable().optional(),
     }),
   ),
 });

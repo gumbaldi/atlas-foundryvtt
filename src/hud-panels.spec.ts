@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const state = { expanded: true, linked: true };
+const state = { expanded: true, linked: true, hud: true };
 vi.mock('./settings', () => ({
+  getShowHud: () => state.hud,
+  setShowHud: vi.fn(),
   getShowHudPanels: () => state.expanded,
   setShowHudPanels: vi.fn(async (value: boolean) => (state.expanded = value)),
 }));
@@ -25,6 +27,9 @@ class FakeEl {
     child.parentElement = this;
     this.children.push(child);
     return child;
+  }
+  append(...nodes: FakeEl[]): void {
+    nodes.forEach((n) => this.appendChild(n));
   }
   replaceChildren(...nodes: FakeEl[]): void {
     this.children = [];
@@ -69,7 +74,14 @@ describe('HUD toggle', () => {
     reportHudSection('links', 3);
     expect(toggle.className).toContain('collapsed');
     expect(toggle.title).toBe('ATLASFOUNDRY.Hud.Expand:5');
-    expect(toggle.children.map((c) => c.textContent)).toEqual(['', '5']);
+    const parts = toggle.children.map((part) => ({ icon: part.children[0]?.className, count: part.children[1]?.textContent }));
+    expect(parts).toEqual([
+      { icon: 'fa-solid fa-scroll', count: '2' },
+      { icon: 'fa-solid fa-link', count: '3' },
+    ]);
+
+    reportHudSection('quests', 0);
+    expect(toggle.children.map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-link']);
   });
 
   it('is removed once no panel has entries any more, or when signed out', async () => {

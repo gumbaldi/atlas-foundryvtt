@@ -128,7 +128,8 @@ S8. As GM, change the world's campaign to a different one: a connected player tu
     per row, right-aligned, and show a thumbnail of the document's title image; with more than ten
     links only ten are shown and `+N` opens the rest in a popover.
 25. The toggle at the bottom of the column (chevron) folds quests and links away together → only a small
-    pill with the total count stays; click the pill to expand. `Ctrl+Shift+Q` and the "Show quests and
+    pill stays, with an icon and the item count for each panel that has entries (nothing for an empty one);
+    click the pill to expand. With nothing to show in either panel, no toggle is drawn. `Ctrl+Shift+Q` and the "Show quests and
     links" switch in the Atlas toolbar group do the same and the choice survives a reload (per player).
 26. GM revokes the public document's sharing (readAccess → owner-only) → within ≤60s or on
     scene reload, the player's chip disappears.
@@ -157,10 +158,19 @@ S8. As GM, change the world's campaign to a different one: a connected player tu
 34. Collapsing (toggle button, `Ctrl+Shift+Q` or the toolbar switch) hides quests and links together and
     leaves a pill with the combined count; the choice survives a reload (per player).
 
+## HUD switch and session log titles
+
+34b. The "Show Atlas HUD" tool in the Atlas toolbar group hides and shows the whole HUD column (bell,
+    search, quests, links, toggle); the choice survives a reload (per player).
+34c. Session logs show as `#<number> - Title` in the search hit list, the HUD hits, the viewer heading,
+    link chips/popover/manager and notifications. A session log without a `sessionNumber` whose name is
+    "Session 19 - ..." shows as `#19 - ...`; other document types keep their name.
+
 ## Search field in the HUD
 
-34a. Typing at least two characters in the field lists up to five hits under it (type icon and colour,
-    name); "+N more" and a click on the magnifier or Enter open the search window with the text already
+34a. The field is at most half as wide as the quest cards. Typing at least two characters lists up to five
+    hits under it, each with the title image as a thumbnail (a tile in the type colour without an image),
+    the module icon and the title; "+N more" and a click on the magnifier or Enter open the search window with the text already
     searched; a click on a hit opens the window with that hit selected. Escape clears the field. The
     field is absent while signed out.
 

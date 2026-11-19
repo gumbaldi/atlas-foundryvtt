@@ -110,6 +110,14 @@ export function registerSettings(): void {
     type: String,
     default: '',
   });
+  // Client-scoped master switch for the whole right-hand HUD (bell, search, quests, links); toggled in the Atlas toolbar group.
+  game.settings.register(MODULE_ID, 'showHud', {
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: true,
+    onChange: () => Hooks.callAll('atlas-foundry.showHudChanged'),
+  });
   // Client-scoped, no settings-screen entry (config: false) — one switch for the quest and link panels of the right-hand HUD,
   // toggled through the Atlas toolbar tool, the Ctrl+Shift+Q keybinding or the HUD's own toggle button.
   game.settings.register(MODULE_ID, 'showHudPanels', {
@@ -241,6 +249,15 @@ export function getRecentSearchList(): string[] {
 
 export function setRecentSearchList(list: string[]): Promise<string[]> {
   return game.settings.set<string[]>(MODULE_ID, 'recentSearches', list);
+}
+
+/** Master switch: whether the right-hand HUD column is shown at all. */
+export function getShowHud(): boolean {
+  return game.settings.get<boolean>(MODULE_ID, 'showHud') ?? true;
+}
+
+export function setShowHud(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showHud', value);
 }
 
 /** Whether the quest and link panels of the right-hand HUD are expanded (true) or folded into the toggle pill (false). */
