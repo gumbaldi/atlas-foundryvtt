@@ -10,14 +10,19 @@ per user, with that user's own Atlas rights.
   (title image, text, "Open in Atlas", and "Link…" for the GM) on the right. A "Types" menu narrows the
   hits and your last searches are offered as quick choices. Results match what the same account sees
   on the Atlas web UI.
+- **Right-hand HUD**: everything Atlas shows on screen is stacked at the right edge, next to the sidebar,
+  top to bottom: the notification bell (only while something is unread), a search field (typing lists the
+  first hits right there, a click on one opens it in the search window, Enter or the magnifier opens the
+  window with your text), the quests and the scene's links. Quests and links fold away together with one
+  button (`Ctrl+Shift+Q`) into a pill with the entry count.
 - **Context links**: attach Atlas documents to scenes, actors, tokens, journal entries, items and
-  tiles. The scene link bar shows them as compact chips with a thumbnail (at most two rows, the rest
-  behind `+N`) and collapses to a pill. A click opens the document in Atlas in a new tab. Visibility is
+  tiles. The scene's links appear under a "Links" heading as a right-aligned stack of compact chips with a
+  thumbnail (the rest behind `+N`). A click opens the document in Atlas in a new tab. Visibility is
   checked per player on the server.
-- **Quest tracker**: the pinned open quests next to the sidebar as compact cards, collapsible to a pill
-  (`Ctrl+Shift+Q`). Pinned quests need an Atlas backend that sends `isPinned` for quests; until then the
-  first three open top-level quests are shown.
-- **Notifications**: a pulsing bell next to the sidebar, shown only while notifications are unread, and a
+- **Quest tracker**: the pinned open quests as compact cards under the quest module's name; the heading
+  opens the quest overview in Atlas. Pinned quests need an Atlas backend that sends `isPinned` for
+  quests; until then nothing is shown.
+- **Notifications**: a pulsing bell at the top of the HUD column, shown only while notifications are unread, and a
   notification center. Notifications are acknowledged explicitly. The GM can send a document-linked
   notification to all players.
 - **Login**: each user links their own Atlas account with a device-code flow and can revoke it in Atlas.

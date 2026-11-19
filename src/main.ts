@@ -9,7 +9,9 @@ import { registerLinkEntryPoints } from './links/link-entry-points';
 import { registerSceneLinksBar, renderSceneLinksBarNow } from './links/scene-links-bar';
 import { registerTokenHud } from './links/token-hud';
 import { pickLinkTarget } from './links/link-pick-target';
-import { registerQuestTracker, toggleQuestTracker } from './quests/quest-tracker';
+import { registerQuestTracker } from './quests/quest-tracker';
+import { registerHudPanels, toggleHudPanels } from './hud-panels';
+import { registerSearchHud } from './search/search-hud';
 import { notificationStore } from './notifications/notification-store';
 import { registerBell } from './notifications/bell';
 import { openNotificationCenter, registerGmBroadcastReceiver, registerNotificationsControl } from './notifications/notification-center-app';
@@ -28,8 +30,8 @@ declare global {
     pickTarget?: (result: AtlasSearchResult) => void;
     /** Debug entry point for exercising the P5 picker contract from the console: `await AtlasFoundry.pickDocument()`. */
     pickDocument: (title?: string) => Promise<AtlasSearchResult | null>;
-    /** Expands or collapses the quest tracker — same switch as the scene-controls tool. */
-    toggleQuestTracker: () => Promise<boolean>;
+    /** Expands or collapses the quest and link panels of the right-hand HUD — same switch as the scene-controls tool. */
+    toggleHudPanels: () => Promise<boolean>;
     /** Opens the P8 notification center — same entry point as the bell/scene-controls tool. */
     openNotifications: () => void;
   };
@@ -65,12 +67,13 @@ function registerSearchKeybinding(): void {
   });
 }
 
-function registerQuestsKeybinding(): void {
+// The binding id stays `openQuests` so an already customised key survives the move from "quest tracker" to "quest and link panels".
+function registerHudPanelsKeybinding(): void {
   game.keybindings.register(MODULE_ID, 'openQuests', {
-    name: 'ATLASFOUNDRY.Quests.KeybindingName',
+    name: 'ATLASFOUNDRY.Hud.KeybindingName',
     editable: [{ key: 'KeyQ', modifiers: ['Control', 'Shift'] }],
     onDown: () => {
-      void toggleQuestTracker();
+      void toggleHudPanels();
       return true;
     },
   });
@@ -89,7 +92,7 @@ Hooks.once('init', () => {
     restricted: true,
   });
   registerSearchKeybinding();
-  registerQuestsKeybinding();
+  registerHudPanelsKeybinding();
   registerControls(openSearch);
   registerAuthSocketWiring();
   Hooks.on('atlas-foundry.sessionReset', resetSessionData);
@@ -97,6 +100,7 @@ Hooks.once('init', () => {
   registerSceneLinksBar();
   registerTokenHud();
   registerQuestTracker();
+  registerHudPanels();
   registerNotificationsControl();
 });
 
@@ -104,6 +108,7 @@ Hooks.once('init', () => {
 Hooks.once('ready', async () => {
   await discardLegacyUserToken();
   registerBell();
+  registerSearchHud();
   registerGmBroadcastReceiver();
   notificationStore.start();
   renderSceneLinksBarNow();
@@ -118,6 +123,6 @@ globalThis.AtlasFoundry = {
   logout: () => authManager.logout(),
   pickTarget: (result) => void pickLinkTarget(result),
   pickDocument: (title?: string) => SearchApp.pick({ title }),
-  toggleQuestTracker,
+  toggleHudPanels,
   openNotifications: openNotificationCenter,
 };

@@ -21,10 +21,6 @@
         "Hint": "Die Adresse, unter der du Atlas im Browser öffnest (Frontend-URL), z. B. https://atlas.example.com. /api/v1 und /socket.io müssen von dort erreichbar sein."
       },
       "BaseUrlMissingScheme": "Der Basis-URL fehlt http:// oder https:// — Verbindungen schlagen fehl, bis das ergänzt wird.",
-      "ShowSceneLinks": {
-        "Name": "Szenen-Verknüpfungsleiste ausgeklappt",
-        "Hint": "Klappt die Leiste mit Atlas-Verknüpfungen am oberen Canvas-Rand auf oder zu. Zugeklappt bleibt eine kleine Pille mit der Anzahl der Verknüpfungen sichtbar."
-      },
       "QuietMode": {
         "Name": "Benachrichtigungen stumm",
         "Hint": "Unterdrückt nur den Toast bei neuen Benachrichtigungen — die Glocke bleibt aktuell."
@@ -81,7 +77,8 @@
       "UseAsTarget": "Als Ziel verwenden",
       "EnlargeImage": "Zum Vergrößern anklicken",
       "FocusHint": "Wähle ein Ergebnis, um das Dokument hier zu sehen.",
-      "KeybindingName": "Atlas-Suche öffnen"
+      "KeybindingName": "Atlas-Suche öffnen",
+      "OpenWindow": "Suchfenster öffnen"
     },
     "Viewer": {
       "Title": "Atlas-Dokument",
@@ -177,19 +174,19 @@
       "NoTargets": "Kein Ziel verfügbar — wähle eine Szene, ein Token oder öffne ein Sheet.",
       "Added": "„{name}“ wurde verknüpft.",
       "SceneControlTool": "Atlas-Verknüpfungen der Szene",
-      "ToggleBar": "Szenen-Verknüpfungen anzeigen",
-      "Collapse": "Verknüpfungen zuklappen",
-      "ExpandPill": "{count} Verknüpfungen anzeigen",
       "OverflowTitle": "{count} weitere Verknüpfungen",
-      "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff."
+      "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff.",
+      "Heading": "Verknüpfungen"
     },
     "Quests": {
-      "ToggleTool": "Quest-Tracker anzeigen",
-      "KeybindingName": "Atlas-Quest-Tracker ein-/ausklappen",
-      "Collapse": "Quest-Tracker zuklappen",
-      "ExpandPill": "{count} Quests anzeigen",
       "More": "+{count} weitere",
       "AllInAtlas": "Alle Quests in Atlas"
+    },
+    "Hud": {
+      "ToggleTool": "Quests und Verknüpfungen anzeigen",
+      "KeybindingName": "Atlas-Quests und -Verknüpfungen ein-/ausklappen",
+      "Collapse": "Quests und Verknüpfungen zuklappen",
+      "Expand": "Quests und Verknüpfungen anzeigen ({count})"
     },
     "Notifications": {
       "Title": "Atlas-Benachrichtigungen",

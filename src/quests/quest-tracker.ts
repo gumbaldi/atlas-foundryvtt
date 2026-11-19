@@ -1,10 +1,10 @@
-import { ensureAtlasGroup } from '../controls';
 import { t } from '../i18n';
 import { authManager } from '../auth/auth-manager';
 import { getRightHud, removeRightHudIfEmpty } from '../hud-right';
+import { reportHudSection } from '../hud-panels';
 import { atlasQuestsUrl } from '../deep-links';
 import { openInAtlas } from '../links/open-in-atlas';
-import { getShowQuestTracker, setShowQuestTracker } from '../settings';
+import { getShowHudPanels } from '../settings';
 import { fetchQuests, refreshQuests } from './quests-api';
 import { countTrackedQuests, selectTrackedQuests } from './quest-selection';
 import type { AtlasQuest } from '../atlas-types';
@@ -34,7 +34,7 @@ function stopPolling(): void {
 
 /** Polls only while the tracker is expanded and the user is signed in. */
 function syncPolling(): void {
-  const shouldPoll = authManager.isLinked() && getShowQuestTracker();
+  const shouldPoll = authManager.isLinked() && getShowHudPanels();
   if (!shouldPoll) {
     stopPolling();
     return;
@@ -69,36 +69,19 @@ function openQuestList(): void {
   if (campaignId) window.open(atlasQuestsUrl(campaignId), '_blank');
 }
 
-function buildCollapseButton(): HTMLElement {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'atlas-foundry-scene-links-collapse atlas-foundry-quest-tracker-collapse';
-  button.title = t('ATLASFOUNDRY.Quests.Collapse');
-  button.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
-  button.addEventListener('click', () => void setShowQuestTracker(false));
-  return button;
-}
-
-function buildPill(count: number): HTMLElement {
-  const pill = document.createElement('button');
-  pill.type = 'button';
-  pill.className = 'atlas-foundry-scene-links-pill atlas-foundry-quest-tracker-pill';
-  pill.title = t('ATLASFOUNDRY.Quests.ExpandPill', { count });
-  const icon = document.createElement('i');
-  icon.className = 'fa-solid fa-scroll';
-  const number = document.createElement('span');
-  number.textContent = String(count);
-  pill.append(icon, number);
-  pill.addEventListener('click', () => void setShowQuestTracker(true));
-  return pill;
-}
-
-/** The module's name as the campaign set it, in the Foundry language; the shared default name when the backend sends none. */
+/** The module's name as the campaign set it, in the Foundry language (the shared default name when the backend sends none); opens the quest overview in Atlas. */
 function buildTitle(): HTMLElement {
-  const title = document.createElement('div');
-  title.className = 'atlas-foundry-quest-tracker-title';
+  const title = document.createElement('button');
+  title.type = 'button';
+  title.className = 'atlas-foundry-hud-heading atlas-foundry-hud-heading-link';
+  title.title = t('ATLASFOUNDRY.Quests.AllInAtlas');
   const lang = game.i18n.lang === 'de' ? 'de' : 'en';
-  title.textContent = moduleLabel?.[lang] ?? t('ATLASFOUNDRY.ModuleTypes.quests');
+  const label = document.createElement('span');
+  label.textContent = moduleLabel?.[lang] ?? t('ATLASFOUNDRY.ModuleTypes.quests');
+  const icon = document.createElement('i');
+  icon.className = 'fa-solid fa-arrow-up-right-from-square';
+  title.append(label, icon);
+  title.addEventListener('click', openQuestList);
   return title;
 }
 
@@ -114,38 +97,32 @@ function buildMore(hidden: number): HTMLElement {
 
 /**
  * Renders (or removes) the tracker in the shared right-hand HUD column, below
- * the bell. Nothing is drawn while signed out, before the first response, or
- * when nothing is tracked (no empty pill). Collapsed
- * (`showQuestTracker` off), only a pill with the number of tracked quests stays.
+ * the search field. Nothing is drawn while signed out, before the first
+ * response, when nothing is tracked, or while the HUD panels are collapsed; the
+ * count still goes to the shared toggle, which stays as a pill.
  */
 export function renderQuestTracker(): void {
   const total = loaded && authManager.isLinked() ? countTrackedQuests(quests) : 0;
-  if (total === 0) {
+  const expanded = getShowHudPanels();
+  if (total === 0 || !expanded) {
     removeTracker();
+    reportHudSection('quests', total);
     return;
   }
 
   const hud = getRightHud();
   const tracker = document.getElementById(TRACKER_ID) ?? document.createElement('div');
   tracker.id = TRACKER_ID;
-  const expanded = getShowQuestTracker();
-  tracker.className = `atlas-foundry atlas-foundry-quest-tracker${expanded ? '' : ' atlas-foundry-quest-tracker-collapsed'}`;
+  tracker.className = 'atlas-foundry atlas-foundry-quest-tracker';
   tracker.replaceChildren();
 
-  if (expanded) {
-    tracker.appendChild(buildTitle());
-    const shown = selectTrackedQuests(quests);
-    shown.forEach((quest) => tracker.appendChild(buildCard(quest)));
-    const footer = document.createElement('div');
-    footer.className = 'atlas-foundry-quest-tracker-footer';
-    if (total > shown.length) footer.appendChild(buildMore(total - shown.length));
-    footer.appendChild(buildCollapseButton());
-    tracker.appendChild(footer);
-  } else {
-    tracker.appendChild(buildPill(total));
-  }
+  tracker.appendChild(buildTitle());
+  const shown = selectTrackedQuests(quests);
+  shown.forEach((quest) => tracker.appendChild(buildCard(quest)));
+  if (total > shown.length) tracker.appendChild(buildMore(total - shown.length));
 
   if (tracker.parentElement !== hud) hud.appendChild(tracker);
+  reportHudSection('quests', total);
 }
 
 function clearTracker(): void {
@@ -155,6 +132,7 @@ function clearTracker(): void {
   loaded = false;
   stopPolling();
   removeTracker();
+  reportHudSection('quests', 0);
 }
 
 async function load(bypassCache: boolean): Promise<void> {
@@ -177,36 +155,18 @@ async function load(bypassCache: boolean): Promise<void> {
   syncPolling();
 }
 
-/** Switches between the full tracker and the collapsed pill. */
-export function toggleQuestTracker(): Promise<boolean> {
-  return setShowQuestTracker(!getShowQuestTracker());
-}
-
 /** Session reset: the quest list belongs to the sign-in that loaded it. */
 export function clearQuestTracker(): void {
   clearTracker();
 }
 
 /**
- * Hook wiring (call from `init`; no setting is read here): the toggle tool in
- * the Atlas group and the refresh triggers. The `socketEvent` hook is
- * best-effort — no backend event carries `documentModuleType` for quests yet —
- * so the 5-minute poll is the real update path while expanded.
+ * Hook wiring (call from `init`; no setting is read here): the refresh
+ * triggers. The `socketEvent` hook is best-effort — no backend event carries
+ * `documentModuleType` for quests yet — so the 5-minute poll is the real update
+ * path while expanded.
  */
 export function registerQuestTracker(): void {
-  Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
-    if (!authManager.isLinked()) return;
-    ensureAtlasGroup(controls).atlasQuestsToggle = {
-      name: 'atlasQuestsToggle',
-      title: 'ATLASFOUNDRY.Quests.ToggleTool',
-      icon: 'fa-solid fa-scroll',
-      toggle: true,
-      active: getShowQuestTracker(),
-      order: 103,
-      onChange: (_event: unknown, active: boolean) => void setShowQuestTracker(active),
-    };
-  });
-
   Hooks.on('atlas-foundry.authChanged', (payload: { state: string }) => {
     if (payload.state === 'active') void load(false);
     else clearTracker();
@@ -216,10 +176,9 @@ export function registerQuestTracker(): void {
     const moduleType = (payload as { documentModuleType?: string } | null)?.documentModuleType;
     if (moduleType === 'quests') void load(true);
   });
-  Hooks.on('atlas-foundry.showQuestTrackerChanged', () => {
+  Hooks.on('atlas-foundry.showHudPanelsChanged', () => {
     renderQuestTracker();
     syncPolling();
-    void ui.controls?.render();
   });
   Hooks.on('renderSidebar', renderQuestTracker);
 }

@@ -110,25 +110,14 @@ export function registerSettings(): void {
     type: String,
     default: '',
   });
-  // Client-scoped so each player can fold the overlay away independently; true = expanded, false = collapsed to a counter pill.
-  // config: true — shown in Foundry's own "Configure Settings" screen, no custom UI needed.
-  game.settings.register(MODULE_ID, 'showSceneLinks', {
-    name: 'ATLASFOUNDRY.Settings.ShowSceneLinks.Name',
-    hint: 'ATLASFOUNDRY.Settings.ShowSceneLinks.Hint',
-    scope: 'client',
-    config: true,
-    type: Boolean,
-    default: true,
-    onChange: () => Hooks.callAll('atlas-foundry.showSceneLinksChanged'),
-  });
-  // Client-scoped, no settings-screen entry (config: false) — toggled through the Atlas toolbar
-  // tool, the Ctrl+Shift+Q keybinding, or the tracker's own collapse button / pill.
-  game.settings.register(MODULE_ID, 'showQuestTracker', {
+  // Client-scoped, no settings-screen entry (config: false) — one switch for the quest and link panels of the right-hand HUD,
+  // toggled through the Atlas toolbar tool, the Ctrl+Shift+Q keybinding or the HUD's own toggle button.
+  game.settings.register(MODULE_ID, 'showHudPanels', {
     scope: 'client',
     config: false,
     type: Boolean,
     default: true,
-    onChange: () => Hooks.callAll('atlas-foundry.showQuestTrackerChanged'),
+    onChange: () => Hooks.callAll('atlas-foundry.showHudPanelsChanged'),
   });
   // Client-scoped list of the last typed search queries (text only, no document content);
   // cleared on logout / session reset.
@@ -244,14 +233,6 @@ export async function setUserToken(token: string, tokenId: string): Promise<void
   await game.settings.set(MODULE_ID, 'userTokens', { ...getUserTokens(), [game.user.id]: { token, tokenId } });
 }
 
-export function getShowSceneLinks(): boolean {
-  return game.settings.get<boolean>(MODULE_ID, 'showSceneLinks') ?? true;
-}
-
-export function setShowSceneLinks(value: boolean): Promise<boolean> {
-  return game.settings.set<boolean>(MODULE_ID, 'showSceneLinks', value);
-}
-
 /** Recent search texts; anything that is not an array of strings reads as empty. */
 export function getRecentSearchList(): string[] {
   const value = game.settings.get<unknown>(MODULE_ID, 'recentSearches');
@@ -262,12 +243,13 @@ export function setRecentSearchList(list: string[]): Promise<string[]> {
   return game.settings.set<string[]>(MODULE_ID, 'recentSearches', list);
 }
 
-export function getShowQuestTracker(): boolean {
-  return game.settings.get<boolean>(MODULE_ID, 'showQuestTracker') ?? true;
+/** Whether the quest and link panels of the right-hand HUD are expanded (true) or folded into the toggle pill (false). */
+export function getShowHudPanels(): boolean {
+  return game.settings.get<boolean>(MODULE_ID, 'showHudPanels') ?? true;
 }
 
-export function setShowQuestTracker(value: boolean): Promise<boolean> {
-  return game.settings.set<boolean>(MODULE_ID, 'showQuestTracker', value);
+export function setShowHudPanels(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showHudPanels', value);
 }
 
 export function getQuietMode(): boolean {

@@ -79,7 +79,7 @@ describe('main.ts start-up', () => {
 
     const api = (globalThis as any).AtlasFoundry;
     expect(api).toBeDefined();
-    for (const key of ['openSearch', 'openSettings', 'openLogin', 'toggleQuestTracker', 'openNotifications']) {
+    for (const key of ['openSearch', 'openSettings', 'openLogin', 'toggleHudPanels', 'openNotifications']) {
       expect(typeof api[key]).toBe('function');
     }
   });
@@ -89,7 +89,7 @@ describe('main.ts start-up', () => {
     harness.fire('init');
 
     expect(harness.registered.has('showBell')).toBe(true);
-    expect(harness.registered.has('showQuestTracker')).toBe(true);
+    expect(harness.registered.has('showHudPanels')).toBe(true);
     expect((harness.handlers['getSceneControlButtons'] ?? []).length).toBeGreaterThan(0);
   });
 
@@ -117,7 +117,7 @@ describe('main.ts start-up', () => {
     harness.fire('getSceneControlButtons', controls);
 
     expect(Object.keys(controls.atlas.tools)).toEqual(
-      expect.arrayContaining(['atlasSearch', 'atlasQuestsToggle', 'atlasNotifications', 'atlasSceneLinks']),
+      expect.arrayContaining(['atlasSearch', 'atlasHudToggle', 'atlasNotifications', 'atlasSceneLinks']),
     );
     expect(controls.atlas.tools.atlasConnect).toBeUndefined();
   });

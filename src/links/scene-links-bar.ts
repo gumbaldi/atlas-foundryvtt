@@ -3,7 +3,9 @@ import { MODULE_TYPE_ICONS, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
 import { getDocument } from '../api/documents';
 import { safeImageUrl } from '../render/image-url';
-import { getBaseUrl, getShowSceneLinks, setShowSceneLinks } from '../settings';
+import { getBaseUrl, getShowHudPanels } from '../settings';
+import { getRightHud, removeRightHudIfEmpty } from '../hud-right';
+import { reportHudSection } from '../hud-panels';
 import { getLinks, removeLink, type AtlasLink } from './link-store';
 import { linkVisibility, toRefs } from './link-visibility';
 import { openLink } from './link-actions';
@@ -21,6 +23,13 @@ let renderToken = 0;
 
 function removeBar(): void {
   document.getElementById(BAR_ID)?.remove();
+  removeRightHudIfEmpty();
+}
+
+/** Nothing to show: no bar, and the shared toggle learns there are no links. */
+function clearBar(): void {
+  removeBar();
+  reportHudSection('links', 0);
 }
 
 function iconFor(moduleType: string): string {
@@ -100,28 +109,11 @@ function buildOverflowChip(links: AtlasLink[]): HTMLElement {
   return chip;
 }
 
-function buildCollapseButton(): HTMLElement {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'atlas-foundry-scene-links-collapse';
-  button.title = t('ATLASFOUNDRY.Links.Collapse');
-  button.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
-  button.addEventListener('click', () => void setShowSceneLinks(false));
-  return button;
-}
-
-function buildPill(count: number): HTMLElement {
-  const pill = document.createElement('button');
-  pill.type = 'button';
-  pill.className = 'atlas-foundry-scene-links-pill';
-  pill.title = t('ATLASFOUNDRY.Links.ExpandPill', { count });
-  const icon = document.createElement('i');
-  icon.className = 'fa-solid fa-link';
-  const number = document.createElement('span');
-  number.textContent = String(count);
-  pill.append(icon, number);
-  pill.addEventListener('click', () => void setShowSceneLinks(true));
-  return pill;
+function buildHeading(): HTMLElement {
+  const heading = document.createElement('div');
+  heading.className = 'atlas-foundry-hud-heading';
+  heading.textContent = t('ATLASFOUNDRY.Links.Heading');
+  return heading;
 }
 
 /** Patches resolved title images into the already rendered chips; an unusable URL or a load error keeps the type icon. */
@@ -147,26 +139,24 @@ async function patchThumbnails(token: number, bar: HTMLElement, entries: Array<{
 }
 
 /**
- * Renders (or removes) the scene-links overlay for whatever scene is
- * currently on canvas. Deliberately DOM-appended to `#ui-top` (Foundry's own
- * top interface layer), never drawn onto the PIXI canvas — see plan's
- * "discreet horizontal bar at the top edge of the canvas". An empty bar is not
- * rendered at all (no UI noise for scenes with no links). Collapsed
- * (`showSceneLinks` off), only a small pill with the number of visible links
- * stays.
+ * Renders (or removes) the scene's links for whatever scene is currently on
+ * canvas: a headed, right-aligned stack of chips in the shared right-hand HUD
+ * column (DOM, never drawn onto the PIXI canvas), below the quest tracker. An
+ * empty bar is not rendered at all (no UI noise for scenes with no links).
+ * While the HUD panels are collapsed, only the count goes to the shared toggle.
  */
 export async function renderSceneLinksBar(): Promise<void> {
   const token = ++renderToken;
   const scene = canvas?.scene;
 
   if (!scene || !authManager.isLinked()) {
-    removeBar();
+    clearBar();
     return;
   }
 
   const links = getLinks(scene);
   if (links.length === 0) {
-    removeBar();
+    clearBar();
     return;
   }
 
@@ -184,45 +174,38 @@ export async function renderSceneLinksBar(): Promise<void> {
     // Players only ever reach this branch — a real network failure is
     // exactly as silent as "no links are visible" for them (plan: "no
     // error toasts per render"). GMs always see something via `broken`/`unknown`.
-    removeBar();
+    clearBar();
     return;
   }
 
-  const expanded = getShowSceneLinks();
-  if (!expanded && visible.length === 0) {
-    // Collapsed pill counts visible links only; a GM with nothing but broken ones sees no pill.
+  if (!getShowHudPanels()) {
     removeBar();
+    reportHudSection('links', visible.length + broken.length + unknown.length);
     return;
   }
 
+  const hud = getRightHud();
   const bar = document.getElementById(BAR_ID) ?? document.createElement('div');
   bar.id = BAR_ID;
-  bar.className = `atlas-foundry atlas-foundry-scene-links-bar${expanded ? '' : ' atlas-foundry-scene-links-bar-collapsed'}`;
-  bar.replaceChildren();
+  bar.className = 'atlas-foundry atlas-foundry-scene-links-bar';
+  bar.replaceChildren(buildHeading());
 
   const thumbEntries: Array<{ link: AtlasLink; thumb: HTMLElement }> = [];
-  if (expanded) {
-    // Chips wrap inside their own box; the collapse button stays in the bar's row, right after them.
-    const chips = document.createElement('div');
-    chips.className = 'atlas-foundry-scene-links-chips';
-    const { shown, overflow } = partitionChips(visible);
-    shown.forEach(({ link, name }) => {
-      const built = buildChip(link, name, 'visible');
-      chips.appendChild(built.chip);
-      thumbEntries.push({ link, thumb: built.thumb });
-    });
-    broken.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'broken').chip));
-    unknown.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'unknown').chip));
-    if (overflow.length > 0) chips.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
-    bar.append(chips, buildCollapseButton());
-  } else {
-    bar.appendChild(buildPill(visible.length));
-  }
+  const chips = document.createElement('div');
+  chips.className = 'atlas-foundry-scene-links-chips';
+  const { shown, overflow } = partitionChips(visible);
+  shown.forEach(({ link, name }) => {
+    const built = buildChip(link, name, 'visible');
+    chips.appendChild(built.chip);
+    thumbEntries.push({ link, thumb: built.thumb });
+  });
+  broken.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'broken').chip));
+  unknown.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'unknown').chip));
+  if (overflow.length > 0) chips.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
+  bar.appendChild(chips);
 
-  if (!bar.isConnected) {
-    const host = document.getElementById('ui-top') ?? document.body;
-    host.appendChild(bar);
-  }
+  if (bar.parentElement !== hud) hud.appendChild(bar);
+  reportHudSection('links', visible.length + broken.length + unknown.length);
 
   void patchThumbnails(token, bar, thumbEntries);
 }
@@ -242,5 +225,9 @@ export function registerSceneLinksBar(): void {
     if (canvas?.scene?.id === scene.id) scheduleRender();
   });
   Hooks.on('atlas-foundry.authChanged', scheduleRender);
-  Hooks.on('atlas-foundry.showSceneLinksChanged', scheduleRender);
+  Hooks.on('atlas-foundry.showHudPanelsChanged', scheduleRender);
+  // Foundry may rebuild the sidebar (and the column inside it): draw the links again if the bar got lost.
+  Hooks.on('renderSidebar', () => {
+    if (!document.getElementById(BAR_ID)?.isConnected) scheduleRender();
+  });
 }

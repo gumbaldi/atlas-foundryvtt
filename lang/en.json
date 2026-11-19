@@ -21,10 +21,6 @@
         "Hint": "The address you open Atlas at in your browser (frontend URL), e.g. https://atlas.example.com. Both /api/v1 and /socket.io must be reachable from there."
       },
       "BaseUrlMissingScheme": "The base URL is missing http:// or https:// — connections will fail until it's added.",
-      "ShowSceneLinks": {
-        "Name": "Scene links bar expanded",
-        "Hint": "Expands or collapses the Atlas links bar at the top of the canvas. Collapsed, a small pill with the number of links stays visible."
-      },
       "QuietMode": {
         "Name": "Quiet notifications",
         "Hint": "Suppresses only the new-notification toast — the bell badge stays accurate."
@@ -81,7 +77,8 @@
       "UseAsTarget": "Use as target",
       "EnlargeImage": "Click to enlarge",
       "FocusHint": "Select a result to see the document here.",
-      "KeybindingName": "Open Atlas Search"
+      "KeybindingName": "Open Atlas Search",
+      "OpenWindow": "Open the search window"
     },
     "Viewer": {
       "Title": "Atlas Document",
@@ -177,19 +174,19 @@
       "NoTargets": "No target available — select a scene, a token, or open a sheet.",
       "Added": "\"{name}\" was linked.",
       "SceneControlTool": "Scene's Atlas Links",
-      "ToggleBar": "Show scene links",
-      "Collapse": "Collapse links",
-      "ExpandPill": "Show {count} links",
       "OverflowTitle": "{count} more links",
-      "OpenUnavailable": "This document could not be opened in Atlas — it may no longer exist or you may not have access."
+      "OpenUnavailable": "This document could not be opened in Atlas — it may no longer exist or you may not have access.",
+      "Heading": "Links"
     },
     "Quests": {
-      "ToggleTool": "Show quest tracker",
-      "KeybindingName": "Toggle Atlas quest tracker",
-      "Collapse": "Collapse quest tracker",
-      "ExpandPill": "Show {count} quests",
       "More": "+{count} more",
       "AllInAtlas": "All quests in Atlas"
+    },
+    "Hud": {
+      "ToggleTool": "Show quests and links",
+      "KeybindingName": "Toggle Atlas quests and links",
+      "Collapse": "Collapse quests and links",
+      "Expand": "Show quests and links ({count})"
     },
     "Notifications": {
       "Title": "Atlas Notifications",

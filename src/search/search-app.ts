@@ -15,18 +15,27 @@ import type { AtlasSearchResult } from '../atlas-types';
 export interface SearchAppOptions {
   title?: string;
   pickMode?: boolean;
+  /** Query (and hit to select) to run as soon as the window is drawn. */
+  initial?: OpenSearchOptions;
 }
 
 let activeSearchApp: SearchApp | null = null;
 
-export function openSearch(): void {
+/** What the HUD search field hands over: the typed text and, when the user clicked one of its hits, that hit. */
+export interface OpenSearchOptions {
+  query?: string;
+  select?: { moduleType: string; id: string };
+}
+
+export function openSearch(options: OpenSearchOptions = {}): void {
   if (activeSearchApp) {
-    if (activeSearchApp.minimized) void activeSearchApp.maximize();
-    void activeSearchApp.render({ force: true });
-    activeSearchApp.bringToFront();
+    const app = activeSearchApp;
+    if (app.minimized) void app.maximize();
+    void app.render({ force: true }).then(() => app.applyQuery(options));
+    app.bringToFront();
     return;
   }
-  activeSearchApp = new SearchApp();
+  activeSearchApp = new SearchApp({ initial: options });
   void activeSearchApp.render(true);
 }
 
@@ -57,10 +66,15 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
   private cancelFocus: (() => void) | null = null;
   private rootElement: HTMLElement | null = null;
   private closeFilterMenu: (() => void) | null = null;
+  private syncFilterUi: (() => void) | null = null;
+  private initial: OpenSearchOptions | null;
+  /** Hit to select once the next search has delivered results. */
+  private pendingSelect: OpenSearchOptions['select'] = undefined;
 
   constructor(options: SearchAppOptions = {}) {
     super({ window: { title: options.title ?? 'ATLASFOUNDRY.Search.Title' } });
     this.pickMode = !!options.pickMode;
+    this.initial = options.initial?.query ? options.initial : null;
     this.controller = new SearchController((state) => this.onSearchStateChange(state));
   }
 
@@ -120,6 +134,31 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
     this.wireSearchUi(content);
     this.onSearchStateChange(this.controller.getState());
     this.showFocus();
+    if (this.initial) {
+      const initial = this.initial;
+      this.initial = null;
+      this.applyQuery(initial);
+    }
+  }
+
+  /**
+   * Puts `query` into the search field and runs it at once; `select` picks that hit when the results arrive.
+   * The HUD field searches without filters, so type and names-only filters are reset here: the window then
+   * shows exactly the hits the HUD listed, and no filter silently hides the clicked one.
+   */
+  applyQuery(options: OpenSearchOptions): void {
+    const query = options.query?.trim();
+    if (!query) return;
+    const input = this.rootElement?.querySelector<HTMLInputElement>('input[name="q"]');
+    if (!input) return;
+    input.value = query;
+    this.selectedTypes.clear();
+    this.nameOnly = false;
+    const nameOnlyBox = this.rootElement?.querySelector<HTMLInputElement>('input[name="nameOnly"]');
+    if (nameOnlyBox) nameOnlyBox.checked = false;
+    this.syncFilterUi?.();
+    this.pendingSelect = options.select;
+    this.controller.searchNow(query, this.searchFilters());
   }
 
   protected _onClose(options?: Record<string, unknown>): void {
@@ -204,6 +243,7 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', onKeyDown, true);
     };
     this.closeFilterMenu = close;
+    this.syncFilterUi = refresh;
 
     button.addEventListener('click', () => (menu.hidden ? open() : close()));
     for (const box of boxes) {
@@ -284,6 +324,12 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
       this.clearSelection();
     }
     this.renderResults(state);
+    if (state.status === 'done' && this.pendingSelect) {
+      const wanted = this.pendingSelect;
+      this.pendingSelect = undefined;
+      const index = state.results.findIndex((r) => r.id === wanted.id && r.moduleType === wanted.moduleType);
+      if (index >= 0) this.selectIndex(index);
+    }
   }
 
   private clearSelection(): void {
