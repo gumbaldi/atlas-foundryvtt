@@ -49,9 +49,9 @@ describe('selectTrackedQuests', () => {
     expect(selectTrackedQuests(quests)).toHaveLength(2);
   });
 
-  it('falls back to the first three open top-level quests when no quest has the field', () => {
+  it('shows nothing when no quest carries the field, instead of arbitrary open quests', () => {
     const quests = [quest('a'), quest('sub', { parentId: 'a' }), quest('b'), quest('c'), quest('d')];
-    expect(ids(selectTrackedQuests(quests))).toEqual(['a', 'b', 'c']);
+    expect(selectTrackedQuests(quests)).toEqual([]);
   });
 
   it('shows nothing when the field is present on all quests but none is pinned', () => {
@@ -62,9 +62,6 @@ describe('selectTrackedQuests', () => {
   it('never returns completed or failed quests, pinned or not', () => {
     const pinned = [quest('done', { status: 'completed', isPinned: true }), quest('lost', { status: 'failed', isPinned: true }), quest('live', { isPinned: true })];
     expect(ids(selectTrackedQuests(pinned))).toEqual(['live']);
-
-    const unpinnedFallback = [quest('done', { status: 'completed' }), quest('lost', { status: 'failed' }), quest('live')];
-    expect(ids(selectTrackedQuests(unpinnedFallback))).toEqual(['live']);
   });
 
   it('returns an empty list for an empty input', () => {

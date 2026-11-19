@@ -3,6 +3,7 @@ import { openLinkManager } from './link-manager-app';
 import { openLinksPopover } from './link-popover';
 import { getLinks } from './link-store';
 import { getShowSceneLinks, setShowSceneLinks } from '../settings';
+import { authManager } from '../auth/auth-manager';
 
 interface ApplicationV2HeaderControl {
   icon: string;
@@ -84,7 +85,7 @@ function registerSceneContextMenu(): void {
 /** GM-only scene-controls tool (next to Atlas Search, see controls.ts) for the currently viewed scene's links. */
 function registerActiveSceneControlTool(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
-    if (!game.user.isGM) return;
+    if (!game.user.isGM || !authManager.isLinked()) return;
     ensureAtlasGroup(controls).atlasSceneLinks = {
       name: 'atlasSceneLinks',
       title: 'ATLASFOUNDRY.Links.SceneControlTool',
@@ -108,6 +109,7 @@ function registerActiveSceneControlTool(): void {
  */
 function registerLinksToggle(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+    if (!authManager.isLinked()) return;
     ensureAtlasGroup(controls).atlasLinksToggle = {
       name: 'atlasLinksToggle',
       title: 'ATLASFOUNDRY.Links.ToggleBar',

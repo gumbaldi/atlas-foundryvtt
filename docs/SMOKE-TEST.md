@@ -142,11 +142,13 @@ S8. As GM, change the world's campaign to a different one: a connected player tu
 
 ## Quest tracker
 
-30. The tracker sits next to the sidebar below the bell position and shows the pinned open quests (at
-    most three) as compact cards with the quest name and the start of the description; the GM sees
+30. The tracker sits at the visible right edge of the sidebar (left of the open panel, or of the tab strip
+    when collapsed), below the bell. Expanded, it starts with the quest module's name as the campaign set
+    it (shared default "Quests" without a campaign name), then the pinned open quests (at most three) as
+    compact cards with the quest name and the start of the description; the GM sees
     GM-only quests visibly marked, the player only what the backend permits.
-31. Pin fallback: with a backend that sends no `isPinned`, the first three open top-level quests are
-    shown; with a backend that sends it, exactly the pinned open quests are shown.
+31. Pins only: exactly the pinned open quests are shown. With a backend that sends no `isPinned`, the
+    tracker stays empty (no arbitrary quests).
 32. Set a quest to "completed" in Atlas → after refresh/TTL it disappears from the tracker. With more
     open pinned quests than shown, the "+N more" line opens the quest list in Atlas.
 33. A card opens the quest in Atlas in a new tab.
