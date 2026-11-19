@@ -698,8 +698,9 @@ button.atlas-foundry-hud-heading-link i {
   flex-wrap: nowrap;
   white-space: nowrap;
   gap: 0.3rem;
-  /* Same width, height and frame as the search field above it. */
+  /* Same width, height and frame as the search field above it. `.atlas-foundry` sets a 420px min-width, so reset it here. */
   width: 7rem;
+  min-width: 0;
   height: 1.9rem;
   padding: 0;
   font: inherit;
@@ -896,6 +897,9 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
 
 .atlas-foundry-search-hud-hit {
   display: flex;
+  /* Full list width, content from the left: a <button> otherwise centres its content, shifting each row by its title length. */
+  width: 100%;
+  justify-content: flex-start;
   align-items: center;
   gap: 0.4rem;
   padding: 0.2rem 0.3rem 0.2rem 0.2rem;
