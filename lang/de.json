@@ -61,6 +61,7 @@
       "Title": "Atlas-Suche",
       "Placeholder": "Atlas-Dokumente durchsuchen…",
       "NameOnly": "Nur Namen",
+      "SortAlphabetical": "Alphabetisch sortieren",
       "Types": "Typen ({count})",
       "AllTypes": "Alle Typen",
       "FilterAll": "Alle",

@@ -2,6 +2,7 @@ import { searchDocuments, type SearchDocumentsParams } from './search-api';
 import { apiErrorMessageKey } from '../api/errors';
 import type { AtlasSearchResult } from '../atlas-types';
 import type { ModuleType } from '../constants';
+import { orderSearchResults, type SearchSort } from './result-order';
 
 export type SearchStatus = 'idle' | 'loading' | 'done' | 'error';
 
@@ -36,11 +37,27 @@ export class SearchController {
   private abortController: AbortController | null = null;
   /** Bumped on every update(); a response only counts while its version is still the latest. */
   private requestVersion = 0;
+  /** The backend's order for the last finished search; the shown results are derived from it. */
+  private hits: AtlasSearchResult[] = [];
+  private sort: SearchSort = 'relevance';
 
   constructor(private readonly onStateChange: (state: SearchControllerState) => void) {}
 
   getState(): SearchControllerState {
     return this.state;
+  }
+
+  getSort(): SearchSort {
+    return this.sort;
+  }
+
+  /** Reorders the shown results without a new request; the choice also applies to searches that follow. */
+  setSort(sort: SearchSort): void {
+    if (sort === this.sort) return;
+    this.sort = sort;
+    if (this.state.status === 'done') {
+      this.setState({ ...this.state, results: orderSearchResults(this.hits, this.state.query, sort) });
+    }
   }
 
   /** Called on every text-input keystroke or filter change (module-type chips, "names only" toggle). */
@@ -96,7 +113,8 @@ export class SearchController {
     try {
       const response = await searchDocuments(params, { signal: controller.signal });
       if (controller.signal.aborted || version !== this.requestVersion) return;
-      this.setState({ status: 'done', query: q, results: response.data, errorKey: null });
+      this.hits = response.data;
+      this.setState({ status: 'done', query: q, results: orderSearchResults(response.data, q, this.sort), errorKey: null });
     } catch (err) {
       if (controller.signal.aborted || version !== this.requestVersion) return;
       this.setState({ status: 'error', query: q, results: [], errorKey: apiErrorMessageKey(err) });

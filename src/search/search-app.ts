@@ -112,6 +112,10 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
               <input type="checkbox" name="nameOnly">
               ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.NameOnly'))}
             </label>
+            <label class="atlas-foundry-toggle">
+              <input type="checkbox" name="alphabetical">
+              ${foundry.utils.escapeHTML(t('ATLASFOUNDRY.Search.SortAlphabetical'))}
+            </label>
           </div>
           <div class="atlas-foundry-status" data-status></div>
           <div class="atlas-foundry-search-results" data-results></div>
@@ -204,6 +208,16 @@ export class SearchApp extends foundry.applications.api.ApplicationV2 {
       this.nameOnly = (event.target as HTMLInputElement).checked;
       this.triggerSearch(input?.value ?? '');
     });
+
+    // Order only: the list is re-sorted from the hits already loaded, so no new request is sent.
+    const sortBox = content.querySelector<HTMLInputElement>('input[name="alphabetical"]');
+    if (sortBox) {
+      // The window may be re-drawn while the controller keeps its sort, so the box follows the controller.
+      sortBox.checked = this.controller.getSort() === 'alphabetical';
+      sortBox.addEventListener('change', () => {
+        this.controller.setSort(sortBox.checked ? 'alphabetical' : 'relevance');
+      });
+    }
   }
 
   /** Popover with one checkbox per document kind; an empty selection means "all types". */

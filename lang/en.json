@@ -61,6 +61,7 @@
       "Title": "Atlas Search",
       "Placeholder": "Search Atlas documents…",
       "NameOnly": "Names only",
+      "SortAlphabetical": "Sort alphabetically",
       "Types": "Types ({count})",
       "AllTypes": "All types",
       "FilterAll": "All",
