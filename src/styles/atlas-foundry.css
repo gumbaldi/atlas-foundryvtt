@@ -694,8 +694,12 @@ button.atlas-foundry-hud-heading-link i {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   gap: 0.3rem;
-  width: 1.9rem;
+  /* Same width, height and frame as the search field above it. */
+  width: 7rem;
   height: 1.9rem;
   padding: 0;
   font: inherit;
@@ -704,19 +708,19 @@ button.atlas-foundry-hud-heading-link i {
   color: #fff;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
 .atlas-foundry-hud-toggle-collapsed {
-  width: auto;
   gap: 0.6rem;
-  padding: 0.2rem 0.65rem;
 }
 
-/* One icon plus count per panel that has entries. */
+/* One icon plus count per panel that has entries, side by side. */
 .atlas-foundry-hud-toggle-part {
   display: inline-flex;
+  flex: none;
+  flex-direction: row;
   align-items: center;
   gap: 0.3rem;
 }
