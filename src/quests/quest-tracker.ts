@@ -15,6 +15,7 @@ const TRACKER_ID = 'atlas-foundry-quest-tracker';
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 let quests: AtlasQuest[] = [];
+let moduleLabel: { de: string; en: string } | undefined;
 let loaded = false;
 // Re-entrancy guard: auth, socket, poll and toggle can all trigger a load in a
 // burst — only the most recent one may write the result.
@@ -92,6 +93,15 @@ function buildPill(count: number): HTMLElement {
   return pill;
 }
 
+/** The module's name as the campaign set it, in the Foundry language; the shared default name when the backend sends none. */
+function buildTitle(): HTMLElement {
+  const title = document.createElement('div');
+  title.className = 'atlas-foundry-quest-tracker-title';
+  const lang = game.i18n.lang === 'de' ? 'de' : 'en';
+  title.textContent = moduleLabel?.[lang] ?? t('ATLASFOUNDRY.ModuleTypes.quests');
+  return title;
+}
+
 function buildMore(hidden: number): HTMLElement {
   const more = document.createElement('button');
   more.type = 'button';
@@ -123,6 +133,7 @@ export function renderQuestTracker(): void {
   tracker.replaceChildren();
 
   if (expanded) {
+    tracker.appendChild(buildTitle());
     const shown = selectTrackedQuests(quests);
     shown.forEach((quest) => tracker.appendChild(buildCard(quest)));
     const footer = document.createElement('div');
@@ -140,6 +151,7 @@ export function renderQuestTracker(): void {
 function clearTracker(): void {
   loadToken++;
   quests = [];
+  moduleLabel = undefined;
   loaded = false;
   stopPolling();
   removeTracker();
@@ -155,6 +167,7 @@ async function load(bypassCache: boolean): Promise<void> {
     const response = bypassCache ? await refreshQuests({ status: 'open' }) : await fetchQuests({ status: 'open' });
     if (token !== loadToken) return; // superseded or cleared while loading
     quests = response.quests;
+    moduleLabel = response.moduleLabel;
     loaded = true;
   } catch {
     // Keep what is shown; the next trigger (socket event, poll) tries again.
@@ -182,6 +195,7 @@ export function clearQuestTracker(): void {
  */
 export function registerQuestTracker(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+    if (!authManager.isLinked()) return;
     ensureAtlasGroup(controls).atlasQuestsToggle = {
       name: 'atlasQuestsToggle',
       title: 'ATLASFOUNDRY.Quests.ToggleTool',

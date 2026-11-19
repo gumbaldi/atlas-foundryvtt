@@ -8,18 +8,13 @@ function time(quest: AtlasQuest): number {
 }
 
 /**
- * Every quest the tracker is responsible for, newest first where pins decide.
- * Once any open quest carries `isPinned` (true or false) the backend knows
- * pins, so only pinned open quests count — none pinned means none shown. A
- * backend that does not send the field at all falls back to the open
- * top-level quests in list order. Pure, no Foundry globals.
+ * Every quest the tracker is responsible for: only open quests the backend
+ * marks as pinned, newest first. A quest without `isPinned: true` is never
+ * shown, so a backend that sends no pins shows an empty tracker rather than
+ * arbitrary quests. Pure, no Foundry globals.
  */
 function trackedCandidates(quests: AtlasQuest[]): AtlasQuest[] {
-  const open = quests.filter((q) => q.status === 'open');
-  if (open.some((q) => q.isPinned !== undefined)) {
-    return open.filter((q) => q.isPinned === true).sort((a, b) => time(b) - time(a));
-  }
-  return open.filter((q) => !q.parentId);
+  return quests.filter((q) => q.status === 'open' && q.isPinned === true).sort((a, b) => time(b) - time(a));
 }
 
 export function selectTrackedQuests(quests: AtlasQuest[], max = MAX_TRACKED_QUESTS): AtlasQuest[] {

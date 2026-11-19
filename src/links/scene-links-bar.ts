@@ -202,16 +202,19 @@ export async function renderSceneLinksBar(): Promise<void> {
 
   const thumbEntries: Array<{ link: AtlasLink; thumb: HTMLElement }> = [];
   if (expanded) {
+    // Chips wrap inside their own box; the collapse button stays in the bar's row, right after them.
+    const chips = document.createElement('div');
+    chips.className = 'atlas-foundry-scene-links-chips';
     const { shown, overflow } = partitionChips(visible);
     shown.forEach(({ link, name }) => {
       const built = buildChip(link, name, 'visible');
-      bar.appendChild(built.chip);
+      chips.appendChild(built.chip);
       thumbEntries.push({ link, thumb: built.thumb });
     });
-    broken.forEach((link) => bar.appendChild(buildChip(link, link.nameSnapshot, 'broken').chip));
-    unknown.forEach((link) => bar.appendChild(buildChip(link, link.nameSnapshot, 'unknown').chip));
-    if (overflow.length > 0) bar.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
-    bar.appendChild(buildCollapseButton());
+    broken.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'broken').chip));
+    unknown.forEach((link) => chips.appendChild(buildChip(link, link.nameSnapshot, 'unknown').chip));
+    if (overflow.length > 0) chips.appendChild(buildOverflowChip(overflow.map((o) => o.link)));
+    bar.append(chips, buildCollapseButton());
   } else {
     bar.appendChild(buildPill(visible.length));
   }

@@ -239,6 +239,7 @@ function showSuggestOpenToast(documentName: string, onOpen: () => void): void {
 /** Fallback entry point (plan: "the center stays reachable via the scene control") for when the bell is hidden or its DOM anchor collides with another module. */
 export function registerNotificationsControl(): void {
   Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+    if (!authManager.isLinked()) return;
     ensureAtlasGroup(controls).atlasNotifications = {
       name: 'atlasNotifications',
       title: 'ATLASFOUNDRY.Notifications.ControlTool',

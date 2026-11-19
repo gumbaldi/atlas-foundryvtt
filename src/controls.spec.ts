@@ -1,5 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ensureAtlasGroup, registerControls } from './controls';
+
+const { isLinked, openLoginDialog } = vi.hoisted(() => ({
+  isLinked: vi.fn(() => true),
+  openLoginDialog: vi.fn(),
+}));
+
+vi.mock('./auth/auth-manager', () => ({ authManager: { isLinked }, revokeUnlinkedToken: vi.fn() }));
+vi.mock('./auth/login-app', () => ({ openLoginDialog }));
 
 describe('ensureAtlasGroup', () => {
   it('creates the atlas group with an empty tools record ordered after every other group', () => {
@@ -53,19 +61,26 @@ describe('ensureAtlasGroup', () => {
 });
 
 describe('registerControls', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  beforeEach(() => {
+    isLinked.mockReturnValue(true);
   });
 
-  it('registers a button tool whose onChange opens search on every call', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    openLoginDialog.mockClear();
+  });
+
+  function registerAndCollect(openSearch: () => void): (controls: Record<string, any>) => void {
     const on = vi.fn();
     vi.stubGlobal('Hooks', { on });
-    const openSearch = vi.fn();
-
     registerControls(openSearch);
-
     expect(on).toHaveBeenCalledWith('getSceneControlButtons', expect.any(Function));
-    const callback = on.mock.calls[0]![1] as (controls: Record<string, any>) => void;
+    return on.mock.calls.find(([name]) => name === 'getSceneControlButtons')![1] as (controls: Record<string, any>) => void;
+  }
+
+  it('registers a button tool whose onChange opens search on every call', () => {
+    const openSearch = vi.fn();
+    const callback = registerAndCollect(openSearch);
     const controls: Record<string, any> = {};
     callback(controls);
 
@@ -74,5 +89,32 @@ describe('registerControls', () => {
     tool.onChange();
     tool.onChange();
     expect(openSearch).toHaveBeenCalledTimes(2);
+    expect(controls.atlas.tools.atlasConnect).toBeUndefined();
+  });
+
+  it('shows only the connect tool while signed out, and it opens the login dialog', () => {
+    isLinked.mockReturnValue(false);
+    const openSearch = vi.fn();
+    const callback = registerAndCollect(openSearch);
+    const controls: Record<string, any> = {};
+    callback(controls);
+
+    expect(Object.keys(controls.atlas.tools)).toEqual(['atlasConnect']);
+    controls.atlas.tools.atlasConnect.onChange();
+    expect(openLoginDialog).toHaveBeenCalledTimes(1);
+    expect(openSearch).not.toHaveBeenCalled();
+  });
+
+  it('redraws the controls when the auth state changes', () => {
+    const on = vi.fn();
+    vi.stubGlobal('Hooks', { on });
+    const render = vi.fn();
+    vi.stubGlobal('ui', { controls: { render } });
+
+    registerControls(vi.fn());
+    const authHandler = on.mock.calls.find(([name]) => name === 'atlas-foundry.authChanged')![1] as () => void;
+    authHandler();
+
+    expect(render).toHaveBeenCalledTimes(1);
   });
 });

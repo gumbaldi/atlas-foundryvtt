@@ -79,6 +79,27 @@ describe('right HUD column', () => {
     expect((second as unknown as FakeEl).parentElement).toBe(sidebar);
   });
 
+  it('pins the column left of the visible sidebar panel, and resets to the CSS placement when it cannot be measured', () => {
+    vi.stubGlobal('window', { innerWidth: 2000, addEventListener: vi.fn() });
+    const sidebar = addSidebar();
+    const rectOf = (rect: { top: number; left: number; width: number }) => () => rect;
+    (sidebar as unknown as { getBoundingClientRect: () => unknown }).getBoundingClientRect = rectOf({ top: 0, left: 1500, width: 500 });
+    const panel = new FakeEl(registry);
+    panel.id = 'sidebar';
+    registry.set('sidebar', panel);
+    (panel as unknown as { getBoundingClientRect: () => unknown }).getBoundingClientRect = rectOf({ top: 0, left: 1740, width: 260 });
+
+    const hud = getRightHud() as unknown as FakeEl;
+    expect(hud.style.position).toBe('fixed');
+    expect(hud.style.top).toBe('8px');
+    expect(hud.style.right).toBe('268px');
+
+    registry.delete('sidebar');
+    getRightHud();
+    expect(hud.style.position).toBe('');
+    expect(hud.style.right).toBe('');
+  });
+
   it('removes the column only when it is empty', () => {
     addSidebar();
     const hud = getRightHud() as unknown as FakeEl;

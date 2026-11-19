@@ -592,15 +592,27 @@
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  /* Size by content, not by the space left of `left: 50%`: otherwise the chips wrap into a column and the collapse button drifts away. */
+  width: max-content;
+  max-width: 90vw;
+  pointer-events: none;
+}
+
+/* Chips wrap in their own box so the collapse button always stays in the bar's row, next to them. */
+.atlas-foundry-scene-links-chips {
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 0.25rem;
-  max-width: 90vw;
+  min-width: 0;
   /* Two chip rows (chip height about 1.7rem plus gap); hides the rest as a safety net. */
   max-height: 3.7rem;
   overflow: hidden;
-  pointer-events: none;
 }
 
 .atlas-foundry-scene-link-chip {
@@ -741,6 +753,17 @@
 .atlas-foundry-quest-tracker-collapsed {
   width: auto;
   align-items: flex-end;
+}
+
+.atlas-foundry-quest-tracker-title {
+  align-self: flex-end;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
 }
 
 .atlas-foundry-quest-tracker-card {

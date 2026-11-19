@@ -161,6 +161,8 @@ export const AtlasQuestsResponseSchema = z.object({
     characters: z.array(AtlasQuestRefSchema),
     locations: z.array(AtlasQuestRefSchema),
   }),
+  /** The campaign's own name for the quests module; optional so older backends still validate. */
+  moduleLabel: z.object({ de: z.string(), en: z.string() }).optional(),
 });
 export type AtlasQuestsResponse = z.infer<typeof AtlasQuestsResponseSchema>;
 

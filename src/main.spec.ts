@@ -93,7 +93,23 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['getSceneControlButtons'] ?? []).length).toBeGreaterThan(0);
   });
 
-  it('adds the Atlas tools to the Atlas control group when getSceneControlButtons fires after init', async () => {
+  it('offers only the connect tool in the Atlas control group while signed out', async () => {
+    await import('./main');
+    harness.fire('init');
+
+    const controls: Record<string, any> = { tokens: { tools: {} as Record<string, unknown> } };
+    harness.fire('getSceneControlButtons', controls);
+
+    expect(Object.keys(controls.atlas.tools)).toEqual(['atlasConnect']);
+    expect(Object.keys(controls.tokens.tools)).toEqual([]);
+  });
+
+  it('adds the Atlas tools to the Atlas control group while signed in', async () => {
+    // Signed in: the per-user token is stored under the Foundry user id.
+    game.user.id = 'u1';
+    vi.mocked(game.settings.get).mockImplementation((_ns: string, key: string) =>
+      key === 'userTokens' ? { u1: { token: 'device-token', tokenId: 'tok-1' } } : undefined,
+    );
     await import('./main');
     harness.fire('init');
 
@@ -103,7 +119,7 @@ describe('main.ts start-up', () => {
     expect(Object.keys(controls.atlas.tools)).toEqual(
       expect.arrayContaining(['atlasSearch', 'atlasQuestsToggle', 'atlasNotifications', 'atlasSceneLinks']),
     );
-    expect(Object.keys(controls.tokens.tools)).toEqual([]);
+    expect(controls.atlas.tools.atlasConnect).toBeUndefined();
   });
 
   it('hooks the V14 scene context menu and not the removed getSceneNavigationContext', async () => {
