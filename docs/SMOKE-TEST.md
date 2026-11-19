@@ -36,8 +36,7 @@ Do this section first, in a fresh world with only this module active.
 S1. Open the browser console. No Atlas error is logged while the world loads, and
    `({ scriptLoaded: typeof globalThis.AtlasFoundry !== 'undefined', settingsRegistered: game.settings.settings.has('atlas-foundry.showBell') })`
    returns `true` / `true`.
-S2. The Atlas tools (search, quest tracker switch, notifications; scene links for the GM, the "Show scene links"
-   switch) are visible after clicking the Atlas group at the bottom of the left toolbar; scene links
+S2. The Atlas tools (search, the quests-and-links switch, notifications; scene links for the GM) are visible after clicking the Atlas group at the bottom of the left toolbar; scene links
    only for the GM, token controls contain none of them. The Atlas group shows the Atlas logo (globe
    over book), recoloured on hover and when active like the other toolbar icons, not a Font Awesome book.
 S3. Click the Atlas group button itself: it opens nothing by itself (no search window, no dialog). Click the
@@ -125,11 +124,12 @@ S8. As GM, change the world's campaign to a different one: a connected player tu
 
 23. GM links a Scene to both a public document and a GM-only document → GM sees 2 chips on
     the scene bar; the player sees 1.
-24. Link chips are narrow, sit side by side in at most two rows and show a thumbnail of the document's
-    title image; with more than ten links only ten are shown and `+N` opens the rest in a popover.
-25. Collapse the bar with its button → only a small pill with the link count stays; click the pill to
-    expand. The "Show scene links" switch in the Atlas toolbar group does the same and the choice
-    survives a reload (per player).
+24. Under a "Links" heading in the right-hand HUD column (below the quests), link chips are stacked one
+    per row, right-aligned, and show a thumbnail of the document's title image; with more than ten
+    links only ten are shown and `+N` opens the rest in a popover.
+25. The toggle at the bottom of the column (chevron) folds quests and links away together → only a small
+    pill with the total count stays; click the pill to expand. `Ctrl+Shift+Q` and the "Show quests and
+    links" switch in the Atlas toolbar group do the same and the choice survives a reload (per player).
 26. GM revokes the public document's sharing (readAccess → owner-only) → within ≤60s or on
     scene reload, the player's chip disappears.
 27. Token HUD: an Actor-level link appears on every Token of that Actor; clicking opens the
@@ -142,23 +142,32 @@ S8. As GM, change the world's campaign to a different one: a connected player tu
 
 ## Quest tracker
 
-30. The tracker sits at the visible right edge of the sidebar (left of the open panel, or of the tab strip
-    when collapsed), below the bell. Expanded, it starts with the quest module's name as the campaign set
-    it (shared default "Quests" without a campaign name), then the pinned open quests (at most three) as
-    compact cards with the quest name and the start of the description; the GM sees
-    GM-only quests visibly marked, the player only what the backend permits.
-31. Pins only: exactly the pinned open quests are shown. With a backend that sends no `isPinned`, the
-    tracker stays empty (no arbitrary quests).
+30. The HUD column sits at the visible right edge of the sidebar (left of the open panel, or of the tab
+    strip when collapsed). Top to bottom: bell (only while unread), search field, quests, links, toggle.
+    The quests start with a heading showing the quest module's name as the campaign set it (shared default
+    "Quests" without a campaign name), then the pinned open quests (at most three) as compact cards with
+    the quest name and the start of the description; the GM sees GM-only quests visibly marked, the player
+    only what the backend permits.
+31. Pins only: exactly the pinned open quests are shown. With a backend that sends no `isPinned`, no
+    quest section appears (no arbitrary quests).
 32. Set a quest to "completed" in Atlas → after refresh/TTL it disappears from the tracker. With more
     open pinned quests than shown, the "+N more" line opens the quest list in Atlas.
-33. A card opens the quest in Atlas in a new tab.
-34. Collapse with the button, `Ctrl+Shift+Q` or the "Show quest tracker" switch in the Atlas toolbar
-    group → only a small pill with the quest count stays; the choice survives a reload (per player).
+33. A card opens the quest in Atlas in a new tab; the heading opens the quests overview of the campaign
+    in a new tab.
+34. Collapsing (toggle button, `Ctrl+Shift+Q` or the toolbar switch) hides quests and links together and
+    leaves a pill with the combined count; the choice survives a reload (per player).
+
+## Search field in the HUD
+
+34a. Typing at least two characters in the field lists up to five hits under it (type icon and colour,
+    name); "+N more" and a click on the magnifier or Enter open the search window with the text already
+    searched; a click on a hit opens the window with that hit selected. Escape clears the field. The
+    field is absent while signed out.
 
 ## Notifications
 
 35. The bell is not visible when nothing is unread. GM sends an in-app notification to the player
-    (frontend channel) → the player's bell appears next to the sidebar (above the quest tracker) as a
+    (frontend channel) → the player's bell appears next to the sidebar (at the top of the HUD column) as a
     pulsing bell with a red count, plus a toast within seconds; GM's own Foundry: nothing (not the
     recipient).
 36. Click the bell → the notification center opens (the click works, even over the sidebar); opening the

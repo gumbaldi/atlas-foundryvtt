@@ -585,34 +585,54 @@
   background: var(--color-bg-option, rgba(255, 255, 255, 0.08));
 }
 
+/* Scene links: a headed stack of chips in the right HUD column, right-aligned. */
 #atlas-foundry-scene-links-bar {
-  position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
+  order: 4;
   display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 0.25rem;
-  /* Size by content, not by the space left of `left: 50%`: otherwise the chips wrap into a column and the collapse button drifts away. */
-  width: max-content;
-  max-width: 90vw;
-  pointer-events: none;
+  max-width: 14rem;
 }
 
-/* Chips wrap in their own box so the collapse button always stays in the bar's row, next to them. */
 .atlas-foundry-scene-links-chips {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 0.25rem;
   min-width: 0;
-  /* Two chip rows (chip height about 1.7rem plus gap); hides the rest as a safety net. */
-  max-height: 3.7rem;
-  overflow: hidden;
+  max-width: 100%;
+}
+
+/* Section headings of the HUD column ("Quests", "Links"); the quest heading is also a button to Atlas. */
+.atlas-foundry-hud-heading {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  height: auto;
+}
+
+button.atlas-foundry-hud-heading-link {
+  cursor: pointer;
+}
+
+button.atlas-foundry-hud-heading-link:hover {
+  border-color: var(--color-border-highlight, #6c9ef8);
+}
+
+button.atlas-foundry-hud-heading-link i {
+  font-size: 0.7rem;
+  opacity: 0.7;
 }
 
 .atlas-foundry-scene-link-chip {
@@ -668,43 +688,39 @@
   border-color: var(--color-border-highlight, #6c9ef8);
 }
 
-.atlas-foundry-scene-links-collapse,
-.atlas-foundry-scene-links-pill {
-  pointer-events: auto;
+/* Shared expand/collapse switch for quests and links: a chevron, or a pill with the entry count while collapsed. */
+.atlas-foundry-hud-toggle {
+  order: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
   color: #fff;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 999px;
-  height: auto;
-  line-height: 1.2;
   cursor: pointer;
 }
 
-.atlas-foundry-scene-links-collapse {
-  width: 1.6rem;
-  height: 1.6rem;
-  padding: 0;
-}
-
-.atlas-foundry-scene-links-pill {
+.atlas-foundry-hud-toggle-collapsed {
+  width: auto;
   padding: 0.2rem 0.55rem;
 }
 
-.atlas-foundry-scene-links-collapse:hover,
-.atlas-foundry-scene-links-pill:hover {
+.atlas-foundry-hud-toggle:hover {
   border-color: var(--color-border-highlight, #6c9ef8);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .atlas-foundry-scene-link-chip,
-  .atlas-foundry-scene-links-collapse,
-  .atlas-foundry-scene-links-pill {
+  .atlas-foundry-hud-toggle,
+  button.atlas-foundry-hud-heading-link {
     transition: border-color 0.15s ease;
   }
 }
@@ -740,30 +756,15 @@
   padding: 0.15rem 0;
 }
 
-/* --- Quest tracker (right HUD column, below the bell) --- */
+/* --- Quest tracker (right HUD column, below the search field) --- */
 
 .atlas-foundry-quest-tracker {
+  order: 3;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.3rem;
   width: 14rem;
-}
-
-.atlas-foundry-quest-tracker-collapsed {
-  width: auto;
-  align-items: flex-end;
-}
-
-.atlas-foundry-quest-tracker-title {
-  align-self: flex-end;
-  padding: 0.2rem 0.55rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
 }
 
 .atlas-foundry-quest-tracker-card {
@@ -802,14 +803,8 @@
   opacity: 0.8;
 }
 
-.atlas-foundry-quest-tracker-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-}
-
 .atlas-foundry-quest-tracker-more {
+  align-self: flex-end;
   padding: 0;
   font: inherit;
   font-size: 0.75rem;
@@ -821,8 +816,112 @@
   text-decoration: underline;
 }
 
-.atlas-foundry-quest-tracker-footer .atlas-foundry-quest-tracker-collapse {
-  margin-left: auto;
+/* --- Search field in the right HUD column --- */
+
+.atlas-foundry-search-hud {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  width: 14rem;
+}
+
+.atlas-foundry-search-hud-field {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.atlas-foundry-search-hud-field:focus-within {
+  border-color: var(--color-border-highlight, #6c9ef8);
+}
+
+.atlas-foundry-search-hud-field input {
+  flex: 1;
+  min-width: 0;
+  height: 1.9rem;
+  padding: 0 0.55rem;
+  font-size: 0.85rem;
+  color: #fff;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.atlas-foundry-search-hud-field button {
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.atlas-foundry-search-hud-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.25rem;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.atlas-foundry-search-hud-results[hidden] {
+  display: none;
+}
+
+.atlas-foundry-search-hud-hit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.35rem;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  color: #fff;
+  background: none;
+  border: none;
+  border-left: 3px solid var(--atlas-type-color, #888);
+  border-radius: 3px;
+  height: auto;
+  cursor: pointer;
+}
+
+.atlas-foundry-search-hud-hit span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atlas-foundry-search-hud-hit:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.atlas-foundry-search-hud-more {
+  align-self: flex-end;
+  padding: 0 0.25rem;
+  font: inherit;
+  font-size: 0.75rem;
+  color: #fff;
+  background: none;
+  border: none;
+  height: auto;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.atlas-foundry-search-hud-note {
+  padding: 0.2rem 0.35rem;
+  font-size: 0.75rem;
+  color: #fff;
+  opacity: 0.8;
 }
 
 .atlas-foundry-notification-center-filters {
@@ -833,7 +932,7 @@
 
 /* --- P8: Notifications (bell, center, GM-broadcast toast) --- */
 
-/* Shared right-hand HUD column next to the sidebar (bell on top, quest tracker below). */
+/* Shared right-hand HUD column next to the sidebar (bell, search, quests, links, toggle — ordered via `order`). */
 .atlas-foundry-hud-right {
   position: absolute;
   top: 0.5rem;
@@ -858,6 +957,7 @@
 }
 
 .atlas-foundry-bell {
+  order: 1;
   position: relative;
   display: inline-flex;
   align-items: center;
