@@ -25,6 +25,8 @@ export const AtlasDocumentSummarySchema = z.object({
   campaignId: z.string(),
   moduleType: ModuleTypeOrCustomSchema,
   name: z.string(),
+  /** Session logs only; Kanka imports often lack it (the number is then part of the name). */
+  sessionNumber: z.number().nullable().optional(),
   imageUrl: z.string().optional(),
   heroImageUrl: z.string().optional(),
   tags: z.array(z.string()),
@@ -98,6 +100,7 @@ export const AtlasSearchResultSchema = z.object({
   moduleType: ModuleTypeOrCustomSchema,
   name: z.string(),
   postTitle: z.string().optional(),
+  sessionNumber: z.number().nullable().optional(),
   entryPlainText: z.string().optional(),
   imageUrl: z.string().optional(),
   tags: z.array(z.string()),
@@ -142,10 +145,12 @@ export const AtlasQuestSchema = z.object({
   isGmOnly: z.boolean(),
   characterIds: z.array(z.string()),
   locationIds: z.array(z.string()),
+  /** Not sent by the backend yet; see the quest tracker's selection rule. */
+  isPinned: z.boolean().optional(),
   updatedAt: z.string(),
   createdAt: z.string(),
 });
-export type AtlasQuest = z.infer<typeof AtlasQuestSchema>;
+export type AtlasQuest= z.infer<typeof AtlasQuestSchema>;
 
 export const AtlasQuestRefSchema = z.object({
   id: z.string(),
@@ -159,6 +164,8 @@ export const AtlasQuestsResponseSchema = z.object({
     characters: z.array(AtlasQuestRefSchema),
     locations: z.array(AtlasQuestRefSchema),
   }),
+  /** The campaign's own name for the quests module; optional so older backends still validate. */
+  moduleLabel: z.object({ de: z.string(), en: z.string() }).optional(),
 });
 export type AtlasQuestsResponse = z.infer<typeof AtlasQuestsResponseSchema>;
 

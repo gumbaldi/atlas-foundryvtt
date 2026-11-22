@@ -36,23 +36,24 @@ Do this section first, in a fresh world with only this module active.
 S1. Open the browser console. No Atlas error is logged while the world loads, and
    `({ scriptLoaded: typeof globalThis.AtlasFoundry !== 'undefined', settingsRegistered: game.settings.settings.has('atlas-foundry.showBell') })`
    returns `true` / `true`.
-S2. The Atlas tools (search, quests, notifications; scene links for the GM) are visible after clicking the Atlas
-   group at the bottom of the left toolbar; scene links only for the GM, token controls contain none of
-   them. The scene link bar is visible on the
-   first scene. The Atlas group shows the Atlas logo (globe over book), recoloured on hover and
-   when active like the other toolbar icons, not a Font Awesome book.
-S3. As GM, right-click a scene in the navigation bar and in the Scenes directory: "Atlas links…" is
+S2. The Atlas tools (search, the quests-and-links switch, notifications; scene links for the GM) are visible after clicking the Atlas group at the bottom of the left toolbar; scene links
+   only for the GM, token controls contain none of them. The Atlas group shows the Atlas logo (globe
+   over book), recoloured on hover and when active like the other toolbar icons, not a Font Awesome book.
+S3. Click the Atlas group button itself: it opens nothing by itself (no search window, no dialog). Click the
+   magnifier tool: the search window opens; click it again while the window is open or minimized: the
+   existing window comes to the front (no second window). Note which tool Foundry marks as selected after
+   a click on the group button; if Foundry selects another tool and fires it, report it.
+S4. As GM, right-click a scene in the navigation bar and in the Scenes directory: "Atlas links…" is
    present in both. This confirms the `getSceneContextOptions` hook name — if it is missing, report
    which context menu lacks it. As a player the entry is absent.
-S4. *Configure Settings* shows an "Atlas" section with the **Atlas connection** button for the GM only.
-S5. Connect: one click opens Atlas on the confirmation page; after confirming there, the Foundry
+S5. *Configure Settings* shows an "Atlas" section with the **Atlas connection** button for the GM only.
+S6. Connect: one click opens Atlas on the confirmation page; after confirming there, the Foundry
    dialog closes by itself. Start again, close the dialog with X, then confirm in Atlas: Foundry
    stays disconnected.
-S6. Open a second browser tab as another Foundry user: that user is not connected until they connect
+S7. Open a second browser tab as another Foundry user: that user is not connected until they connect
    themselves.
-S7. As GM, change the world's campaign to a different one: a connected player turns red ("different
+S8. As GM, change the world's campaign to a different one: a connected player turns red ("different
    campaign") and sees no Atlas data.
-S8. With more than 30 unread notifications, "Mark all read" brings the bell to 0.
 
 ---
 
@@ -76,73 +77,123 @@ S8. With more than 30 unread notifications, "Mark all read" brings the bell to 0
    `game.settings.get('atlas-foundry','userTokens')`, keyed by Foundry user id — as the player, the
    **GM's** entry is not readable (different browser); world-scoped settings contain no token
    (`baseUrl`/`campaignId` only).
+8. Connection status with a working WebSocket: the status text goes from "Connecting…" to "Connected"
+   without ever showing "Reconnecting" while the module works.
+9. Connection status without a working WebSocket (block `/socket.io` WebSocket upgrades in the proxy or
+   devtools): the status reads "Connected, live updates unavailable", search, links and quests still
+   work, and the bell/quests refresh through polling.
 
-## Viewer and data layer
+## Documents opened in Atlas (no viewer)
 
-8. Open a document with mentions → mentions are clickable, the target viewer opens; a
-   target the player can't read shows "not available", not an error or stale content.
-9. "Open in Atlas" → correct deep-link, correct locale.
-10. Set a document's access to owner-only in Atlas → the player's already-open viewer, after
-    "Refresh" or once the cache TTL lapses, shows the 404 state (not stale content).
-11. Stop the backend → viewer shows a reachability error with Retry; no uncaught promise
-    rejection in the console.
-12. Open two documents, then reopen one of them → focuses the existing window, no duplicate.
-13. Sanitizer spot-check (paste as raw HTML into a test document's entry, or via API):
-    `<img src=x onerror=alert(1)>`, `<script>`, `<a href="javascript:…">`, nested SVG — none
+10. Click a link chip, a quest card or a notification → the document opens in Atlas in a new browser tab
+    with the correct deep link and locale; no Atlas window opens inside Foundry. A document of a custom
+    module opens its own target.
+11. As the player, open a document from a link or notification that was set to owner-only in Atlas
+    meanwhile → Atlas itself shows its "no access" page; Foundry never shows the content.
+12. Stop the backend → clicking a link or search hit that needs a lookup shows a reachability message,
+    no uncaught promise rejection in the console.
+13. Sanitizer spot-check (paste as raw HTML into a test document's entry, then view it in the search
+    focus pane): `<img src=x onerror=alert(1)>`, `<script>`, `<a href="javascript:…">`, nested SVG — none
     execute; a mention span with all four `data-*` attributes survives intact.
 
 ## Search
 
 14. GM finds a GM-only document via search; the player searching the identical query does
     not.
-15. Module-type filter chips narrow results correctly.
-16. `Ctrl+K` opens search from anywhere; `↑`/`↓`/`Enter` navigate and open a result.
-17. "Open in Atlas" on a result lands on the correct document.
-18. Picker mode (`await AtlasFoundry.pickDocument()` in the console) resolves with the
-    chosen result object.
+15. Open the "Types" menu: one checkbox per document kind plus "All" and "None"; selecting a kind
+    narrows the hits correctly, "All"/"None" show every kind.
+16. Split view: type text and press Enter → results appear at once and nothing is preselected; the
+    right pane shows a hint. Enter never opens a hit. Click a hit → the focus pane shows its title
+    image, text and "Open in Atlas".
+17. Each hit shows a thumbnail of the title image (the type icon in a coloured tile when there is none), a
+    type colour accent and the search words highlighted in a three-line excerpt.
+18. `↑`/`↓` move through the hits; `Ctrl+Enter` opens the selected hit in Atlas in a new tab; `Ctrl+K`
+    opens search from anywhere.
+19. Click the title image in the focus pane → a large view opens (Foundry's `ImagePopout`; on Foundry
+    v14 no `window.open` fallback tab appears, and no console error). An image URL that is not
+    `http(s)` is never shown.
+20. Empty search box → up to 8 recent searches appear as quick choices; clicking one runs that search.
+    After a reload they are still there; after signing out of Atlas they are gone.
+21. Pick mode (`await AtlasFoundry.pickDocument()` in the console, or "Attach…" from a link dialog): the
+    focus pane shows a "Use as target" button; only that button confirms (it resolves with the chosen
+    result object), a plain click or Enter does not.
+22. As GM, "Link…" in the focus pane attaches the hit to the chosen target (active scene / selected
+    token / an open sheet); the player does not see the button.
 
 ## Context links
 
-19. GM links a Scene to both a public document and a GM-only document → GM sees 2 chips on
+23. GM links a Scene to both a public document and a GM-only document → GM sees 2 chips on
     the scene bar; the player sees 1.
-20. GM revokes the public document's sharing (readAccess → owner-only) → within ≤60s or on
+24. Under a "Links" heading in the right-hand HUD column (below the quests), link chips are stacked one
+    per row, right-aligned, and show a thumbnail of the document's title image; with more than ten
+    links only ten are shown and `+N` opens the rest in a popover.
+25. The toggle at the bottom of the column (chevron) folds quests and links away together → only a small
+    pill stays, with an icon and the item count for each panel that has entries (nothing for an empty one);
+    click the pill to expand. With nothing to show in either panel, no toggle is drawn. `Ctrl+Shift+Q` and the "Show quests and
+    links" switch in the Atlas toolbar group do the same and the choice survives a reload (per player).
+26. GM revokes the public document's sharing (readAccess → owner-only) → within ≤60s or on
     scene reload, the player's chip disappears.
-21. Token HUD: an Actor-level link appears on every Token of that Actor; clicking opens the
-    viewer.
-22. Delete the linked Atlas document → GM sees a "broken" marker with a remove shortcut;
+27. Token HUD: an Actor-level link appears on every Token of that Actor; clicking opens the
+    document in Atlas.
+28. Delete the linked Atlas document → GM sees a "broken" marker with a remove shortcut;
     player never sees that link at all.
-23. "Attach…" from search results (GM only) → link lands on the chosen target (active scene
-    / selected token / an open sheet).
-24. Player-side console: `scene.flags['atlas-foundry']` shows the raw refs/`nameSnapshot`
+29. Player-side console: `scene.flags['atlas-foundry']` shows the raw refs/`nameSnapshot`
     (documented, accepted privacy tradeoff) — but confirm no click path anywhere delivers
     actual document *content* without the server-side check passing.
 
-## Quest panel
+## Quest tracker
 
-25. GM's quest panel shows every quest including GM-only ones, visibly marked; the player's
-    panel shows only what they're permitted to see.
-26. Mark an objective/quest complete in Atlas → status filter chip in the panel reflects it
-    after refresh/TTL.
-27. Set a quest's status to "completed" in Atlas → it moves to the Completed group.
-28. A reference chip (e.g. a linked location) opens the viewer; a GM-only referenced document
-    does not appear as a chip for the player.
-29. Close and reopen the panel → position/size persisted from before.
+30. The HUD column sits at the visible right edge of the sidebar (left of the open panel, or of the tab
+    strip when collapsed). Top to bottom: bell (only while unread), search field, quests, links, toggle.
+    The quests start with a heading showing the quest module's name as the campaign set it (shared default
+    "Quests" without a campaign name), then the pinned open quests (at most three) as compact cards with
+    the quest name and the start of the description; the GM sees GM-only quests visibly marked, the player
+    only what the backend permits.
+31. Pins only: exactly the pinned open quests are shown. With a backend that sends no `isPinned`, no
+    quest section appears (no arbitrary quests).
+32. Set a quest to "completed" in Atlas → after refresh/TTL it disappears from the tracker. With more
+    open pinned quests than shown, the "+N more" line opens the quest list in Atlas.
+33. A card opens the quest in Atlas in a new tab; the heading opens the quests overview of the campaign
+    in a new tab.
+34. Collapsing (toggle button, `Ctrl+Shift+Q` or the toolbar switch) hides quests and links together and
+    leaves a pill with the combined count; the choice survives a reload (per player).
+
+## HUD switch and session log titles
+
+34b. The "Show Atlas HUD" tool in the Atlas toolbar group hides and shows the whole HUD column (bell,
+    search, quests, links, toggle); the choice survives a reload (per player).
+34c. Session logs show as `#<number> - Title` in the search hit list, the HUD hits, the viewer heading,
+    link chips/popover/manager and notifications. A session log without a `sessionNumber` whose name is
+    "Session 19 - ..." shows as `#19 - ...`; other document types keep their name.
+
+## Search field in the HUD
+
+34a. The field is at most half as wide as the quest cards. Typing at least two characters lists up to five
+    hits under it, each with the title image as a thumbnail (a tile in the type colour without an image),
+    the module icon and the title; "+N more" and a click on the magnifier or Enter open the search window with the text already
+    searched; a click on a hit opens the window with that hit selected. Escape clears the field. The
+    field is absent while signed out.
 
 ## Notifications
 
-30. GM sends an in-app notification to the player (frontend channel) → player's Foundry:
-    bell badge +1 and a toast within seconds; GM's own Foundry: nothing (not the recipient).
-31. Player marks it read in Foundry → Atlas' own web Postfach shows it as read, and vice
-    versa (same API, same state).
-32. Close the player's Foundry, send another notification, reopen Foundry → badge is correct
+35. The bell is not visible when nothing is unread. GM sends an in-app notification to the player
+    (frontend channel) → the player's bell appears next to the sidebar (at the top of the HUD column) as a
+    pulsing bell with a red count, plus a toast within seconds; GM's own Foundry: nothing (not the
+    recipient).
+36. Click the bell → the notification center opens (the click works, even over the sidebar); opening the
+    list or a notification marks nothing as read.
+37. "Acknowledge" on one notification → it is read in Atlas' own web Postfach too (same API, same state)
+    and the count drops by one; "Acknowledge all" brings the bell to 0 and it disappears. With more than 30
+    unread notifications, "Acknowledge all" still reaches 0.
+38. Close the player's Foundry, send another notification, reopen Foundry → bell and count are correct
     immediately (catch-up via the initial sync, not just live push).
-33. Kill the backend socket (restart the backend process) → badge still updates via the
+39. Kill the backend socket (restart the backend process) → the count still updates via the
     polling fallback; goes live again after reconnect.
-34. GM-broadcasts ("show to everyone") a GM-only document → player sees a "GM wants to show
-    you…" toast; clicking it shows the viewer's "not available" state (never the content).
-    GM-broadcasts a public document → viewer opens normally for the player.
-35. Enable `quietMode` in the addon's client settings → no more toasts, but the bell badge
-    keeps updating.
+40. GM-broadcasts ("show to everyone") a GM-only document → player sees a "GM wants to show
+    you…" toast; clicking it opens Atlas, which shows its own "no access" page (never the content in
+    Foundry). GM-broadcasts a public document → Atlas opens it normally for the player.
+41. Enable `quietMode` in the addon's client settings → no more toasts, but the bell keeps updating.
+    Turning the "Show the notification bell when there are unread notifications" setting off hides the bell entirely; the center stays reachable via the scene controls.
 
 ---
 

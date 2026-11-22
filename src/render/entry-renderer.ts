@@ -6,9 +6,9 @@ import type { ModuleType } from '../constants';
 export interface EntryRenderOptions {
   /**
    * Fired when a mention is activated. `openInAtlas` is true for a
-   * shift-click or right-click (context menu) — the caller (viewer-app.ts)
-   * decides what that means (deep link vs. in-Foundry viewer), since it
-   * owns campaignId/locale, not this module.
+   * shift-click or right-click (context menu) — the caller (the search
+   * window's focus pane) decides what that means, since it owns
+   * campaignId/locale, not this module.
    */
   onMentionActivate: (moduleType: ModuleType | 'custom', documentId: string, openInAtlas: boolean) => void;
 }

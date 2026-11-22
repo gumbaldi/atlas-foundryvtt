@@ -5,15 +5,30 @@ per user, with that user's own Atlas rights.
 
 ## Features
 
-- **Search**: full-text search across the campaign with type filters and keyboard navigation
-  (`Ctrl+K`). Results match what the same account sees on the Atlas web UI.
-- **Document viewer**: Atlas entries with images and clickable mentions, plus deep links back to Atlas.
+- **Search**: full-text search across the campaign (`Ctrl+K`) as a split view: a hit list with a
+  title-image thumbnail, type colour and highlighted search words on the left, the selected document
+  (title image, text, "Open in Atlas", and "Link…" for the GM) on the right. A "Types" menu narrows the
+  hits and your last searches are offered as quick choices. Results match what the same account sees
+  on the Atlas web UI.
+- **Right-hand HUD**: everything Atlas shows on screen is stacked at the right edge, next to the sidebar,
+  top to bottom: the notification bell (only while something is unread), a compact search field (typing
+  lists the first hits right there with title image, module icon and title; a click on one opens it in the
+  search window, Enter or the magnifier opens the window with your text), the quests and the scene's
+  links. Quests and links fold away together with one button (`Ctrl+Shift+Q`); collapsed, one pill shows
+  an icon and the item count for each panel that has entries. The whole HUD can be switched off with the
+  "Show Atlas HUD" tool in the Atlas toolbar group.
+- **Session logs**: wherever a session log title appears (search, viewer, links, notifications) it starts
+  with the session number: `#12 - Title`.
 - **Context links**: attach Atlas documents to scenes, actors, tokens, journal entries, items and
-  tiles. Visibility is checked per player on the server.
-- **Quest panel**: quests grouped by status, with sub-quests and character/location references
-  (`Ctrl+Shift+Q`).
-- **Notifications**: a bell with an unread badge and a notification center. The GM can send a
-  document-linked notification to all players.
+  tiles. The scene's links appear under a "Links" heading as a right-aligned stack of compact chips with a
+  thumbnail (the rest behind `+N`). A click opens the document in Atlas in a new tab. Visibility is
+  checked per player on the server.
+- **Quest tracker**: the pinned open quests as compact cards under the quest module's name; the heading
+  opens the quest overview in Atlas. Pinned quests need an Atlas backend that sends `isPinned` for
+  quests; until then nothing is shown.
+- **Notifications**: a pulsing bell at the top of the HUD column, shown only while notifications are unread, and a
+  notification center. Notifications are acknowledged explicitly. The GM can send a document-linked
+  notification to all players.
 - **Login**: each user links their own Atlas account with a device-code flow and can revoke it in Atlas.
 - **Languages**: English and German.
 
@@ -115,3 +130,4 @@ Built against the Foundry v14 `ApplicationV2` and `DialogV2` APIs, and the v13+ 
   verifiable sender. A player's client could forge a suggestion, which only produces a toast. Opening
   the suggested document still checks the recipient's own Atlas rights, so no content leaks.
 - Objectives and checklists on quests are not shown — Atlas has no such field.
+- Documents open in Atlas in a new browser tab; there is no document viewer inside Foundry.

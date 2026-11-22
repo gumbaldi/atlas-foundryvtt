@@ -2,7 +2,7 @@ import { t } from '../i18n';
 import { notifyError, log } from '../log';
 import { getCampaignId, getCampaignSlug, setCampaignId } from '../settings';
 import { authManager, revokeUnlinkedToken } from './auth-manager';
-import { startDeviceFlow, pollDeviceFlow, type DeviceFlowStart } from './device-flow';
+import { startDeviceFlow, pollDeviceFlow, DeviceFlowStartError, type DeviceFlowStart } from './device-flow';
 
 function renderContent(start: DeviceFlowStart, tabOpened: boolean): string {
   const escape = foundry.utils.escapeHTML;
@@ -61,16 +61,23 @@ export async function openLoginDialog(options: LoginOptions = {}): Promise<void>
     tab?.close();
     return;
   }
+  const campaignId = getCampaignId() || undefined;
+  const campaignSlug = campaignId ? undefined : getCampaignSlug() || undefined;
   try {
     start = await startDeviceFlow({
       worldId: game.world.id,
       worldName: game.world.title,
-      campaignId: getCampaignId() || undefined,
+      campaignId,
+      campaignSlug,
       foundryUserName: game.user.name,
     });
   } catch (err) {
     tab?.close();
-    notifyError(err, 'ATLASFOUNDRY.Login.StartFailed');
+    if (campaignSlug && err instanceof DeviceFlowStartError && err.status === 404) {
+      notifyError(err, 'ATLASFOUNDRY.Login.CampaignAliasUnknown', { slug: campaignSlug });
+    } else {
+      notifyError(err, 'ATLASFOUNDRY.Login.StartFailed');
+    }
     return;
   }
 

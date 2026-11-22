@@ -24,10 +24,19 @@ export type DeviceFlowPollResult =
   | { status: 'denied' }
   | { status: 'expired' };
 
+/** `device/start` answered with an HTTP error; `status` tells a missing campaign alias (404) from the rest. */
+export class DeviceFlowStartError extends Error {
+  constructor(readonly status: number) {
+    super(`Atlas Foundry: device/start failed (HTTP ${status})`);
+  }
+}
+
 export async function startDeviceFlow(params: {
   worldId: string;
   worldName?: string;
   campaignId?: string;
+  /** Campaign alias from the Atlas URL; the backend resolves it. Ignored when `campaignId` is set. */
+  campaignSlug?: string;
   foundryUserName?: string;
 }): Promise<DeviceFlowStart> {
   const baseUrl = getBaseUrl();
@@ -38,7 +47,7 @@ export async function startDeviceFlow(params: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
-  if (!response.ok) throw new Error(`Atlas Foundry: device/start failed (HTTP ${response.status})`);
+  if (!response.ok) throw new DeviceFlowStartError(response.status);
   return (await response.json()) as DeviceFlowStart;
 }
 

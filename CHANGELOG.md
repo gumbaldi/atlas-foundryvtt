@@ -10,6 +10,73 @@ before `compatibility.verified` in `module.json` is raised — see
 
 ## [Unreleased]
 
+### Added
+- Scene link bar: links are narrow chips with a small thumbnail of the document's title image, side by
+  side in at most two rows; only the first ten are shown (the rest is behind `+N`). The bar can be
+  collapsed (button, or the "Show scene links" switch in the Atlas toolbar group) to a pill with the
+  link count.
+- Quest tracker next to the sidebar: the pinned open quests (at most three) as compact cards with the
+  quest name and the start of the description. A card opens the quest in Atlas; "+N more" opens the
+  quest list in Atlas. Collapsible (button, the "Show quest tracker" switch in the Atlas toolbar group
+  or Ctrl+Shift+Q) to a pill with the quest count.
+- Search hits show a small thumbnail of the document's title image (the type icon in a coloured tile
+  when there is none), a type colour accent and the search words highlighted in a three-line excerpt.
+- Search "Types" menu with a checkbox per document kind (plus "All" and "None").
+- An empty search box offers your last 8 searches as quick choices; they are stored per browser and
+  cleared on sign-out.
+- Deadlines document type: icon, label, search filter and a state / due-day line.
+- The Atlas settings take one campaign URL instead of a base URL plus campaign ID. A campaign alias in
+  that URL (e.g. `dvl`) is verified after the login; a different or unverifiable campaign signs you out again.
+- The Atlas tools live in their own Atlas group in the scene controls, with the Atlas logo as icon.
+- A Foundry category in the Atlas repository's `scripts/test-api.sh` suite: device-flow token
+  issuance, a default-deny regression matrix, and per-user visibility checks across documents,
+  search, quests, `visibility-check`, and messages.
+- Contract tests (`npm run test:contract`, `contract/`) validating every consumed backend response
+  against zod schemas derived from `src/atlas-types.ts`, with a fixture-replay fallback for CI without
+  a live backend and a `--record` mode (`npm run test:contract:record`) gated to localhost.
+- `npm run package` (`scripts/package.mjs`): builds, patches `dist/module.json`'s version
+  and (if configured) manifest/download URLs, and produces a deterministic, Foundry-
+  installable Zip plus a standalone manifest under `release/`.
+- `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
+
+### Changed
+- Links (scene bar, popover, token HUD, link manager), quests and notifications open the document
+  directly in Atlas in a new browser tab instead of the in-Foundry detail window, including documents
+  of custom modules.
+- The notification bell is shown only while notifications are unread, as a larger pulsing bell with a
+  red count at the top right next to the sidebar (no longer in the lower left corner).
+- Notifications are acknowledged explicitly: opening the list or an item marks nothing as read; use
+  "Acknowledge" per notification or "Acknowledge all".
+- The search window is a split view: hits on the left, the selected document on the right with its
+  title image (click it to see it large), text and "Open in Atlas" (plus "Link…" for the game
+  master). Nothing is preselected and Enter only runs the search at once; Ctrl+Enter opens the
+  selected hit in Atlas. When picking a link target, a "Use as target" button confirms the choice.
+- The Atlas toolbar button looks like the other toolbar buttons and no longer opens search by itself;
+  the magnifier tool brings an already open search window to the front on every click.
+- A campaign alias in the Atlas URL (e.g. `…/campaigns/dvl`) is sent to Atlas when the login starts, so
+  the confirmation page shows that campaign directly instead of asking for one again. Needs the
+  matching Atlas backend (build 118). An alias Atlas does not know gets its own error message.
+- The GM settings open from *Configure Settings → Atlas* (an official module menu) instead of a
+  button pushed into the settings sidebar; the module is now called "Atlas".
+- Connecting is one click: Atlas opens in a new tab on the confirmation page and the Foundry dialog
+  closes itself.
+- The Atlas sign-in is stored per Foundry user, not per browser. **Everyone has to connect once
+  after updating**; the old link stays listed in the Atlas profile until it expires or is revoked.
+- CI also runs the contract typecheck and the contract tests against the recorded fixtures.
+- `src/atlas-types.ts` now defines zod schemas (`z.infer`-derived types keep their
+  original names) instead of plain interfaces — no behavior change, but every consumer
+  of a Foundry/messages response can now be validated against the same definition at
+  runtime, not just at compile time.
+
+### Removed
+- The quest window (replaced by the quest tracker) and the separate document detail window (documents
+  open in Atlas).
+- The search filter buttons (replaced by the "Types" menu).
+
+### Notes
+- Pinned quests need the Atlas backend to send `isPinned` for quests. Until it does, the tracker
+  shows the first three open top-level quests.
+
 ### Fixed
 - The module starts again on Foundry 14: the quest panel no longer reads a setting while the
   script loads, which aborted the whole import and left every Atlas button, menu and search missing.
@@ -23,19 +90,9 @@ before `compatibility.verified` in `module.json` is raised — see
 - The link manager shows "could not be checked" instead of "target not found" when Atlas is unreachable.
 - Contract tests no longer depend on a file of the old combined repository, and a backend that cannot
   be reached fails them instead of silently using old fixtures.
-
-### Changed
-- The GM settings open from *Configure Settings → Atlas* (an official module menu) instead of a
-  button pushed into the settings sidebar; the module is now called "Atlas".
-- Connecting is one click: Atlas opens in a new tab on the confirmation page and the Foundry dialog
-  closes itself.
-- The Atlas sign-in is stored per Foundry user, not per browser. **Everyone has to connect once
-  after updating**; the old link stays listed in the Atlas profile until it expires or is revoked.
-- CI also runs the contract typecheck and the contract tests against the recorded fixtures.
-- `src/atlas-types.ts` now defines zod schemas (`z.infer`-derived types keep their
-  original names) instead of plain interfaces — no behavior change, but every consumer
-  of a Foundry/messages response can now be validated against the same definition at
-  runtime, not just at compile time.
+- The connection status no longer claims "Reconnecting" while the module works: it now says
+  "Connecting…" or "Connected, live updates unavailable", and the live connection falls back to
+  polling when WebSockets are blocked.
 
 ### Security
 - A sign-in for a different campaign than the world's is refused and revoked instead of only warned about.
@@ -48,24 +105,6 @@ before `compatibility.verified` in `module.json` is raised — see
 - The GM's "show this to everyone" broadcast has no verifiable sender (Foundry's module socket
   carries none); a forged suggestion only shows a toast, and opening it still checks the
   recipient's own Atlas rights.
-
-### Added
-- The Atlas settings take one campaign URL instead of a base URL plus campaign ID. A campaign alias in
-  that URL (e.g. `dvl`) is verified after the login; a different or unverifiable campaign signs you out again.
-- Deadlines document type: icon, label, search filter and a state / due-day line in the viewer.
-- The Atlas tools now live in their own Atlas group in the scene controls, with the Atlas logo
-  as icon.
-- A Foundry category in the Atlas repository's `scripts/test-api.sh` suite: device-flow token
-  issuance, a default-deny regression matrix, and per-user visibility checks across documents,
-  search, quests, `visibility-check`, and messages.
-- Contract tests (`npm run test:contract`, `contract/`) validating
-  every consumed backend response against zod schemas derived from `src/atlas-types.ts`,
-  with a fixture-replay fallback for CI without a live backend and a `--record` mode
-  (`npm run test:contract:record`) gated to localhost.
-- `npm run package` (`scripts/package.mjs`): builds, patches `dist/module.json`'s version
-  and (if configured) manifest/download URLs, and produces a deterministic, Foundry-
-  installable Zip plus a standalone manifest under `release/`.
-- `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
 
 
 ## [0.2.0] — cumulative, no dated release yet

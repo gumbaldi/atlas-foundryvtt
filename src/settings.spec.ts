@@ -6,6 +6,8 @@ import {
   getBaseUrl,
   getCampaignId,
   getCampaignSlug,
+  getRecentSearchList,
+  setRecentSearchList,
   getUserToken,
   getUserTokenId,
   setUserToken,
@@ -242,5 +244,32 @@ describe('discardLegacyUserToken', () => {
 
     expect(globalThis.game.settings.set).not.toHaveBeenCalled();
     expect(globalThis.ui.notifications.info).not.toHaveBeenCalled();
+  });
+});
+
+describe('recent searches setting', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = { recentSearches: [] };
+    mockGame(store);
+  });
+
+  it('defaults to an empty list', () => {
+    expect(getRecentSearchList()).toEqual([]);
+  });
+
+  it('reads a non-array stored value as an empty list', () => {
+    store.recentSearches = 'garbage';
+    expect(getRecentSearchList()).toEqual([]);
+    store.recentSearches = undefined;
+    expect(getRecentSearchList()).toEqual([]);
+  });
+
+  it('round-trips the list and drops non-string entries', async () => {
+    await setRecentSearchList(['goblin', 'dragon']);
+    expect(getRecentSearchList()).toEqual(['goblin', 'dragon']);
+    store.recentSearches = ['ok', 3, null];
+    expect(getRecentSearchList()).toEqual(['ok']);
   });
 });

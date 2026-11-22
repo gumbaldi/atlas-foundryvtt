@@ -1,3 +1,4 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { addLink, type FlagCapableDocument } from './link-store';
 import type { AtlasSearchResult } from '../atlas-types';
@@ -87,10 +88,10 @@ export async function pickLinkTarget(result: AtlasSearchResult): Promise<void> {
         await addLink(target.doc, {
           documentId: result.id,
           moduleType: result.moduleType,
-          nameSnapshot: result.name,
+          nameSnapshot: formatDocumentTitle(result.moduleType, result.name, result.sessionNumber),
           label,
         });
-        ui.notifications.info(t('ATLASFOUNDRY.Links.Added', { name: result.name }));
+        ui.notifications.info(t('ATLASFOUNDRY.Links.Added', { name: formatDocumentTitle(result.moduleType, result.name, result.sessionNumber) }));
       },
     },
   }).catch(() => undefined);

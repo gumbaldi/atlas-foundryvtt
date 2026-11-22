@@ -1,10 +1,11 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { MODULE_TYPE_ICONS } from '../constants';
 import { linkVisibility, toRefs } from './link-visibility';
 import { openLink } from './link-actions';
 import type { AtlasLink } from './link-store';
 
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 let activePopover: HTMLElement | null = null;
@@ -70,7 +71,7 @@ export async function openLinksPopover(links: AtlasLink[], anchor: HTMLElement):
   panel.innerHTML = visibleLinks
     .map((link) => {
       const icon = link.moduleType === 'custom' ? CUSTOM_MODULE_ICON : ((MODULE_TYPE_ICONS as Record<string, string | undefined>)[link.moduleType] ?? CUSTOM_MODULE_ICON);
-      const label = link.label ?? result.nameFor(link) ?? link.nameSnapshot;
+      const label = link.label ?? result.nameFor(link) ?? formatDocumentTitle(link.moduleType, link.nameSnapshot);
       return `
         <button type="button" class="atlas-foundry-links-popover-item" data-link-id="${foundry.utils.escapeHTML(link.id)}">
           <i class="${icon}"></i> <span>${foundry.utils.escapeHTML(label)}</span>
@@ -82,9 +83,9 @@ export async function openLinksPopover(links: AtlasLink[], anchor: HTMLElement):
   panel.querySelectorAll<HTMLButtonElement>('[data-link-id]').forEach((button) => {
     const link = visibleLinks.find((l) => l.id === button.dataset.linkId);
     if (!link) return;
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', () => {
       closeActivePopover();
-      openLink(link, { external: event.shiftKey || event.ctrlKey || event.metaKey, currentName: result.nameFor(link) });
+      openLink(link);
     });
   });
 }

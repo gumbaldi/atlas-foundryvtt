@@ -169,4 +169,60 @@ describe('SearchController', () => {
     controller.update('d');
     expect(controller.getState()).toMatchObject({ status: 'idle', query: 'd', results: [] });
   });
+
+  describe('searchNow', () => {
+    it('runs the search at once without waiting for the debounce', async () => {
+      vi.mocked(searchDocuments).mockResolvedValue(emptyResponse());
+      controller.searchNow('dragon', { nameOnly: true });
+      expect(controller.getState().status).toBe('loading');
+      expect(searchDocuments).toHaveBeenCalledTimes(1);
+      expect(searchDocuments).toHaveBeenCalledWith({ q: 'dragon', nameOnly: true }, expect.anything());
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(controller.getState()).toMatchObject({ status: 'done', query: 'dragon' });
+    });
+
+    it('cancels a pending debounced run so only one request goes out', async () => {
+      vi.mocked(searchDocuments).mockResolvedValue(emptyResponse());
+      controller.update('dragon');
+      controller.searchNow('dragon');
+      await vi.advanceTimersByTimeAsync(600);
+      expect(searchDocuments).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing but go idle below the minimum query length', async () => {
+      vi.mocked(searchDocuments).mockResolvedValue(emptyResponse());
+      controller.update('dragon');
+      controller.searchNow('d');
+      expect(controller.getState()).toMatchObject({ status: 'idle', query: 'd', results: [] });
+      await vi.advanceTimersByTimeAsync(600);
+      expect(searchDocuments).not.toHaveBeenCalled();
+    });
+
+    it('still discards the late response of the previous request', async () => {
+      let resolveFirst!: (value: AtlasSearchResponse) => void;
+      vi.mocked(searchDocuments).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      );
+      controller.searchNow('dragon');
+
+      vi.mocked(searchDocuments).mockResolvedValueOnce({
+        data: [{ id: 'b', name: 'Bear', moduleType: 'creatures', tags: [] }],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      });
+      controller.searchNow('bear');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(controller.getState()).toMatchObject({ status: 'done', query: 'bear' });
+
+      resolveFirst({ data: [{ id: 'a', name: 'Dragon', moduleType: 'creatures', tags: [] }], total: 1, page: 1, limit: 20, totalPages: 1 });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(controller.getState()).toMatchObject({ status: 'done', query: 'bear' });
+    });
+  });
 });

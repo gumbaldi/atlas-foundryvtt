@@ -1,12 +1,12 @@
+import { formatDocumentTitle } from '../render/document-title';
 import { t } from '../i18n';
 import { MODULE_TYPE_ICONS } from '../constants';
-import { openDocumentViewer } from '../apps/viewer-app';
+import { openInAtlas } from './open-in-atlas';
 import { SearchApp } from '../search/search-app';
 import { addLink, getLinks, removeLink, updateLinkLabel, type AtlasLink, type FlagCapableDocument } from './link-store';
 import { linkVisibility, toLinkRowState, toRefs, type LinkRowState } from './link-visibility';
-import type { ModuleType } from '../constants';
 
-/** 'custom' isn't in MODULE_TYPE_ICONS (see viewer-app.ts's same fallback). */
+/** 'custom' isn't in MODULE_TYPE_ICONS. */
 const CUSTOM_MODULE_ICON = 'fa-solid fa-puzzle-piece';
 
 export interface LinkManagerTarget {
@@ -92,7 +92,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
 
   private renderRow(row: RowState): string {
     const icon = row.link.moduleType === 'custom' ? CUSTOM_MODULE_ICON : (MODULE_TYPE_ICONS as Record<string, string | undefined>)[row.link.moduleType] ?? CUSTOM_MODULE_ICON;
-    const displayName = row.currentName ?? row.link.nameSnapshot;
+    const displayName = row.currentName ?? formatDocumentTitle(row.link.moduleType, row.link.nameSnapshot);
     const typeLabel =
       row.link.moduleType === 'custom' ? t('ATLASFOUNDRY.Search.CustomModule') : (t(`ATLASFOUNDRY.ModuleTypes.${row.link.moduleType}`) || row.link.moduleType);
 
@@ -141,7 +141,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
     await addLink(this.target.doc, {
       documentId: picked.id,
       moduleType: picked.moduleType,
-      nameSnapshot: picked.name,
+      nameSnapshot: formatDocumentTitle(picked.moduleType, picked.name, picked.sessionNumber),
     });
     await this.load();
   }
@@ -149,11 +149,7 @@ export class LinkManagerApp extends foundry.applications.api.ApplicationV2 {
   private handleOpen(linkId: string): void {
     const row = this.rows.find((r) => r.link.id === linkId);
     if (!row) return;
-    openDocumentViewer({
-      moduleType: row.link.moduleType as ModuleType | 'custom',
-      documentId: row.link.documentId,
-      name: row.currentName ?? row.link.nameSnapshot,
-    });
+    void openInAtlas({ moduleType: row.link.moduleType, documentId: row.link.documentId });
   }
 
   private async handleRemove(linkId: string): Promise<void> {

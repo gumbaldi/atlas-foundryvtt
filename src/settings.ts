@@ -110,24 +110,30 @@ export function registerSettings(): void {
     type: String,
     default: '',
   });
-  // Client-scoped so each player can hide the overlay independently (plan P5 UI/UX note).
-  // config: true — shown in Foundry's own "Configure Settings" screen, no custom UI needed.
-  game.settings.register(MODULE_ID, 'showSceneLinks', {
-    name: 'ATLASFOUNDRY.Settings.ShowSceneLinks.Name',
-    hint: 'ATLASFOUNDRY.Settings.ShowSceneLinks.Hint',
-    scope: 'client',
-    config: true,
-    type: Boolean,
-    default: true,
-    onChange: () => Hooks.callAll('atlas-foundry.showSceneLinksChanged'),
-  });
-  // Client-scoped, no UI (config: false) — written by quest-panel-app.ts on
-  // close, read back on the next open so the panel reopens where it was left.
-  game.settings.register(MODULE_ID, 'questPanelPosition', {
+  // Client-scoped master switch for the whole right-hand HUD (bell, search, quests, links); toggled in the Atlas toolbar group.
+  game.settings.register(MODULE_ID, 'showHud', {
     scope: 'client',
     config: false,
-    type: Object,
-    default: {},
+    type: Boolean,
+    default: true,
+    onChange: () => Hooks.callAll('atlas-foundry.showHudChanged'),
+  });
+  // Client-scoped, no settings-screen entry (config: false) — one switch for the quest and link panels of the right-hand HUD,
+  // toggled through the Atlas toolbar tool, the Ctrl+Shift+Q keybinding or the HUD's own toggle button.
+  game.settings.register(MODULE_ID, 'showHudPanels', {
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: true,
+    onChange: () => Hooks.callAll('atlas-foundry.showHudPanelsChanged'),
+  });
+  // Client-scoped list of the last typed search queries (text only, no document content);
+  // cleared on logout / session reset.
+  game.settings.register(MODULE_ID, 'recentSearches', {
+    scope: 'client',
+    config: false,
+    type: Array,
+    default: [],
   });
   // Client-scoped (plan P8 UI/UX note) — suppresses the "new notification"
   // toast only; the bell badge/count always stays accurate regardless.
@@ -235,23 +241,32 @@ export async function setUserToken(token: string, tokenId: string): Promise<void
   await game.settings.set(MODULE_ID, 'userTokens', { ...getUserTokens(), [game.user.id]: { token, tokenId } });
 }
 
-export function getShowSceneLinks(): boolean {
-  return game.settings.get<boolean>(MODULE_ID, 'showSceneLinks') ?? true;
+/** Recent search texts; anything that is not an array of strings reads as empty. */
+export function getRecentSearchList(): string[] {
+  const value = game.settings.get<unknown>(MODULE_ID, 'recentSearches');
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
 }
 
-export interface QuestPanelPosition {
-  top?: number;
-  left?: number;
-  width?: number;
-  height?: number;
+export function setRecentSearchList(list: string[]): Promise<string[]> {
+  return game.settings.set<string[]>(MODULE_ID, 'recentSearches', list);
 }
 
-export function getQuestPanelPosition(): QuestPanelPosition {
-  return game.settings.get<QuestPanelPosition>(MODULE_ID, 'questPanelPosition') ?? {};
+/** Master switch: whether the right-hand HUD column is shown at all. */
+export function getShowHud(): boolean {
+  return game.settings.get<boolean>(MODULE_ID, 'showHud') ?? true;
 }
 
-export async function setQuestPanelPosition(position: QuestPanelPosition): Promise<void> {
-  await game.settings.set(MODULE_ID, 'questPanelPosition', position);
+export function setShowHud(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showHud', value);
+}
+
+/** Whether the quest and link panels of the right-hand HUD are expanded (true) or folded into the toggle pill (false). */
+export function getShowHudPanels(): boolean {
+  return game.settings.get<boolean>(MODULE_ID, 'showHudPanels') ?? true;
+}
+
+export function setShowHudPanels(value: boolean): Promise<boolean> {
+  return game.settings.set<boolean>(MODULE_ID, 'showHudPanels', value);
 }
 
 export function getQuietMode(): boolean {

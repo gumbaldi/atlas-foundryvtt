@@ -2,6 +2,7 @@ import { searchDocuments, type SearchDocumentsParams } from './search-api';
 import { apiErrorMessageKey } from '../api/errors';
 import type { AtlasSearchResult } from '../atlas-types';
 import type { ModuleType } from '../constants';
+import { orderSearchResults, type SearchSort } from './result-order';
 
 export type SearchStatus = 'idle' | 'loading' | 'done' | 'error';
 
@@ -36,6 +37,9 @@ export class SearchController {
   private abortController: AbortController | null = null;
   /** Bumped on every update(); a response only counts while its version is still the latest. */
   private requestVersion = 0;
+  /** The backend's order for the last finished search; the shown results are derived from it. */
+  private hits: AtlasSearchResult[] = [];
+  private sort: SearchSort = 'relevance';
 
   constructor(private readonly onStateChange: (state: SearchControllerState) => void) {}
 
@@ -43,25 +47,57 @@ export class SearchController {
     return this.state;
   }
 
+  getSort(): SearchSort {
+    return this.sort;
+  }
+
+  /** Reorders the shown results without a new request; the choice also applies to searches that follow. */
+  setSort(sort: SearchSort): void {
+    if (sort === this.sort) return;
+    this.sort = sort;
+    if (this.state.status === 'done') {
+      this.setState({ ...this.state, results: orderSearchResults(this.hits, this.state.query, sort) });
+    }
+  }
+
   /** Called on every text-input keystroke or filter change (module-type chips, "names only" toggle). */
   update(q: string, filters: SearchFilters = {}): void {
-    this.cancelPendingDebounce();
-    // A filter change keeps the text the same, so the running request must be
-    // superseded here, not only once the debounce for the new one fires.
-    const version = ++this.requestVersion;
-    this.abortController?.abort();
-    this.abortController = null;
-
-    if (q.trim().length < MIN_QUERY_LENGTH) {
-      this.setState({ status: 'idle', query: q, results: [], errorKey: null });
-      return;
-    }
+    const version = this.supersede(q);
+    if (version === null) return;
 
     this.setState({ ...this.state, query: q, status: 'loading' });
     this.debounceTimer = setTimeout(() => {
       this.debounceTimer = null;
       void this.runSearch(q, filters, version);
     }, DEBOUNCE_MS);
+  }
+
+  /** Enter: runs the search immediately, skipping the debounce; the minimum length still applies. */
+  searchNow(q: string, filters: SearchFilters = {}): void {
+    const version = this.supersede(q);
+    if (version === null) return;
+
+    this.setState({ ...this.state, query: q, status: 'loading' });
+    void this.runSearch(q, filters, version);
+  }
+
+  /**
+   * Cancels the pending debounce and the running request. A filter change keeps
+   * the text the same, so the running request must be superseded here, not only
+   * once the debounce for the new one fires. Returns the new request version, or
+   * `null` (after going idle) when the query is below the minimum length.
+   */
+  private supersede(q: string): number | null {
+    this.cancelPendingDebounce();
+    const version = ++this.requestVersion;
+    this.abortController?.abort();
+    this.abortController = null;
+
+    if (q.trim().length < MIN_QUERY_LENGTH) {
+      this.setState({ status: 'idle', query: q, results: [], errorKey: null });
+      return null;
+    }
+    return version;
   }
 
   dispose(): void {
@@ -77,7 +113,8 @@ export class SearchController {
     try {
       const response = await searchDocuments(params, { signal: controller.signal });
       if (controller.signal.aborted || version !== this.requestVersion) return;
-      this.setState({ status: 'done', query: q, results: response.data, errorKey: null });
+      this.hits = response.data;
+      this.setState({ status: 'done', query: q, results: orderSearchResults(response.data, q, this.sort), errorKey: null });
     } catch (err) {
       if (controller.signal.aborted || version !== this.requestVersion) return;
       this.setState({ status: 'error', query: q, results: [], errorKey: apiErrorMessageKey(err) });

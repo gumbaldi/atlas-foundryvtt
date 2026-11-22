@@ -4,6 +4,7 @@ import { openLinksPopover } from './link-popover';
 import { openLink } from './link-actions';
 import { getLinks, type AtlasLink } from './link-store';
 import { linkVisibility, toRefs } from './link-visibility';
+import { authManager } from '../auth/auth-manager';
 
 interface TokenHudApp {
   object?: TokenPlaceable;
@@ -46,7 +47,8 @@ export function registerTokenHud(): void {
 
     const column = root.querySelector<HTMLElement>('.col.right') ?? root;
 
-    if (links.length > 0) {
+    // The view button needs Atlas to confirm each link, so it is offered only while signed in.
+    if (links.length > 0 && authManager.isLinked()) {
       column.appendChild(
         buildHudButton('fa-solid fa-map', t('ATLASFOUNDRY.Links.ViewButton'), (event) => {
           void (async () => {
@@ -55,7 +57,7 @@ export function registerTokenHud(): void {
             if (visible.length === 0) return;
             if (visible.length === 1) {
               const only = visible[0]!;
-              openLink(only, { external: event.shiftKey || event.ctrlKey || event.metaKey, currentName: result.nameFor(only) });
+              openLink(only);
               return;
             }
             void openLinksPopover(visible, event.currentTarget as HTMLElement);
