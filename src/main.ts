@@ -9,6 +9,7 @@ import { registerLinkEntryPoints } from './links/link-entry-points';
 import { registerSceneLinksBar, renderSceneLinksBarNow } from './links/scene-links-bar';
 import { pickLinkTarget } from './links/link-pick-target';
 import { registerQuestTracker } from './quests/quest-tracker';
+import { registerDeadlineSection } from './deadlines/deadline-section';
 import { registerHudPanels, toggleHudPanels } from './hud-panels';
 import { registerSearchHud } from './search/search-hud';
 import { notificationStore } from './notifications/notification-store';
@@ -98,6 +99,7 @@ Hooks.once('init', () => {
   registerLinkEntryPoints();
   registerSceneLinksBar();
   registerQuestTracker();
+  registerDeadlineSection();
   registerHudPanels();
   registerNotificationsControl();
 });

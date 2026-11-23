@@ -2,6 +2,7 @@ import { documentCache } from './api/cache';
 import { clearInFlightGets } from './api/client';
 import { linkVisibility } from './links/link-visibility';
 import { clearQuestTracker } from './quests/quest-tracker';
+import { clearDeadlineSection } from './deadlines/deadline-section';
 import { closeSearch } from './search/search-app';
 import { closeAllLinkManagers } from './links/link-manager-app';
 import { clearRecentSearches } from './search/recent-searches';
@@ -16,6 +17,7 @@ export function resetSessionData(): void {
   clearInFlightGets();
   linkVisibility.clear();
   clearQuestTracker();
+  clearDeadlineSection();
   closeSearch();
   closeAllLinkManagers();
   // The typed search texts may reveal what a previous user looked for on a shared browser.

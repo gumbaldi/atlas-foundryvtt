@@ -5,8 +5,8 @@ import { getRightHud, removeRightHudIfEmpty } from './hud-right';
 import { getShowHud, getShowHudPanels, setShowHud, setShowHudPanels } from './settings';
 
 /**
- * One shared expand/collapse switch for the quest and link panels of the right
- * HUD column. Each panel reports how many entries it has; the toggle at the
+ * One shared expand/collapse switch for the quest, deadline and document panels of the
+ * right HUD column. Each panel reports how many entries it has; the toggle at the
  * bottom of the column exists while at least one entry exists, as a chevron
  * when expanded and, when collapsed, as one pill with an icon and the count for
  * each panel that has entries. The panels draw themselves only while expanded.
@@ -20,6 +20,7 @@ const counts = new Map<string, number>();
 /** Collapsed pill content, in the order the panels appear in the column. */
 const SECTION_ICONS: Array<[name: string, icon: string]> = [
   ['quests', 'fa-solid fa-scroll'],
+  ['deadlines', 'fa-solid fa-hourglass-half'],
   ['links', 'fa-solid fa-link'],
 ];
 
@@ -91,7 +92,7 @@ export function renderHudToggle(): void {
   if (button.parentElement !== hud) hud.appendChild(button);
 }
 
-/** Folds the quest and link panels in or out — the same switch as the toolbar tool and the keybinding. */
+/** Folds the quest, deadline and document panels in or out — the same switch as the toolbar tool and the keybinding. */
 export function toggleHudPanels(): Promise<boolean> {
   return setShowHudPanels(!getShowHudPanels());
 }

@@ -55,6 +55,20 @@ describe('resolveAtlasUrl', () => {
     const deps = makeDeps({ getDocument: vi.fn(async () => Promise.reject(new Error('403'))) });
     await expect(resolveAtlasUrl({ moduleType: 'custom', documentId: 'd1' }, deps)).rejects.toThrow('403');
   });
+
+  it('appends ?tab= for a fixed module type and leaves the URL alone without a tab', async () => {
+    const deps = makeDeps();
+    await expect(resolveAtlasUrl({ moduleType: 'characters', documentId: 'd1', tab: 'deadlines' }, deps)).resolves.toBe('https://atlas/camp-1/characters/d1?tab=deadlines');
+    await expect(resolveAtlasUrl({ moduleType: 'characters', documentId: 'd1' }, deps)).resolves.toBe('https://atlas/camp-1/characters/d1');
+  });
+
+  it('appends ?tab= for a custom document, also after the lookup', async () => {
+    const deps = makeDeps();
+    await expect(resolveAtlasUrl({ moduleType: 'custom', documentId: 'd1', customModuleId: 'mod-1', tab: 'deadlines' }, deps)).resolves.toBe(
+      'https://atlas/camp-1/custom/mod-1/d1?tab=deadlines',
+    );
+    await expect(resolveAtlasUrl({ moduleType: 'custom', documentId: 'd1', tab: 'deadlines' }, deps)).resolves.toBe('https://atlas/camp-1/custom/mod-9/d1?tab=deadlines');
+  });
 });
 
 describe('notificationAtlasTarget', () => {

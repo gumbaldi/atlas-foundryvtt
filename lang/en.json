@@ -182,11 +182,15 @@
       "More": "+{count} more",
       "AllInAtlas": "All quests in Atlas"
     },
+    "Deadlines": {
+      "Heading": "Deadlines",
+      "OpenDeadlineTab": "Show all deadlines of this document in Atlas"
+    },
     "Hud": {
-      "ToggleTool": "Show quests and links",
-      "KeybindingName": "Toggle Atlas quests and links",
-      "Collapse": "Collapse quests and links",
-      "Expand": "Show quests and links ({count})",
+      "ToggleTool": "Show quests, deadlines and documents",
+      "KeybindingName": "Toggle Atlas quests, deadlines and documents",
+      "Collapse": "Collapse quests, deadlines and documents",
+      "Expand": "Show quests, deadlines and documents ({count})",
       "SwitchTool": "Show Atlas HUD",
       "OpenDashboard": "Open the campaign dashboard in Atlas"
     },

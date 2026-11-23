@@ -93,6 +93,15 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['getSceneControlButtons'] ?? []).length).toBeGreaterThan(0);
   });
 
+  it('registers the deadline section listeners in init', async () => {
+    await import('./main');
+    expect(harness.handlers['atlas-foundry.deadlineDocumentsChanged']).toBeUndefined();
+    harness.fire('init');
+
+    expect((harness.handlers['atlas-foundry.deadlineDocumentsChanged'] ?? []).length).toBeGreaterThan(0);
+    expect((harness.handlers['atlas-foundry.authChanged'] ?? []).length).toBeGreaterThan(0);
+  });
+
   it('offers only the connect tool in the Atlas control group while signed out', async () => {
     await import('./main');
     harness.fire('init');

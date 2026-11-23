@@ -11,6 +11,10 @@ before `compatibility.verified` in `module.json` is raised — see
 ## [Unreleased]
 
 ### Added
+- A "Deadlines" section in the Atlas HUD column, between the quests and the documents: the running
+  deadlines of your own characters first, then of the documents the game master picked, each with the
+  days left; a click opens the entry or the document's deadlines tab in Atlas. Needs the matching
+  Atlas backend.
 - The module can read the running deadlines from Atlas (those of your own characters plus documents the
   game master picked); this needs the matching Atlas backend, and without it nothing is shown. The
   game master's document list is stored per world (ids and types only).

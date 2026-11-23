@@ -182,11 +182,15 @@
       "More": "+{count} weitere",
       "AllInAtlas": "Alle Quests in Atlas"
     },
+    "Deadlines": {
+      "Heading": "Fristen",
+      "OpenDeadlineTab": "Alle Fristen dieses Dokuments in Atlas anzeigen"
+    },
     "Hud": {
-      "ToggleTool": "Quests und Verknüpfungen anzeigen",
-      "KeybindingName": "Atlas-Quests und -Verknüpfungen ein-/ausklappen",
-      "Collapse": "Quests und Verknüpfungen zuklappen",
-      "Expand": "Quests und Verknüpfungen anzeigen ({count})",
+      "ToggleTool": "Quests, Fristen und Dokumente anzeigen",
+      "KeybindingName": "Atlas-Quests, -Fristen und -Dokumente ein-/ausklappen",
+      "Collapse": "Quests, Fristen und Dokumente zuklappen",
+      "Expand": "Quests, Fristen und Dokumente anzeigen ({count})",
       "SwitchTool": "Atlas-HUD anzeigen",
       "OpenDashboard": "Kampagnen-Dashboard in Atlas öffnen"
     },
