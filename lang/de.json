@@ -168,8 +168,6 @@
       "Remove": "Entfernen",
       "LabelPlaceholder": "Label (optional)",
       "NoneVisible": "Keine für dich sichtbaren Verknüpfungen.",
-      "ViewButton": "Atlas-Verknüpfungen anzeigen",
-      "EditButton": "Atlas-Verknüpfungen bearbeiten",
       "PickTargetScene": "Aktive Szene: {name}",
       "PickTargetToken": "Ausgewähltes Token: {name}",
       "PickTargetSheet": "Offenes Fenster: {name}",
@@ -178,7 +176,7 @@
       "SceneControlTool": "Atlas-Verknüpfungen der Szene",
       "OverflowTitle": "{count} weitere Verknüpfungen",
       "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff.",
-      "Heading": "Verknüpfungen"
+      "Heading": "Dokumente"
     },
     "Quests": {
       "More": "+{count} weitere",

@@ -7,7 +7,6 @@ import { atlasSocket } from './socket/atlas-socket';
 import { openSearch, SearchApp } from './search/search-app';
 import { registerLinkEntryPoints } from './links/link-entry-points';
 import { registerSceneLinksBar, renderSceneLinksBarNow } from './links/scene-links-bar';
-import { registerTokenHud } from './links/token-hud';
 import { pickLinkTarget } from './links/link-pick-target';
 import { registerQuestTracker } from './quests/quest-tracker';
 import { registerHudPanels, toggleHudPanels } from './hud-panels';
@@ -98,7 +97,6 @@ Hooks.once('init', () => {
   Hooks.on('atlas-foundry.sessionReset', resetSessionData);
   registerLinkEntryPoints();
   registerSceneLinksBar();
-  registerTokenHud();
   registerQuestTracker();
   registerHudPanels();
   registerNotificationsControl();

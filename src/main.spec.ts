@@ -130,6 +130,15 @@ describe('main.ts start-up', () => {
     expect(harness.handlers['getSceneNavigationContext']).toBeUndefined();
   });
 
+  it('registers the scene bar, sheet header and scene context hooks but no renderTokenHUD listener', async () => {
+    await import('./main');
+    harness.fire('init');
+
+    expect(harness.handlers['renderTokenHUD']).toBeUndefined();
+    expect((harness.handlers['getHeaderControlsApplicationV2'] ?? []).length).toBeGreaterThan(0);
+    expect((harness.handlers['getSceneContextOptions'] ?? []).length).toBeGreaterThan(0);
+  });
+
   it('registers the GM settings as an official module menu and no renderSettings button', async () => {
     await import('./main');
     const { AtlasSettingsApp } = await import('./apps/settings-app');

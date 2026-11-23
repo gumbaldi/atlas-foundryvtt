@@ -762,10 +762,6 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   opacity: 1;
 }
 
-.atlas-foundry-token-hud-button {
-  cursor: pointer;
-}
-
 .atlas-foundry-link-target-picker .atlas-foundry-row {
   display: flex;
   align-items: center;

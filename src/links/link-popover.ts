@@ -32,9 +32,8 @@ function positionPopover(panel: HTMLElement, anchor: HTMLElement): void {
 /**
  * Lightweight floating panel, not an ApplicationV2 — a transient,
  * anchor-positioned popover closer to Foundry's own ContextMenu than a
- * window. Shared by the sheet header's read-only view, the token HUD's
- * multi-link case, and the scene bar's overflow chip (plan's three
- * "read-only" entry points). Always re-checks visibility on open rather
+ * window. Shared by the sheet header's read-only view and the scene bar's
+ * overflow chip (the "read-only" entry points). Always re-checks visibility on open rather
  * than trusting a caller-supplied result, since links can go stale between
  * renders.
  */

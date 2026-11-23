@@ -40,6 +40,8 @@ before `compatibility.verified` in `module.json` is raised — see
 - `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
 
 ### Changed
+- The token HUD link buttons (view and edit) are removed; the scene links section is now called
+  "Documents" ("Dokumente").
 - Links (scene bar, popover, token HUD, link manager), quests and notifications open the document
   directly in Atlas in a new browser tab instead of the in-Foundry detail window, including documents
   of custom modules.
