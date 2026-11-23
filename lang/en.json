@@ -187,7 +187,8 @@
       "KeybindingName": "Toggle Atlas quests and links",
       "Collapse": "Collapse quests and links",
       "Expand": "Show quests and links ({count})",
-      "SwitchTool": "Show Atlas HUD"
+      "SwitchTool": "Show Atlas HUD",
+      "OpenDashboard": "Open the campaign dashboard in Atlas"
     },
     "Notifications": {
       "Title": "Atlas Notifications",

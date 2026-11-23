@@ -1,6 +1,6 @@
 import { authManager } from '../auth/auth-manager';
 import { getDocument } from '../api/documents';
-import { atlasDocumentUrl } from '../deep-links';
+import { atlasCampaignDashboardUrl, atlasDocumentUrl } from '../deep-links';
 import { t } from '../i18n';
 import type { ModuleType } from '../constants';
 import type { AtlasMessage } from '../atlas-types';
@@ -89,4 +89,14 @@ export async function openInAtlas(ref: AtlasDocumentRef): Promise<void> {
     tab?.close();
     ui.notifications.warn(t('ATLASFOUNDRY.Links.OpenUnavailable'));
   }
+}
+
+/** Opens the campaign dashboard in Atlas in a new tab; warns when the world is not linked. */
+export function openCampaignDashboard(): void {
+  const campaignId = authManager.getLinkedCampaignId();
+  if (!campaignId) {
+    ui.notifications.warn(t('ATLASFOUNDRY.NotConnected.Message'));
+    return;
+  }
+  window.open(atlasCampaignDashboardUrl(campaignId), '_blank');
 }

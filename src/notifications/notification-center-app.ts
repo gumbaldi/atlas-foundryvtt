@@ -5,8 +5,7 @@ import { SOCKET_EVENT, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
 import { getAutoOpenGmSuggestions } from '../settings';
 import { notificationStore } from './notification-store';
-import { notificationAtlasTarget, openInAtlas } from '../links/open-in-atlas';
-import { atlasCampaignDashboardUrl } from '../deep-links';
+import { notificationAtlasTarget, openCampaignDashboard, openInAtlas } from '../links/open-in-atlas';
 import type { AtlasMessage } from '../atlas-types';
 
 type ListFilter = 'unread' | 'all';
@@ -180,8 +179,7 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
     // No appointment/conversation reference fields exist on Message yet
     // (checked against message.schema.ts) — dashboard is the plan's own
     // documented fallback for exactly this case.
-    const campaignId = authManager.getLinkedCampaignId();
-    if (campaignId) window.open(atlasCampaignDashboardUrl(campaignId), '_blank');
+    openCampaignDashboard();
   }
 
   private broadcast(item: AtlasMessage): void {

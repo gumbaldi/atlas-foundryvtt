@@ -839,6 +839,29 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   gap: 0.25rem;
 }
 
+.atlas-foundry-search-hud-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.atlas-foundry-search-hud-dashboard {
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.atlas-foundry-search-hud-dashboard:hover {
+  border-color: var(--color-border-highlight, #6c9ef8);
+}
+
 /* The field itself stays small; the hit list below is wider so thumbnails and titles fit. */
 .atlas-foundry-search-hud-field {
   display: flex;

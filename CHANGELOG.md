@@ -11,6 +11,7 @@ before `compatibility.verified` in `module.json` is raised — see
 ## [Unreleased]
 
 ### Added
+- A dashboard button (Atlas icon) sits before the HUD search field and opens the campaign dashboard in Atlas.
 - Scene link bar: links are narrow chips with a small thumbnail of the document's title image, side by
   side in at most two rows; only the first ten are shown (the rest is behind `+N`). The bar can be
   collapsed (button, or the "Show scene links" switch in the Atlas toolbar group) to a pill with the
@@ -40,6 +41,7 @@ before `compatibility.verified` in `module.json` is raised — see
 - `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
 
 ### Changed
+- The HUD column now starts at the top edge of the first sidebar tab (Chat), so the search field lines up with that icon.
 - The token HUD link buttons (view and edit) are removed; the scene links section is now called
   "Documents" ("Dokumente").
 - Links (scene bar, popover, token HUD, link manager), quests and notifications open the document

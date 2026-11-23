@@ -187,7 +187,8 @@
       "KeybindingName": "Atlas-Quests und -Verknüpfungen ein-/ausklappen",
       "Collapse": "Quests und Verknüpfungen zuklappen",
       "Expand": "Quests und Verknüpfungen anzeigen ({count})",
-      "SwitchTool": "Atlas-HUD anzeigen"
+      "SwitchTool": "Atlas-HUD anzeigen",
+      "OpenDashboard": "Kampagnen-Dashboard in Atlas öffnen"
     },
     "Notifications": {
       "Title": "Atlas-Benachrichtigungen",

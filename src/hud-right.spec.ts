@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getRightHud, HUD_RIGHT_ID, removeRightHudIfEmpty } from './hud-right';
+import { getRightHud, HUD_RIGHT_ID, removeRightHudIfEmpty, resolveHudTop } from './hud-right';
 
 class FakeEl {
   id = '';
@@ -91,7 +91,7 @@ describe('right HUD column', () => {
 
     const hud = getRightHud() as unknown as FakeEl;
     expect(hud.style.position).toBe('fixed');
-    expect(hud.style.top).toBe('8px');
+    expect(hud.style.top).toBe('0px');
     expect(hud.style.right).toBe('268px');
 
     registry.delete('sidebar');
@@ -109,5 +109,27 @@ describe('right HUD column', () => {
     hud.children = [];
     removeRightHudIfEmpty();
     expect(registry.has(HUD_RIGHT_ID)).toBe(false);
+  });
+});
+
+describe('resolveHudTop', () => {
+  it('prefers the first tab top', () => {
+    expect(resolveHudTop({ firstTabTop: 40, tabsTop: 30, sidebarTop: 10 })).toBe(40);
+  });
+
+  it('falls back to the tabs strip without a first tab', () => {
+    expect(resolveHudTop({ firstTabTop: null, tabsTop: 30, sidebarTop: 10 })).toBe(30);
+  });
+
+  it('falls back to the sidebar top when only that is measurable', () => {
+    expect(resolveHudTop({ firstTabTop: null, tabsTop: null, sidebarTop: 10 })).toBe(10);
+  });
+
+  it('returns null when nothing is measurable', () => {
+    expect(resolveHudTop({ firstTabTop: null, tabsTop: null, sidebarTop: null })).toBeNull();
+  });
+
+  it('clamps a negative top to 0', () => {
+    expect(resolveHudTop({ firstTabTop: -12, tabsTop: null, sidebarTop: null })).toBe(0);
   });
 });

@@ -5,6 +5,7 @@ import { getTypeStyle } from './type-style';
 import { formatDocumentTitle } from '../render/document-title';
 import { safeImageUrl } from '../render/image-url';
 import { getBaseUrl } from '../settings';
+import { openCampaignDashboard } from '../links/open-in-atlas';
 import { openSearch } from './search-app';
 import { SearchController, type SearchControllerState } from './search-controller';
 
@@ -121,7 +122,18 @@ function buildSearch(): HTMLElement {
   const list = document.createElement('div');
   list.className = 'atlas-foundry-search-hud-results';
   list.hidden = true;
-  root.append(field, list);
+
+  const dashboard = document.createElement('button');
+  dashboard.type = 'button';
+  dashboard.className = 'atlas-foundry-search-hud-dashboard';
+  dashboard.title = t('ATLASFOUNDRY.Hud.OpenDashboard');
+  dashboard.innerHTML = '<i class="fa-solid fa-book-atlas"></i>';
+  dashboard.addEventListener('click', () => openCampaignDashboard());
+
+  const row = document.createElement('div');
+  row.className = 'atlas-foundry-search-hud-row';
+  row.append(dashboard, field);
+  root.append(row, list);
 
   const reset = (): void => {
     controller?.update('');
