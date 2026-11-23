@@ -1301,3 +1301,51 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
+
+.atlas-foundry-notification-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+}
+
+.atlas-foundry-notification-popup-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.atlas-foundry-notification-popup-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.atlas-foundry-notification-popup-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.atlas-foundry-notification-popup-picture,
+.atlas-foundry-notification-popup-image {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+.atlas-foundry-notification-popup-picture {
+  max-height: 30vh;
+}
+
+.atlas-foundry-notification-popup-image {
+  max-height: 60vh;
+}
+
+.atlas-foundry-notification-popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}

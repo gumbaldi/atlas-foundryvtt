@@ -113,23 +113,20 @@ describe('NotificationStore', () => {
     expect(listMessages).not.toHaveBeenCalled();
   });
 
-  it('resyncs and shows a toast on a notification:new wakeup, unless quietMode is on', async () => {
+  it('resyncs exactly once on a notification:new wakeup', async () => {
     const store = freshStore();
     store.start();
     await vi.advanceTimersByTimeAsync(0);
     vi.mocked(fetchUnreadCount).mockResolvedValue(1);
+    vi.mocked(listMessages).mockClear();
     vi.mocked(listMessages).mockResolvedValue([makeMessage()]);
 
     Hooks.callAll('atlas-foundry.socketEvent', 'notification:new', { messageId: 'm1', campaignId: 'camp-1', subject: 'Hello' });
     await vi.advanceTimersByTimeAsync(0);
 
     expect(store.getState().unreadCount).toBe(1);
-    expect(ui.notifications.info).toHaveBeenCalledTimes(1);
-
-    vi.mocked(getQuietMode).mockReturnValue(true);
-    Hooks.callAll('atlas-foundry.socketEvent', 'notification:new', { messageId: 'm2', campaignId: 'camp-1', subject: 'Quiet' });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(ui.notifications.info).toHaveBeenCalledTimes(1); // still 1 — suppressed while quiet
+    expect(listMessages).toHaveBeenCalledTimes(1);
+    expect(ui.notifications.info).not.toHaveBeenCalled();
   });
 
   it('ignores unrelated socket events', async () => {

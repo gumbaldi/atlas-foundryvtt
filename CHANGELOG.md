@@ -50,6 +50,9 @@ before `compatibility.verified` in `module.json` is raised — see
 - `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
 
 ### Changed
+- A new notification now opens a window right away (a large picture for image-only ones) with a link to
+  Atlas, at most three at a time; the small toast is replaced. Closing the window leaves the
+  notification unread, "Acknowledge" marks it as read.
 - While the live connection is down, new notifications are looked up every 30 seconds instead of every 3 minutes.
 - The HUD column now starts at the top edge of the first sidebar tab (Chat), so the search field lines up with that icon.
 - The token HUD link buttons (view and edit) are removed; the scene links section is now called

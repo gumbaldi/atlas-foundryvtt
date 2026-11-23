@@ -5,22 +5,11 @@ import { SOCKET_EVENT, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
 import { getAutoOpenGmSuggestions } from '../settings';
 import { notificationStore } from './notification-store';
+import { KIND_ICONS } from './notification-popup-model';
 import { notificationAtlasTarget, openCampaignDashboard, openInAtlas } from '../links/open-in-atlas';
 import type { AtlasMessage } from '../atlas-types';
 
 type ListFilter = 'unread' | 'all';
-
-/** Only 3 real `kind` values exist (see atlas-types.ts's AtlasMessage) — no dedicated DM/appointment/quest kind despite the plan's broader notification-type ambitions. */
-const KIND_ICONS: Record<string, string> = {
-  'gm-announcement': 'fa-solid fa-bullhorn',
-  'document-new': 'fa-solid fa-file-circle-plus',
-  'document-updated': 'fa-solid fa-file-pen',
-  'document-media': 'fa-solid fa-photo-film',
-  'support-ticket': 'fa-solid fa-life-ring',
-  'diary-invite': 'fa-solid fa-book-bookmark',
-  'diary-entry': 'fa-solid fa-book',
-  'agent-content': 'fa-solid fa-robot',
-};
 
 const MANY_UNREAD_THRESHOLD = 20;
 const SUGGEST_TOAST_ID = 'atlas-foundry-suggest-toast';

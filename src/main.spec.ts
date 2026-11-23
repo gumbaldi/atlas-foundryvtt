@@ -102,6 +102,14 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['atlas-foundry.authChanged'] ?? []).length).toBeGreaterThan(0);
   });
 
+  it('registers the notification popup listener in init', async () => {
+    await import('./main');
+    expect(harness.handlers['atlas-foundry.notificationArrived']).toBeUndefined();
+    harness.fire('init');
+
+    expect((harness.handlers['atlas-foundry.notificationArrived'] ?? []).length).toBeGreaterThan(0);
+  });
+
   it('offers only the connect tool in the Atlas control group while signed out', async () => {
     await import('./main');
     harness.fire('init');

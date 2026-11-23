@@ -1,8 +1,6 @@
-import { t } from '../i18n';
 import { log, notifyError } from '../log';
 import { authManager } from '../auth/auth-manager';
 import { atlasSocket } from '../socket/atlas-socket';
-import { getQuietMode } from '../settings';
 import { listMessages, fetchUnreadCount, markMessageRead, dismissMessage } from './notifications-api';
 import { detectArrivals } from './notification-arrivals';
 import type { AtlasMessage } from '../atlas-types';
@@ -53,9 +51,9 @@ export class NotificationStore {
       if (payload.state === 'active') void this.resync();
       else this.reset();
     });
-    Hooks.on('atlas-foundry.socketEvent', (event: string, payload: unknown) => {
+    Hooks.on('atlas-foundry.socketEvent', (event: string) => {
       if (event !== 'notification:new') return;
-      this.handleWakeup(payload);
+      this.handleWakeup();
     });
     Hooks.on('atlas-foundry.socketStatusChanged', () => this.reschedulePolling());
 
@@ -196,11 +194,7 @@ export class NotificationStore {
     }
   }
 
-  private handleWakeup(payload: unknown): void {
-    const data = payload as { subject?: string } | null;
-    if (data?.subject && !getQuietMode()) {
-      ui.notifications.info(t('ATLASFOUNDRY.Notifications.NewToast', { subject: data.subject }));
-    }
+  private handleWakeup(): void {
     void this.resync();
   }
 

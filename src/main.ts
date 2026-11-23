@@ -14,6 +14,7 @@ import { registerHudPanels, toggleHudPanels } from './hud-panels';
 import { registerSearchHud } from './search/search-hud';
 import { notificationStore } from './notifications/notification-store';
 import { registerBell } from './notifications/bell';
+import { registerNotificationPopups } from './notifications/notification-popups';
 import { openNotificationCenter, registerGmBroadcastReceiver, registerNotificationsControl } from './notifications/notification-center-app';
 import { resetSessionData } from './session-reset';
 import { MODULE_ID } from './constants';
@@ -102,6 +103,7 @@ Hooks.once('init', () => {
   registerDeadlineSection();
   registerHudPanels();
   registerNotificationsControl();
+  registerNotificationPopups();
 });
 
 // Runtime work only: auth state, DOM, game.socket, network.

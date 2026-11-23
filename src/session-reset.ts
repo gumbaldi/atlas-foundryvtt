@@ -7,6 +7,7 @@ import { clearDeadlineSection } from './deadlines/deadline-section';
 import { closeSearch } from './search/search-app';
 import { closeAllLinkManagers } from './links/link-manager-app';
 import { clearRecentSearches } from './search/recent-searches';
+import { closeAllNotificationPopups } from './notifications/notification-popups';
 
 /**
  * Runs on `atlas-foundry.sessionReset` (sign-in, sign-out, revoked token,
@@ -22,6 +23,7 @@ export function resetSessionData(): void {
   closeSearch();
   closeAllLinkManagers();
   closeDeadlineDocsManager();
+  closeAllNotificationPopups();
   // The typed search texts may reveal what a previous user looked for on a shared browser.
   void clearRecentSearches();
 }
