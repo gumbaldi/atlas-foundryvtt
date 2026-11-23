@@ -11,6 +11,7 @@ export {
   AtlasDocumentSummarySchema,
   AtlasDocumentDetailSchema,
   DeadlineStateSchema,
+  AtlasDeadlineOverviewSchema,
   AtlasNotificationPayloadSchema,
   TokenExchangeResponseSchema,
   AtlasSearchResultSchema,

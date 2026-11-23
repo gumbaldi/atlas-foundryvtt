@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { ZodType } from 'zod';
 import {
+  AtlasDeadlineOverviewSchema,
   AtlasDocumentDetailSchema,
   AtlasDocumentSummarySchema,
   AtlasMessageSchema,
@@ -335,5 +336,23 @@ describe('Foundry API contract: deadlines', () => {
     const base = JSON.parse(readFileSync(fixturePath('user-documents-detail-deadline'), 'utf8'));
     expect(AtlasDocumentDetailSchema.safeParse({ ...base, daysRemaining: null }).success).toBe(true);
     expect(AtlasDocumentDetailSchema.safeParse({ ...base, deadlineState: 'bogus' }).success).toBe(false);
+  });
+
+  it('deadline-overview matches its schema', () => {
+    const payload = JSON.parse(readFileSync(fixturePath('deadline-overview'), 'utf8'));
+    const parsed = AtlasDeadlineOverviewSchema.parse(payload);
+    expect(parsed.groups.map((g) => g.source)).toEqual(['account-character', 'selected']);
+    expect(parsed.groups[0]?.deadlines).toHaveLength(2);
+    expect(parsed.groups[1]?.deadlines).toHaveLength(1);
+  });
+
+  it('deadline-overview rejects an unknown source or deadlineState', () => {
+    const base = JSON.parse(readFileSync(fixturePath('deadline-overview'), 'utf8'));
+    const badSource = JSON.parse(JSON.stringify(base));
+    badSource.groups[0].source = 'bogus';
+    expect(AtlasDeadlineOverviewSchema.safeParse(badSource).success).toBe(false);
+    const badState = JSON.parse(JSON.stringify(base));
+    badState.groups[0].deadlines[0].deadlineState = 'bogus';
+    expect(AtlasDeadlineOverviewSchema.safeParse(badState).success).toBe(false);
   });
 });

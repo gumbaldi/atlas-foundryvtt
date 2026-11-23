@@ -11,6 +11,9 @@ before `compatibility.verified` in `module.json` is raised — see
 ## [Unreleased]
 
 ### Added
+- The module can read the running deadlines from Atlas (those of your own characters plus documents the
+  game master picked); this needs the matching Atlas backend, and without it nothing is shown. The
+  game master's document list is stored per world (ids and types only).
 - A dashboard button (Atlas icon) sits before the HUD search field and opens the campaign dashboard in Atlas.
 - Scene link bar: links are narrow chips with a small thumbnail of the document's title image, side by
   side in at most two rows; only the first ten are shown (the rest is behind `+N`). The bar can be

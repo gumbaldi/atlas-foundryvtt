@@ -6,6 +6,9 @@ import {
   getBaseUrl,
   getCampaignId,
   getCampaignSlug,
+  getDeadlineDocuments,
+  registerSettings,
+  setDeadlineDocuments,
   getRecentSearchList,
   setRecentSearchList,
   getUserToken,
@@ -143,6 +146,39 @@ describe('settings helpers', () => {
   it('round-trips campaignSlug', async () => {
     await setCampaignSlug('dvl');
     expect(getCampaignSlug()).toBe('dvl');
+  });
+});
+
+describe('deadlineDocuments setting', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = {};
+    mockGame(store);
+    globalThis.Hooks = { callAll: vi.fn() } as unknown as HooksStatic;
+  });
+
+  it('is registered world-scoped and hidden from the settings screen', () => {
+    registerSettings();
+    const call = vi.mocked(game.settings.register).mock.calls.find(([, key]) => key === 'deadlineDocuments');
+    expect(call?.[2]).toMatchObject({ scope: 'world', config: false, type: Array, default: [] });
+    call?.[2]?.onChange?.(undefined);
+    expect(Hooks.callAll).toHaveBeenCalledWith('atlas-foundry.deadlineDocumentsChanged');
+  });
+
+  it('round-trips ids and module types only', async () => {
+    await setDeadlineDocuments([{ documentId: 'a', moduleType: 'locations', name: 'Fortress' } as never]);
+    expect(store.deadlineDocuments).toEqual([{ documentId: 'a', moduleType: 'locations' }]);
+    expect(getDeadlineDocuments()).toEqual([{ documentId: 'a', moduleType: 'locations' }]);
+  });
+
+  it('reads a malformed stored value as []', () => {
+    store.deadlineDocuments = 'garbage';
+    expect(getDeadlineDocuments()).toEqual([]);
+    store.deadlineDocuments = [{ documentId: 3 }, null];
+    expect(getDeadlineDocuments()).toEqual([]);
+    delete store.deadlineDocuments;
+    expect(getDeadlineDocuments()).toEqual([]);
   });
 });
 
