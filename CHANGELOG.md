@@ -15,15 +15,13 @@ before `compatibility.verified` in `module.json` is raised — see
   latest session log yet, it shows the log (picture, number, title, real and in-world date) and invites
   you to read it and write an entry; "Don't remind me again for this log" silences it per log. A new
   session log notification uses the same window instead of a second one. Needs the matching Atlas backend.
-- The game master can choose which documents' running deadlines every player sees (a pencil button in
-  the Deadlines heading and an Atlas scene-controls tool open a small window to add and remove documents).
 - A "Deadlines" section in the Atlas HUD column, between the quests and the documents: the running
   deadlines of your own characters first, then of the documents the game master picked, each with the
   days left; a click opens the entry or the document's deadlines tab in Atlas. Needs the matching
-  Atlas backend.
-- The module can read the running deadlines from Atlas (those of your own characters plus documents the
-  game master picked); this needs the matching Atlas backend, and without it nothing is shown. The
-  game master's document list is stored per world (ids and types only).
+  Atlas backend; without it nothing is shown.
+- The game master can choose which documents' running deadlines every player sees (a pencil button in
+  the Deadlines heading and an Atlas scene-controls tool open a small window to add and remove documents).
+  The list is stored per world (ids and types only).
 - A dashboard button (Atlas icon) sits before the HUD search field and opens the campaign dashboard in Atlas.
 - Scene link bar: links are narrow chips with a small thumbnail of the document's title image, side by
   side in at most two rows; only the first ten are shown (the rest is behind `+N`). The bar can be
