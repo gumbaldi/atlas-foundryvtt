@@ -110,6 +110,28 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['atlas-foundry.notificationArrived'] ?? []).length).toBeGreaterThan(0);
   });
 
+  it('registers the diary invitation in init', async () => {
+    const registerDiaryInvitation = vi.fn(() => {
+      Hooks.on('atlas-foundry.authChanged', () => undefined);
+    });
+    vi.doMock('./diary/diary-invitation', () => ({
+      registerDiaryInvitation,
+      resolveArrivalLayout: vi.fn(),
+      clearDiaryInvitation: vi.fn(),
+    }));
+    try {
+      await import('./main');
+      expect(registerDiaryInvitation).not.toHaveBeenCalled();
+      const before = (harness.handlers['atlas-foundry.authChanged'] ?? []).length;
+      harness.fire('init');
+
+      expect(registerDiaryInvitation).toHaveBeenCalledOnce();
+      expect((harness.handlers['atlas-foundry.authChanged'] ?? []).length).toBeGreaterThan(before);
+    } finally {
+      vi.doUnmock('./diary/diary-invitation');
+    }
+  });
+
   it('offers only the connect tool in the Atlas control group while signed out', async () => {
     await import('./main');
     harness.fire('init');

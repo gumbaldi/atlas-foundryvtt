@@ -3,8 +3,11 @@ import { getBaseUrl } from '../settings';
 import { safeImageUrl } from '../render/image-url';
 import { openImageLightbox } from '../render/lightbox';
 import { notificationAtlasTarget, openCampaignDashboard, openInAtlas } from '../links/open-in-atlas';
+import { formatDocumentTitle } from '../render/document-title';
+import { MODULE_TYPE_ICONS } from '../constants';
+import { formatInWorldDate, formatRealDate, unreadSessionLogMessageIds } from '../diary/invitation-model';
 import { notificationStore } from './notification-store';
-import { KIND_ICONS, cascadeOffset, popupBody, popupTitle, type PopupLayout } from './notification-popup-model';
+import { KIND_ICONS, cascadeOffset, popupBody, popupTitle, type PopupInvitation, type PopupLayout } from './notification-popup-model';
 import type { AtlasMessage } from '../atlas-types';
 
 const POPUP_WIDTH = 420;
@@ -25,6 +28,10 @@ function relativeTime(iso: string): string {
  * notification as read; only the explicit "Acknowledge" button does. `index`
  * is the number of popups already open and only shifts the window a little so
  * they cascade instead of covering each other.
+ *
+ * The `invitation` layout (diary invitation for the latest session log) is fed by `invitation`;
+ * `message` is then the "new session log" notification it replaces, or `null` when the window
+ * opens at login without any notification.
  */
 export class NotificationPopupApp extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS: foundry.applications.api.ApplicationV2Options = {
@@ -33,14 +40,16 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
     position: { width: POPUP_WIDTH },
   };
 
-  private readonly message: AtlasMessage;
+  private readonly message: AtlasMessage | null;
   private readonly layout: PopupLayout;
   private readonly onClosed: () => void;
+  private readonly invitation: PopupInvitation | undefined;
 
-  constructor(message: AtlasMessage, layout: PopupLayout, index: number, onClosed: () => void) {
+  constructor(message: AtlasMessage | null, layout: PopupLayout, index: number, onClosed: () => void, invitation?: PopupInvitation) {
     const offset = cascadeOffset(index);
     super({
-      id: `atlas-notification-popup-${message.id}`,
+      id: message ? `atlas-notification-popup-${message.id}` : `atlas-diary-invitation-${invitation?.sessionLog.id ?? 'unknown'}`,
+      ...(layout === 'invitation' ? { window: { title: 'ATLASFOUNDRY.Diary.InviteTitle', icon: 'fa-solid fa-book-bookmark', resizable: false } } : {}),
       position: {
         width: POPUP_WIDTH,
         left: Math.max(0, Math.round((window.innerWidth - POPUP_WIDTH) / 2) + offset),
@@ -50,11 +59,15 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
     this.message = message;
     this.layout = layout;
     this.onClosed = onClosed;
+    this.invitation = invitation;
   }
 
   protected async _renderHTML(): Promise<HTMLElement> {
+    if (this.layout === 'invitation' && this.invitation) return this.renderInvitation(this.invitation);
+
     const esc = foundry.utils.escapeHTML;
     const message = this.message;
+    if (!message) return document.createElement('section');
     const title = popupTitle(message, t('ATLASFOUNDRY.Notifications.NoSubject'));
     const body = popupBody(message);
     const imageSrc = safeImageUrl(message.documentImageUrl, getBaseUrl());
@@ -99,22 +112,79 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
     return root;
   }
 
+  private renderInvitation(invitation: PopupInvitation): HTMLElement {
+    const esc = foundry.utils.escapeHTML;
+    const log = invitation.sessionLog;
+    const title = formatDocumentTitle('session-logs', log.name, log.sessionNumber);
+    const imageSrc = safeImageUrl(log.imageUrl, getBaseUrl());
+    const realDate = formatRealDate(log.sessionDate, game.i18n.lang);
+    const inWorldDate = formatInWorldDate(log.inWorldDate, log.calendarName);
+
+    const root = document.createElement('section');
+    root.className = 'atlas-foundry atlas-foundry-notification-popup-content atlas-foundry-notification-popup-invitation';
+    root.innerHTML = `
+      <div class="atlas-foundry-diary-invite-main">
+        ${imageSrc ? '<img class="atlas-foundry-diary-invite-picture" data-action="zoom" alt="">' : `<span class="atlas-foundry-diary-invite-tile"><i class="${MODULE_TYPE_ICONS['session-logs']}"></i></span>`}
+        <div class="atlas-foundry-diary-invite-text">
+          <strong class="atlas-foundry-notification-popup-title">${esc(title)}</strong>
+          ${realDate ? `<span class="atlas-foundry-diary-invite-date">${esc(t('ATLASFOUNDRY.Diary.InviteRealDate', { date: realDate }))}</span>` : ''}
+          ${inWorldDate ? `<span class="atlas-foundry-diary-invite-date">${esc(t('ATLASFOUNDRY.Diary.InviteInWorldDate', { date: inWorldDate }))}</span>` : ''}
+          <p class="atlas-foundry-notification-popup-body">${esc(t('ATLASFOUNDRY.Diary.InviteText'))}</p>
+        </div>
+      </div>
+      <div class="atlas-foundry-notification-popup-buttons">
+        ${invitation.onDismiss ? `<button type="button" class="atlas-foundry-diary-invite-dismiss" data-action="dismiss">${esc(t('ATLASFOUNDRY.Diary.InviteDismiss'))}</button>` : ''}
+        <button type="button" data-action="open-log"><i class="fa-solid fa-book-bookmark"></i> ${esc(t('ATLASFOUNDRY.Diary.InviteOpen'))}</button>
+      </div>`;
+    const img = root.querySelector<HTMLImageElement>('[data-action="zoom"]');
+    if (img) {
+      img.src = imageSrc;
+      img.alt = title;
+    }
+    return root;
+  }
+
   protected async _replaceHTML(result: HTMLElement, content: HTMLElement): Promise<void> {
     content.replaceChildren(result);
 
-    const title = popupTitle(this.message, t('ATLASFOUNDRY.Notifications.NoSubject'));
+    const title = this.invitation
+      ? formatDocumentTitle('session-logs', this.invitation.sessionLog.name, this.invitation.sessionLog.sessionNumber)
+      : this.message
+        ? popupTitle(this.message, t('ATLASFOUNDRY.Notifications.NoSubject'))
+        : '';
     content.querySelector<HTMLElement>('[data-action="zoom"]')?.addEventListener('click', (event) => {
       openImageLightbox((event.currentTarget as HTMLImageElement).src, title);
     });
     content.querySelector('[data-action="open"]')?.addEventListener('click', () => this.openInAtlas());
+    content.querySelector('[data-action="open-log"]')?.addEventListener('click', () => this.openLogAndAcknowledge());
+    content.querySelector('[data-action="dismiss"]')?.addEventListener('click', () => {
+      this.invitation?.onDismiss?.();
+      void this.close();
+    });
     content.querySelector('[data-action="acknowledge"]')?.addEventListener('click', () => {
-      void notificationStore.markRead(this.message.id);
+      if (this.message) void notificationStore.markRead(this.message.id);
       void this.close();
     });
   }
 
+  /**
+   * Opens the session log on its diary tab. The "new session log" notification (this window's own
+   * or an unread one in the store) is acknowledged with it, so the bell keeps no second pending item.
+   */
+  private openLogAndAcknowledge(): void {
+    const log = this.invitation?.sessionLog;
+    if (!log) return;
+    void openInAtlas({ moduleType: 'session-logs', documentId: log.id, tab: 'diary' });
+
+    const ids = new Set(unreadSessionLogMessageIds(notificationStore.getState().items, log.id));
+    if (this.message) ids.add(this.message.id);
+    for (const id of ids) void notificationStore.markRead(id);
+    void this.close();
+  }
+
   /** Opening never acknowledges; the window stays open. */
   private openInAtlas(): void {
+    if (!this.message) return;
     const target = notificationAtlasTarget(this.message);
     if (target.kind === 'document') {
       void openInAtlas(target.ref);

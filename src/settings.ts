@@ -96,6 +96,14 @@ export function registerSettings(): void {
     default: [],
     onChange: () => Hooks.callAll('atlas-foundry.deadlineDocumentsChanged'),
   });
+  // Client-scoped: "<foundry user id>:<session log id>" of the diary invitations the player
+  // opted out of (ids only, at most 50, see diary/invitation-model.ts).
+  game.settings.register(MODULE_ID, 'dismissedDiaryInvitations', {
+    scope: 'client',
+    config: false,
+    type: Array,
+    default: [],
+  });
   // Client-scoped (per browser/localStorage, never synced to other clients) —
   // see the P3 plan's token storage risk assessment. Only the long-lived
   // Foundry user token lives here; the short-lived exchange JWT stays in memory.
@@ -185,6 +193,16 @@ export function getDeadlineDocuments(): DeadlineRef[] {
 
 export async function setDeadlineDocuments(refs: DeadlineRef[]): Promise<unknown> {
   return game.settings.set(MODULE_ID, 'deadlineDocuments', parseDeadlineRefs(refs));
+}
+
+/** The dismissed diary invitations (`"<user id>:<log id>"`); a malformed stored value reads as `[]`. */
+export function getDismissedDiaryInvitations(): string[] {
+  const stored = game.settings.get<unknown>(MODULE_ID, 'dismissedDiaryInvitations');
+  return Array.isArray(stored) ? stored.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+export async function setDismissedDiaryInvitations(keys: string[]): Promise<unknown> {
+  return game.settings.set(MODULE_ID, 'dismissedDiaryInvitations', keys);
 }
 
 export function getBaseUrl(): string {

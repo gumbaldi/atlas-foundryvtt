@@ -10,6 +10,7 @@ const closeAllLinkManagers = vi.fn();
 const closeDeadlineDocsManager = vi.fn();
 const clearRecentSearches = vi.fn();
 const closeAllNotificationPopups = vi.fn();
+const clearDiaryInvitation = vi.fn();
 
 vi.mock('./api/cache', () => ({ documentCache: { clear: documentCacheClear } }));
 vi.mock('./api/client', () => ({ clearInFlightGets }));
@@ -21,6 +22,7 @@ vi.mock('./links/link-manager-app', () => ({ closeAllLinkManagers }));
 vi.mock('./deadlines/deadline-docs-app', () => ({ closeDeadlineDocsManager }));
 vi.mock('./search/recent-searches', () => ({ clearRecentSearches }));
 vi.mock('./notifications/notification-popups', () => ({ closeAllNotificationPopups }));
+vi.mock('./diary/diary-invitation', () => ({ clearDiaryInvitation }));
 
 const { resetSessionData } = await import('./session-reset');
 
@@ -28,7 +30,7 @@ describe('resetSessionData', () => {
   it('clears every cache and closes every window that shows Atlas content', () => {
     resetSessionData();
 
-    for (const fn of [documentCacheClear, clearInFlightGets, visibilityClear, clearQuestTracker, clearDeadlineSection, closeSearch, closeAllLinkManagers, closeDeadlineDocsManager, clearRecentSearches, closeAllNotificationPopups]) {
+    for (const fn of [documentCacheClear, clearInFlightGets, visibilityClear, clearQuestTracker, clearDeadlineSection, closeSearch, closeAllLinkManagers, closeDeadlineDocsManager, clearRecentSearches, closeAllNotificationPopups, clearDiaryInvitation]) {
       expect(fn).toHaveBeenCalledOnce();
     }
   });

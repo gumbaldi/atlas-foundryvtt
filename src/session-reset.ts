@@ -7,6 +7,7 @@ import { clearDeadlineSection } from './deadlines/deadline-section';
 import { closeSearch } from './search/search-app';
 import { closeAllLinkManagers } from './links/link-manager-app';
 import { clearRecentSearches } from './search/recent-searches';
+import { clearDiaryInvitation } from './diary/diary-invitation';
 import { closeAllNotificationPopups } from './notifications/notification-popups';
 
 /**
@@ -24,6 +25,7 @@ export function resetSessionData(): void {
   closeAllLinkManagers();
   closeDeadlineDocsManager();
   closeAllNotificationPopups();
+  clearDiaryInvitation();
   // The typed search texts may reveal what a previous user looked for on a shared browser.
   void clearRecentSearches();
 }

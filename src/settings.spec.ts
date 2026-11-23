@@ -7,7 +7,9 @@ import {
   getCampaignId,
   getCampaignSlug,
   getDeadlineDocuments,
+  getDismissedDiaryInvitations,
   registerSettings,
+  setDismissedDiaryInvitations,
   setDeadlineDocuments,
   getRecentSearchList,
   setRecentSearchList,
@@ -179,6 +181,40 @@ describe('deadlineDocuments setting', () => {
     expect(getDeadlineDocuments()).toEqual([]);
     delete store.deadlineDocuments;
     expect(getDeadlineDocuments()).toEqual([]);
+  });
+});
+
+describe('dismissedDiaryInvitations setting', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = {};
+    mockGame(store);
+    globalThis.Hooks = { callAll: vi.fn() } as unknown as HooksStatic;
+  });
+
+  it('is registered client-scoped and hidden from the settings screen', () => {
+    registerSettings();
+    const call = vi.mocked(game.settings.register).mock.calls.find(([, key]) => key === 'dismissedDiaryInvitations');
+    expect(call?.[2]).toMatchObject({ scope: 'client', config: false, type: Array, default: [] });
+  });
+
+  it('round-trips the stored keys', async () => {
+    await setDismissedDiaryInvitations(['u1:log-1']);
+    expect(store.dismissedDiaryInvitations).toEqual(['u1:log-1']);
+    expect(getDismissedDiaryInvitations()).toEqual(['u1:log-1']);
+  });
+
+  it('reads a non-array stored value as []', () => {
+    store.dismissedDiaryInvitations = 'garbage';
+    expect(getDismissedDiaryInvitations()).toEqual([]);
+    delete store.dismissedDiaryInvitations;
+    expect(getDismissedDiaryInvitations()).toEqual([]);
+  });
+
+  it('keeps only the string entries of an array', () => {
+    store.dismissedDiaryInvitations = ['u1:log-1', 3, null];
+    expect(getDismissedDiaryInvitations()).toEqual(['u1:log-1']);
   });
 });
 

@@ -14,6 +14,7 @@ import { registerHudPanels, toggleHudPanels } from './hud-panels';
 import { registerSearchHud } from './search/search-hud';
 import { notificationStore } from './notifications/notification-store';
 import { registerBell } from './notifications/bell';
+import { registerDiaryInvitation } from './diary/diary-invitation';
 import { registerNotificationPopups } from './notifications/notification-popups';
 import { openNotificationCenter, registerGmBroadcastReceiver, registerNotificationsControl } from './notifications/notification-center-app';
 import { resetSessionData } from './session-reset';
@@ -104,6 +105,7 @@ Hooks.once('init', () => {
   registerHudPanels();
   registerNotificationsControl();
   registerNotificationPopups();
+  registerDiaryInvitation();
 });
 
 // Runtime work only: auth state, DOM, game.socket, network.

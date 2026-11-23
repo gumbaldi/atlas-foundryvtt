@@ -1,7 +1,16 @@
 import { formatDocumentTitle } from '../render/document-title';
-import type { AtlasMessage } from '../atlas-types';
+import type { AtlasDiaryInvitation, AtlasMessage } from '../atlas-types';
 
-export type PopupLayout = 'text' | 'image';
+export type PopupLayout = 'text' | 'image' | 'invitation';
+
+/**
+ * What the `invitation` layout shows: the latest session log. `onDismiss` is set for the login
+ * trigger only and powers the "Don't remind me again for this log" button.
+ */
+export interface PopupInvitation {
+  sessionLog: NonNullable<AtlasDiaryInvitation['sessionLog']>;
+  onDismiss?: () => void;
+}
 
 /** Font Awesome icon per notification kind; unknown kinds fall back to a bell at the call site. */
 export const KIND_ICONS: Record<string, string> = {

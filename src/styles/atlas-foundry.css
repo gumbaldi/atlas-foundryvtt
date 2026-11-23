@@ -1349,3 +1349,48 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   justify-content: flex-end;
   gap: 0.4rem;
 }
+
+/* Diary invitation layout: picture left, text right; reuses the popup's button row. */
+.atlas-foundry-diary-invite-main {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.atlas-foundry-diary-invite-picture,
+.atlas-foundry-diary-invite-tile {
+  flex: 0 0 120px;
+  width: 120px;
+  height: 120px;
+  border-radius: 4px;
+}
+
+.atlas-foundry-diary-invite-picture {
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.atlas-foundry-diary-invite-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: #fff;
+  background: #6366f1;
+}
+
+.atlas-foundry-diary-invite-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.atlas-foundry-diary-invite-date {
+  font-size: var(--font-size-12, 0.8rem);
+  opacity: 0.8;
+}
+
+.atlas-foundry-notification-popup-invitation .atlas-foundry-notification-popup-buttons {
+  flex-wrap: wrap;
+}

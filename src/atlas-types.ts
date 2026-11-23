@@ -95,6 +95,27 @@ export const AtlasDeadlineOverviewSchema = z.object({
 });
 export type AtlasDeadlineOverview = z.infer<typeof AtlasDeadlineOverviewSchema>;
 
+/**
+ * The latest session log and whether the caller already wrote a diary entry for it. `sessionLog`
+ * is `null` when the campaign has no session log yet.
+ */
+export const AtlasDiaryInvitationSchema = z.object({
+  sessionLog: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      sessionNumber: z.number().nullable().optional(),
+      imageUrl: z.string().optional(),
+      /** ISO date of the real-world session. */
+      sessionDate: z.string().optional(),
+      inWorldDate: DeadlineDaySchema.optional(),
+      calendarName: z.string().optional(),
+    })
+    .nullable(),
+  hasDiaryEntry: z.boolean(),
+});
+export type AtlasDiaryInvitation = z.infer<typeof AtlasDiaryInvitationSchema>;
+
 export const AtlasNotificationPayloadSchema = z.object({
   campaignId: z.string(),
   body: z.string(),

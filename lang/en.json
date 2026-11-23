@@ -202,6 +202,14 @@
       "SwitchTool": "Show Atlas HUD",
       "OpenDashboard": "Open the campaign dashboard in Atlas"
     },
+    "Diary": {
+      "InviteTitle": "New session log",
+      "InviteText": "There is a new session log, and you have not written a diary entry for it yet. Why not read it and leave your own diary entry?",
+      "InviteRealDate": "Played on {date}",
+      "InviteInWorldDate": "In-world: {date}",
+      "InviteOpen": "Read the log and write a diary entry",
+      "InviteDismiss": "Don't remind me again for this log"
+    },
     "Notifications": {
       "Title": "Atlas Notifications",
       "ControlTool": "Atlas Notifications",
