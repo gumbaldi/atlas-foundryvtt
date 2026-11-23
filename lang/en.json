@@ -184,7 +184,15 @@
     },
     "Deadlines": {
       "Heading": "Deadlines",
-      "OpenDeadlineTab": "Show all deadlines of this document in Atlas"
+      "OpenDeadlineTab": "Show all deadlines of this document in Atlas",
+      "ManageTitle": "Deadline documents",
+      "ManageHint": "Players see the running deadlines of these documents in addition to those of their own characters. The list itself is visible to all players; which deadlines they actually get is still decided by Atlas permissions.",
+      "ManageTool": "Choose documents whose deadlines everyone sees",
+      "ManageEdit": "Choose documents whose deadlines all players see",
+      "ManageEmpty": "No documents chosen yet.",
+      "ManageAdd": "Add…",
+      "ManageLimit": "At most {count} documents.",
+      "ManageUnknown": "Not found or not readable"
     },
     "Hud": {
       "ToggleTool": "Show quests, deadlines and documents",

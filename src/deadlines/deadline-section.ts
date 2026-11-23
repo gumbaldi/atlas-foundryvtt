@@ -8,6 +8,8 @@ import { getTypeStyle } from '../search/type-style';
 import { getBaseUrl, getDeadlineDocuments, getShowHud, getShowHudPanels } from '../settings';
 import type { ModuleType } from '../constants';
 import { fetchDeadlineOverview, refreshDeadlineOverview } from './deadlines-api';
+import { openDeadlineDocsManager } from './deadline-docs-app';
+import { ensureAtlasGroup } from '../controls';
 import { buildDeadlineGroups, countDeadlines, type DeadlineGroup, type DeadlineRow } from './deadline-overview';
 
 const SECTION_ID = 'atlas-foundry-deadline-section';
@@ -109,6 +111,17 @@ function buildHeading(): HTMLElement {
   const label = document.createElement('span');
   label.textContent = t('ATLASFOUNDRY.Deadlines.Heading');
   heading.append(icon, label);
+  if (game.user.isGM) {
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'atlas-foundry-hud-heading-edit';
+    edit.title = t('ATLASFOUNDRY.Deadlines.ManageEdit');
+    const pencil = document.createElement('i');
+    pencil.className = 'fa-solid fa-pencil';
+    edit.appendChild(pencil);
+    edit.addEventListener('click', openDeadlineDocsManager);
+    heading.appendChild(edit);
+  }
   return heading;
 }
 
@@ -203,4 +216,16 @@ export function registerDeadlineSection(): void {
   Hooks.on('atlas-foundry.showHudPanelsChanged', onVisibilityChanged);
   Hooks.on('atlas-foundry.showHudChanged', onVisibilityChanged);
   Hooks.on('renderSidebar', renderDeadlineSection);
+  // GM-only, always available: the HUD section (and its pencil) is hidden while nothing runs.
+  Hooks.on('getSceneControlButtons', (controls: Record<string, any>) => {
+    if (!game.user.isGM || !authManager.isLinked()) return;
+    ensureAtlasGroup(controls).atlasDeadlineDocs = {
+      name: 'atlasDeadlineDocs',
+      title: 'ATLASFOUNDRY.Deadlines.ManageTool',
+      icon: 'fa-solid fa-hourglass-half',
+      button: true,
+      order: 104,
+      onChange: () => openDeadlineDocsManager(),
+    };
+  });
 }

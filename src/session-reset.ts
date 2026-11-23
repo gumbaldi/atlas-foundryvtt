@@ -1,3 +1,4 @@
+import { closeDeadlineDocsManager } from './deadlines/deadline-docs-app';
 import { documentCache } from './api/cache';
 import { clearInFlightGets } from './api/client';
 import { linkVisibility } from './links/link-visibility';
@@ -20,6 +21,7 @@ export function resetSessionData(): void {
   clearDeadlineSection();
   closeSearch();
   closeAllLinkManagers();
+  closeDeadlineDocsManager();
   // The typed search texts may reveal what a previous user looked for on a shared browser.
   void clearRecentSearches();
 }

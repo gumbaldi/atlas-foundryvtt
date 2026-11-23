@@ -126,9 +126,27 @@ describe('main.ts start-up', () => {
     harness.fire('getSceneControlButtons', controls);
 
     expect(Object.keys(controls.atlas.tools)).toEqual(
-      expect.arrayContaining(['atlasSearch', 'atlasHudToggle', 'atlasNotifications', 'atlasSceneLinks']),
+      expect.arrayContaining(['atlasSearch', 'atlasHudToggle', 'atlasNotifications', 'atlasSceneLinks', 'atlasDeadlineDocs']),
     );
     expect(controls.atlas.tools.atlasConnect).toBeUndefined();
+  });
+
+  it('offers the deadline documents tool to the GM only', async () => {
+    game.user.id = 'u1';
+    vi.mocked(game.settings.get).mockImplementation((_ns: string, key: string) =>
+      key === 'userTokens' ? { u1: { token: 'device-token', tokenId: 'tok-1' } } : undefined,
+    );
+    await import('./main');
+    harness.fire('init');
+
+    const gmControls: Record<string, any> = { tokens: { tools: {} as Record<string, unknown> } };
+    harness.fire('getSceneControlButtons', gmControls);
+    expect(gmControls.atlas.tools.atlasDeadlineDocs).toBeDefined();
+
+    game.user.isGM = false;
+    const playerControls: Record<string, any> = { tokens: { tools: {} as Record<string, unknown> } };
+    harness.fire('getSceneControlButtons', playerControls);
+    expect(playerControls.atlas.tools.atlasDeadlineDocs).toBeUndefined();
   });
 
   it('hooks the V14 scene context menu and not the removed getSceneNavigationContext', async () => {

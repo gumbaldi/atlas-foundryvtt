@@ -11,6 +11,8 @@ before `compatibility.verified` in `module.json` is raised — see
 ## [Unreleased]
 
 ### Added
+- The game master can choose which documents' running deadlines every player sees (a pencil button in
+  the Deadlines heading and an Atlas scene-controls tool open a small window to add and remove documents).
 - A "Deadlines" section in the Atlas HUD column, between the quests and the documents: the running
   deadlines of your own characters first, then of the documents the game master picked, each with the
   days left; a click opens the entry or the document's deadlines tab in Atlas. Needs the matching

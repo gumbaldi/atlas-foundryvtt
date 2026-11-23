@@ -7,6 +7,7 @@ const clearQuestTracker = vi.fn();
 const clearDeadlineSection = vi.fn();
 const closeSearch = vi.fn();
 const closeAllLinkManagers = vi.fn();
+const closeDeadlineDocsManager = vi.fn();
 const clearRecentSearches = vi.fn();
 
 vi.mock('./api/cache', () => ({ documentCache: { clear: documentCacheClear } }));
@@ -16,6 +17,7 @@ vi.mock('./quests/quest-tracker', () => ({ clearQuestTracker }));
 vi.mock('./deadlines/deadline-section', () => ({ clearDeadlineSection }));
 vi.mock('./search/search-app', () => ({ closeSearch }));
 vi.mock('./links/link-manager-app', () => ({ closeAllLinkManagers }));
+vi.mock('./deadlines/deadline-docs-app', () => ({ closeDeadlineDocsManager }));
 vi.mock('./search/recent-searches', () => ({ clearRecentSearches }));
 
 const { resetSessionData } = await import('./session-reset');
@@ -24,7 +26,7 @@ describe('resetSessionData', () => {
   it('clears every cache and closes every window that shows Atlas content', () => {
     resetSessionData();
 
-    for (const fn of [documentCacheClear, clearInFlightGets, visibilityClear, clearQuestTracker, clearDeadlineSection, closeSearch, closeAllLinkManagers, clearRecentSearches]) {
+    for (const fn of [documentCacheClear, clearInFlightGets, visibilityClear, clearQuestTracker, clearDeadlineSection, closeSearch, closeAllLinkManagers, closeDeadlineDocsManager, clearRecentSearches]) {
       expect(fn).toHaveBeenCalledOnce();
     }
   });

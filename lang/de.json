@@ -184,7 +184,15 @@
     },
     "Deadlines": {
       "Heading": "Fristen",
-      "OpenDeadlineTab": "Alle Fristen dieses Dokuments in Atlas anzeigen"
+      "OpenDeadlineTab": "Alle Fristen dieses Dokuments in Atlas anzeigen",
+      "ManageTitle": "Dokumente für Fristen",
+      "ManageHint": "Spieler sehen die laufenden Fristen dieser Dokumente zusätzlich zu denen ihrer eigenen Charaktere. Die Liste selbst ist für alle Spieler sichtbar; welche Fristen sie tatsächlich erhalten, entscheiden weiterhin die Atlas-Berechtigungen.",
+      "ManageTool": "Dokumente wählen, deren Fristen alle sehen",
+      "ManageEdit": "Dokumente wählen, deren Fristen alle Spieler sehen",
+      "ManageEmpty": "Noch keine Dokumente gewählt.",
+      "ManageAdd": "Hinzufügen…",
+      "ManageLimit": "Höchstens {count} Dokumente.",
+      "ManageUnknown": "Nicht gefunden oder nicht lesbar"
     },
     "Hud": {
       "ToggleTool": "Quests, Fristen und Dokumente anzeigen",
