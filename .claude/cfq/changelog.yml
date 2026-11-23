@@ -1,3 +1,9 @@
+- batchNumber: 6
+  batch: 006-2026-11-22-hud-deadlines-and-live-notifications
+  branch: cfq/006-2026-11-22-hud-deadlines-and-live-notifications
+  base: test
+  started: 2026-11-23
+  status: in-progress
 - batchNumber: 5
   batch: 005-2026-11-18-foundry-ui-rework
   branch: cfq/005-2026-11-18-foundry-ui-rework
