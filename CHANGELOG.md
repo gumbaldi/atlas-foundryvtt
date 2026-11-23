@@ -50,6 +50,7 @@ before `compatibility.verified` in `module.json` is raised — see
 - `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
 
 ### Changed
+- While the live connection is down, new notifications are looked up every 30 seconds instead of every 3 minutes.
 - The HUD column now starts at the top edge of the first sidebar tab (Chat), so the search field lines up with that icon.
 - The token HUD link buttons (view and edit) are removed; the scene links section is now called
   "Documents" ("Dokumente").
