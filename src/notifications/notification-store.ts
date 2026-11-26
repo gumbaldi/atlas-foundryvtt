@@ -1,9 +1,8 @@
-import { t } from '../i18n';
 import { log, notifyError } from '../log';
 import { authManager } from '../auth/auth-manager';
 import { atlasSocket } from '../socket/atlas-socket';
-import { getQuietMode } from '../settings';
 import { listMessages, fetchUnreadCount, markMessageRead, dismissMessage } from './notifications-api';
+import { detectArrivals } from './notification-arrivals';
 import type { AtlasMessage } from '../atlas-types';
 
 export type NotificationStoreStatus = 'idle' | 'loading' | 'error';
@@ -18,9 +17,9 @@ const LIST_LIMIT = 30;
 // markAllUnreadRead pages through the unread set; a safety cap against a server that keeps returning items.
 const MARK_ALL_PAGE_LIMIT = 100;
 const MARK_ALL_MAX_PAGES = 20;
-// Socket disconnected/degraded → shorter fallback poll; socket connected →
-// long drift-check only (plan: "3 min (Socket down) / 10 min (Socket ok)").
-const POLL_INTERVAL_DEGRADED_MS = 3 * 60_000;
+// Socket disconnected/degraded → short fallback poll so new notifications still
+// arrive promptly; socket connected → long drift-check only.
+const POLL_INTERVAL_DEGRADED_MS = 30_000;
 const POLL_INTERVAL_CONNECTED_MS = 10 * 60_000;
 
 /**
@@ -36,6 +35,8 @@ export class NotificationStore {
   private status: NotificationStoreStatus = 'idle';
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private started = false;
+  /** Ids of every message seen this session; null until the first successful sync (which only seeds it). */
+  private seen: Set<string> | null = null;
 
   getState(): NotificationStoreState {
     return { items: this.items, unreadCount: this.unreadCount, status: this.status };
@@ -50,9 +51,9 @@ export class NotificationStore {
       if (payload.state === 'active') void this.resync();
       else this.reset();
     });
-    Hooks.on('atlas-foundry.socketEvent', (event: string, payload: unknown) => {
+    Hooks.on('atlas-foundry.socketEvent', (event: string) => {
       if (event !== 'notification:new') return;
-      this.handleWakeup(payload);
+      this.handleWakeup();
     });
     Hooks.on('atlas-foundry.socketStatusChanged', () => this.reschedulePolling());
 
@@ -60,27 +61,58 @@ export class NotificationStore {
     this.reschedulePolling();
   }
 
-  async resync(): Promise<void> {
+  /**
+   * `quiet` (used by the poll timer) skips the loading state and the
+   * notification before the answer when items are already loaded, and only
+   * notifies afterwards when the count or the item ids actually changed.
+   */
+  async resync(options: { quiet?: boolean } = {}): Promise<void> {
     if (!authManager.isLinked()) {
       this.reset();
       return;
     }
-    this.status = 'loading';
-    this.notify();
+    const quiet = options.quiet === true && this.seen !== null;
+    if (!quiet) {
+      this.status = 'loading';
+      this.notify();
+    }
     const epoch = authManager.getSessionEpoch();
+    let arrivals: AtlasMessage[] = [];
+    let changed: boolean;
     try {
       const [unreadCount, items] = await Promise.all([fetchUnreadCount(), listMessages({ limit: LIST_LIMIT })]);
       // Signed out or switched account while the request was in flight — the answer belongs to the old session.
-      if (epoch !== authManager.getSessionEpoch()) return this.resync();
+      if (epoch !== authManager.getSessionEpoch()) {
+        this.seen = null;
+        return this.resync(options);
+      }
+      changed =
+        !quiet ||
+        this.status !== 'idle' ||
+        unreadCount !== this.unreadCount ||
+        items.length !== this.items.length ||
+        items.some((m, i) => m.id !== this.items[i]?.id);
       this.unreadCount = unreadCount;
       this.items = items;
       this.status = 'idle';
+      if (this.seen === null) {
+        this.seen = new Set(items.map((m) => m.id));
+      } else {
+        const detected = detectArrivals(items, this.seen);
+        this.seen = detected.seen;
+        arrivals = detected.arrivals;
+      }
     } catch (err) {
-      if (epoch !== authManager.getSessionEpoch()) return this.resync();
+      if (epoch !== authManager.getSessionEpoch()) {
+        this.seen = null;
+        return this.resync(options);
+      }
+      changed = this.status !== 'error';
       this.status = 'error';
       log.warn('Atlas Foundry: notification sync failed', err);
     }
-    this.notify();
+    if (changed) this.notify();
+    for (const message of arrivals) Hooks.callAll('atlas-foundry.notificationArrived', message);
   }
 
   /**
@@ -162,15 +194,12 @@ export class NotificationStore {
     }
   }
 
-  private handleWakeup(payload: unknown): void {
-    const data = payload as { subject?: string } | null;
-    if (data?.subject && !getQuietMode()) {
-      ui.notifications.info(t('ATLASFOUNDRY.Notifications.NewToast', { subject: data.subject }));
-    }
+  private handleWakeup(): void {
     void this.resync();
   }
 
   private reset(): void {
+    this.seen = null;
     this.items = [];
     this.unreadCount = 0;
     this.status = 'idle';
@@ -183,7 +212,7 @@ export class NotificationStore {
       this.pollTimer = null;
     }
     const interval = atlasSocket.getStatus() === 'connected' ? POLL_INTERVAL_CONNECTED_MS : POLL_INTERVAL_DEGRADED_MS;
-    this.pollTimer = setInterval(() => void this.resync(), interval);
+    this.pollTimer = setInterval(() => void this.resync({ quiet: true }), interval);
   }
 
   private notify(): void {

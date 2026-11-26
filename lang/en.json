@@ -168,8 +168,6 @@
       "Remove": "Remove",
       "LabelPlaceholder": "Label (optional)",
       "NoneVisible": "No links you have access to.",
-      "ViewButton": "Show Atlas links",
-      "EditButton": "Edit Atlas links",
       "PickTargetScene": "Active scene: {name}",
       "PickTargetToken": "Selected token: {name}",
       "PickTargetSheet": "Open window: {name}",
@@ -178,18 +176,39 @@
       "SceneControlTool": "Scene's Atlas Links",
       "OverflowTitle": "{count} more links",
       "OpenUnavailable": "This document could not be opened in Atlas — it may no longer exist or you may not have access.",
-      "Heading": "Links"
+      "Heading": "Documents"
     },
     "Quests": {
       "More": "+{count} more",
       "AllInAtlas": "All quests in Atlas"
     },
+    "Deadlines": {
+      "Heading": "Deadlines",
+      "OpenDeadlineTab": "Show all deadlines of this document in Atlas",
+      "ManageTitle": "Deadline documents",
+      "ManageHint": "Players see the running deadlines of these documents in addition to those of their own characters. The list itself is visible to all players; which deadlines they actually get is still decided by Atlas permissions.",
+      "ManageTool": "Choose documents whose deadlines everyone sees",
+      "ManageEdit": "Choose documents whose deadlines all players see",
+      "ManageEmpty": "No documents chosen yet.",
+      "ManageAdd": "Add…",
+      "ManageLimit": "At most {count} documents.",
+      "ManageUnknown": "Not found or not readable"
+    },
     "Hud": {
-      "ToggleTool": "Show quests and links",
-      "KeybindingName": "Toggle Atlas quests and links",
-      "Collapse": "Collapse quests and links",
-      "Expand": "Show quests and links ({count})",
-      "SwitchTool": "Show Atlas HUD"
+      "ToggleTool": "Show quests, deadlines and documents",
+      "KeybindingName": "Toggle Atlas quests, deadlines and documents",
+      "Collapse": "Collapse quests, deadlines and documents",
+      "Expand": "Show quests, deadlines and documents ({count})",
+      "SwitchTool": "Show Atlas HUD",
+      "OpenDashboard": "Open the campaign dashboard in Atlas"
+    },
+    "Diary": {
+      "InviteTitle": "New session log",
+      "InviteText": "There is a new session log, and you have not written a diary entry for it yet. Why not read it and leave your own diary entry?",
+      "InviteRealDate": "Played on {date}",
+      "InviteInWorldDate": "In-world: {date}",
+      "InviteOpen": "Read the log and write a diary entry",
+      "InviteDismiss": "Don't remind me again for this log"
     },
     "Notifications": {
       "Title": "Atlas Notifications",
@@ -207,7 +226,8 @@
       "BroadcastSent": "Suggestion sent to all players.",
       "SuggestOpenToast": "The GM wants to show you \"{name}\".",
       "SuggestOpenButton": "Open",
-      "NewToast": "New Atlas notification: {subject}",
+      "PopupOpenInAtlas": "Open in Atlas",
+      "PopupOpenDashboard": "Open dashboard in Atlas",
       "ActionFailed": "Action failed — please try again.",
       "JustNow": "just now",
       "MinutesAgo": "{count}m ago",

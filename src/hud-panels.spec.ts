@@ -84,6 +84,21 @@ describe('HUD toggle', () => {
     expect(toggle.children.map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-link']);
   });
 
+  it('lists the deadline part after the quest part and drops it at a count of 0', async () => {
+    const { reportHudSection, HUD_TOGGLE_ID } = await import('./hud-panels');
+    state.expanded = false;
+    reportHudSection('deadlines', 3);
+    reportHudSection('quests', 2);
+    const toggle = hud.children.find((c) => c.id === HUD_TOGGLE_ID)!;
+    expect(toggle.children.map((part) => ({ icon: part.children[0]?.className, count: part.children[1]?.textContent }))).toEqual([
+      { icon: 'fa-solid fa-scroll', count: '2' },
+      { icon: 'fa-solid fa-hourglass-half', count: '3' },
+    ]);
+
+    reportHudSection('deadlines', 0);
+    expect(toggle.children.map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-scroll']);
+  });
+
   it('is removed once no panel has entries any more, or when signed out', async () => {
     const { reportHudSection, HUD_TOGGLE_ID } = await import('./hud-panels');
     reportHudSection('quests', 1);

@@ -1,6 +1,6 @@
 import { authManager } from '../auth/auth-manager';
 import { getDocument } from '../api/documents';
-import { atlasDocumentUrl } from '../deep-links';
+import { atlasCampaignDashboardUrl, atlasDocumentUrl } from '../deep-links';
 import { t } from '../i18n';
 import type { ModuleType } from '../constants';
 import type { AtlasMessage } from '../atlas-types';
@@ -10,6 +10,8 @@ export interface AtlasDocumentRef {
   moduleType: ModuleType | 'custom' | string;
   documentId: string;
   customModuleId?: string;
+  /** Opens this tab of the document page (`?tab=`); Atlas may ignore it, the page opens either way. */
+  tab?: string;
 }
 
 export interface AtlasUrlDeps {
@@ -25,9 +27,13 @@ export interface AtlasUrlDeps {
  */
 function directAtlasUrl(ref: AtlasDocumentRef, deps: AtlasUrlDeps): string | null | undefined {
   if (!deps.campaignId) return null;
-  if (ref.moduleType !== 'custom') return deps.atlasDocumentUrl(deps.campaignId, ref.moduleType as ModuleType, ref.documentId);
-  if (ref.customModuleId) return deps.atlasDocumentUrl(deps.campaignId, 'custom', ref.documentId, ref.customModuleId);
+  if (ref.moduleType !== 'custom') return withTab(deps.atlasDocumentUrl(deps.campaignId, ref.moduleType as ModuleType, ref.documentId), ref.tab);
+  if (ref.customModuleId) return withTab(deps.atlasDocumentUrl(deps.campaignId, 'custom', ref.documentId, ref.customModuleId), ref.tab);
   return undefined;
+}
+
+function withTab(url: string, tab: string | undefined): string {
+  return tab ? `${url}?tab=${encodeURIComponent(tab)}` : url;
 }
 
 /**
@@ -41,7 +47,7 @@ export async function resolveAtlasUrl(ref: AtlasDocumentRef, deps: AtlasUrlDeps)
 
   const detail = await deps.getDocument('custom', ref.documentId);
   if (!detail.customModuleId || !deps.campaignId) return null;
-  return deps.atlasDocumentUrl(deps.campaignId, 'custom', ref.documentId, detail.customModuleId);
+  return withTab(deps.atlasDocumentUrl(deps.campaignId, 'custom', ref.documentId, detail.customModuleId), ref.tab);
 }
 
 export type NotificationAtlasTarget = { kind: 'document'; ref: AtlasDocumentRef } | { kind: 'dashboard' };
@@ -89,4 +95,14 @@ export async function openInAtlas(ref: AtlasDocumentRef): Promise<void> {
     tab?.close();
     ui.notifications.warn(t('ATLASFOUNDRY.Links.OpenUnavailable'));
   }
+}
+
+/** Opens the campaign dashboard in Atlas in a new tab; warns when the world is not linked. */
+export function openCampaignDashboard(): void {
+  const campaignId = authManager.getLinkedCampaignId();
+  if (!campaignId) {
+    ui.notifications.warn(t('ATLASFOUNDRY.NotConnected.Message'));
+    return;
+  }
+  window.open(atlasCampaignDashboardUrl(campaignId), '_blank');
 }

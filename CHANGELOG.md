@@ -11,6 +11,18 @@ before `compatibility.verified` in `module.json` is raised — see
 ## [Unreleased]
 
 ### Added
+- A friendly invitation window: when you enter the world and have not written a diary entry for the
+  latest session log yet, it shows the log (picture, number, title, real and in-world date) and invites
+  you to read it and write an entry; "Don't remind me again for this log" silences it per log. A new
+  session log notification uses the same window instead of a second one. Needs the matching Atlas backend.
+- A "Deadlines" section in the Atlas HUD column, between the quests and the documents: the running
+  deadlines of your own characters first, then of the documents the game master picked, each with the
+  days left; a click opens the entry or the document's deadlines tab in Atlas. Needs the matching
+  Atlas backend; without it nothing is shown.
+- The game master can choose which documents' running deadlines every player sees (a pencil button in
+  the Deadlines heading and an Atlas scene-controls tool open a small window to add and remove documents).
+  The list is stored per world (ids and types only).
+- A dashboard button (Atlas icon) sits before the HUD search field and opens the campaign dashboard in Atlas.
 - Scene link bar: links are narrow chips with a small thumbnail of the document's title image, side by
   side in at most two rows; only the first ten are shown (the rest is behind `+N`). The bar can be
   collapsed (button, or the "Show scene links" switch in the Atlas toolbar group) to a pill with the
@@ -40,6 +52,13 @@ before `compatibility.verified` in `module.json` is raised — see
 - `docs/SMOKE-TEST.md`, `docs/RELEASING.md`.
 
 ### Changed
+- A new notification now opens a window right away (a large picture for image-only ones) with a link to
+  Atlas, at most three at a time; the small toast is replaced. Closing the window leaves the
+  notification unread, "Acknowledge" marks it as read.
+- While the live connection is down, new notifications are looked up every 30 seconds instead of every 3 minutes.
+- The HUD column now starts at the top edge of the first sidebar tab (Chat), so the search field lines up with that icon.
+- The token HUD link buttons (view and edit) are removed; the scene links section is now called
+  "Documents" ("Dokumente").
 - Links (scene bar, popover, token HUD, link manager), quests and notifications open the document
   directly in Atlas in a new browser tab instead of the in-Foundry detail window, including documents
   of custom modules.

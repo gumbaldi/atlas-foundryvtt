@@ -587,7 +587,7 @@
 
 /* Scene links: a headed stack of chips in the right HUD column, right-aligned. */
 #atlas-foundry-scene-links-bar {
-  order: 4;
+  order: 5;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -620,6 +620,28 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   height: auto;
+}
+
+button.atlas-foundry-hud-heading-edit {
+  width: auto;
+  height: auto;
+  margin: 0 0 0 0.2rem;
+  padding: 0 0.2rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: inherit;
+  background: transparent;
+  border: none;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+button.atlas-foundry-hud-heading-edit:hover {
+  opacity: 1;
+}
+
+.atlas-foundry-deadline-docs {
+  min-width: 400px;
 }
 
 button.atlas-foundry-hud-heading-link {
@@ -690,7 +712,7 @@ button.atlas-foundry-hud-heading-link i {
 
 /* Shared expand/collapse switch for quests and links: a chevron, or a pill with the entry count while collapsed. */
 .atlas-foundry-hud-toggle {
-  order: 5;
+  order: 6;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -762,15 +784,113 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   opacity: 1;
 }
 
-.atlas-foundry-token-hud-button {
-  cursor: pointer;
-}
-
 .atlas-foundry-link-target-picker .atlas-foundry-row {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.15rem 0;
+}
+
+/* --- Deadlines (right HUD column, between quests and documents) --- */
+
+.atlas-foundry-deadlines {
+  order: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  width: 14rem;
+}
+
+.atlas-foundry-deadlines-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  width: 100%;
+  max-height: 40vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  pointer-events: auto;
+}
+
+.atlas-foundry-deadline-doc,
+.atlas-foundry-deadline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem 0.2rem 0.2rem;
+  height: auto;
+  cursor: pointer;
+  text-align: right;
+}
+
+.atlas-foundry-deadline-doc {
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+.atlas-foundry-deadline-row {
+  width: 100%;
+}
+
+.atlas-foundry-deadline-doc:hover,
+.atlas-foundry-deadline-row:hover {
+  border-color: var(--color-border-highlight, #6c9ef8);
+}
+
+.atlas-foundry-deadline-thumb {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 0.75rem;
+  background: var(--atlas-type-color, #94a3b8);
+}
+
+.atlas-foundry-deadline-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+}
+
+.atlas-foundry-deadline-doc-title,
+.atlas-foundry-deadline-name {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.atlas-foundry-deadline-remaining {
+  flex: none;
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.atlas-foundry-deadline-remaining.atlas-foundry-deadline-overdue {
+  opacity: 1;
+  color: var(--color-level-warning, #e0a500);
 }
 
 /* --- Quest tracker (right HUD column, below the search field) --- */
@@ -841,6 +961,29 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.25rem;
+}
+
+.atlas-foundry-search-hud-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.atlas-foundry-search-hud-dashboard {
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.atlas-foundry-search-hud-dashboard:hover {
+  border-color: var(--color-border-highlight, #6c9ef8);
 }
 
 /* The field itself stays small; the hit list below is wider so thumbnails and titles fit. */
@@ -1157,4 +1300,97 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   border: 1px solid var(--color-border-highlight, #6c9ef8);
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.atlas-foundry-notification-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+}
+
+.atlas-foundry-notification-popup-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.atlas-foundry-notification-popup-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.atlas-foundry-notification-popup-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.atlas-foundry-notification-popup-picture,
+.atlas-foundry-notification-popup-image {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+.atlas-foundry-notification-popup-picture {
+  max-height: 30vh;
+}
+
+.atlas-foundry-notification-popup-image {
+  max-height: 60vh;
+}
+
+.atlas-foundry-notification-popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+/* Diary invitation layout: picture left, text right; reuses the popup's button row. */
+.atlas-foundry-diary-invite-main {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.atlas-foundry-diary-invite-picture,
+.atlas-foundry-diary-invite-tile {
+  flex: 0 0 120px;
+  width: 120px;
+  height: 120px;
+  border-radius: 4px;
+}
+
+.atlas-foundry-diary-invite-picture {
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.atlas-foundry-diary-invite-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: #fff;
+  background: #6366f1;
+}
+
+.atlas-foundry-diary-invite-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.atlas-foundry-diary-invite-date {
+  font-size: var(--font-size-12, 0.8rem);
+  opacity: 0.8;
+}
+
+.atlas-foundry-notification-popup-invitation .atlas-foundry-notification-popup-buttons {
+  flex-wrap: wrap;
 }

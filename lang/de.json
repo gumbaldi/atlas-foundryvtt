@@ -168,8 +168,6 @@
       "Remove": "Entfernen",
       "LabelPlaceholder": "Label (optional)",
       "NoneVisible": "Keine für dich sichtbaren Verknüpfungen.",
-      "ViewButton": "Atlas-Verknüpfungen anzeigen",
-      "EditButton": "Atlas-Verknüpfungen bearbeiten",
       "PickTargetScene": "Aktive Szene: {name}",
       "PickTargetToken": "Ausgewähltes Token: {name}",
       "PickTargetSheet": "Offenes Fenster: {name}",
@@ -178,18 +176,39 @@
       "SceneControlTool": "Atlas-Verknüpfungen der Szene",
       "OverflowTitle": "{count} weitere Verknüpfungen",
       "OpenUnavailable": "Dieses Dokument konnte nicht in Atlas geöffnet werden — es existiert möglicherweise nicht mehr oder du hast keinen Zugriff.",
-      "Heading": "Verknüpfungen"
+      "Heading": "Dokumente"
     },
     "Quests": {
       "More": "+{count} weitere",
       "AllInAtlas": "Alle Quests in Atlas"
     },
+    "Deadlines": {
+      "Heading": "Fristen",
+      "OpenDeadlineTab": "Alle Fristen dieses Dokuments in Atlas anzeigen",
+      "ManageTitle": "Dokumente für Fristen",
+      "ManageHint": "Spieler sehen die laufenden Fristen dieser Dokumente zusätzlich zu denen ihrer eigenen Charaktere. Die Liste selbst ist für alle Spieler sichtbar; welche Fristen sie tatsächlich erhalten, entscheiden weiterhin die Atlas-Berechtigungen.",
+      "ManageTool": "Dokumente wählen, deren Fristen alle sehen",
+      "ManageEdit": "Dokumente wählen, deren Fristen alle Spieler sehen",
+      "ManageEmpty": "Noch keine Dokumente gewählt.",
+      "ManageAdd": "Hinzufügen…",
+      "ManageLimit": "Höchstens {count} Dokumente.",
+      "ManageUnknown": "Nicht gefunden oder nicht lesbar"
+    },
     "Hud": {
-      "ToggleTool": "Quests und Verknüpfungen anzeigen",
-      "KeybindingName": "Atlas-Quests und -Verknüpfungen ein-/ausklappen",
-      "Collapse": "Quests und Verknüpfungen zuklappen",
-      "Expand": "Quests und Verknüpfungen anzeigen ({count})",
-      "SwitchTool": "Atlas-HUD anzeigen"
+      "ToggleTool": "Quests, Fristen und Dokumente anzeigen",
+      "KeybindingName": "Atlas-Quests, -Fristen und -Dokumente ein-/ausklappen",
+      "Collapse": "Quests, Fristen und Dokumente zuklappen",
+      "Expand": "Quests, Fristen und Dokumente anzeigen ({count})",
+      "SwitchTool": "Atlas-HUD anzeigen",
+      "OpenDashboard": "Kampagnen-Dashboard in Atlas öffnen"
+    },
+    "Diary": {
+      "InviteTitle": "Neues Sitzungslog",
+      "InviteText": "Es gibt ein neues Sitzungslog, und du hast dazu noch keinen Tagebucheintrag geschrieben. Lies es doch und hinterlasse deinen eigenen Tagebucheintrag!",
+      "InviteRealDate": "Gespielt am {date}",
+      "InviteInWorldDate": "In der Spielwelt: {date}",
+      "InviteOpen": "Log lesen und Tagebucheintrag schreiben",
+      "InviteDismiss": "Für dieses Log nicht mehr erinnern"
     },
     "Notifications": {
       "Title": "Atlas-Benachrichtigungen",
@@ -207,7 +226,8 @@
       "BroadcastSent": "Vorschlag an alle Spieler gesendet.",
       "SuggestOpenToast": "Der Spielleiter möchte dir „{name}“ zeigen.",
       "SuggestOpenButton": "Öffnen",
-      "NewToast": "Neue Atlas-Benachrichtigung: {subject}",
+      "PopupOpenInAtlas": "In Atlas öffnen",
+      "PopupOpenDashboard": "Dashboard in Atlas öffnen",
       "ActionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen.",
       "JustNow": "gerade eben",
       "MinutesAgo": "vor {count} Min.",

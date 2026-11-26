@@ -1,0 +1,12 @@
+{
+  "sessionLog": {
+    "id": "6af153b44755e79bfcd90d96",
+    "name": "Contract Session Log",
+    "sessionNumber": 12,
+    "imageUrl": "/api/v1/files/contract-session.png",
+    "sessionDate": "2026-11-14",
+    "inWorldDate": { "year": 1492, "month": 3, "day": 7 },
+    "calendarName": "Contract Calendar"
+  },
+  "hasDiaryEntry": false
+}
