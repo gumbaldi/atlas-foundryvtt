@@ -29,7 +29,7 @@ CI (`.github/workflows/release.yml`) runs lint, typecheck, test, the contract ty
 
 ## Versionierung / Manifest
 
-- `package.json` `version` is the single source of truth. The build (`vite.config.ts`) and `scripts/package.mjs` patch `module.json`'s version from it, and `__MODULE_VERSION__` is injected as a compile-time define. Don't hand-edit `module.json`'s version. CI commits the packaged `module.json` back to the branch, which is why its `version`/`download` fields can lag behind `package.json`.
+- `package.json` `version` is the single source of truth. The build (`vite.config.ts`) and `scripts/package.mjs` patch `module.json`'s version from it, and `__MODULE_VERSION__` is injected as a compile-time define. Don't hand-edit `module.json`'s version. CI commits the packaged `module.json` back to `main` only (never to `test` or `dev`, so `test → main` merges don't conflict on it), which is why its `version`/`download` fields on `main` can lag behind `package.json`.
 - Manifest/download URLs come from `ATLAS_FOUNDRY_MANIFEST_URL` and `ATLAS_FOUNDRY_DOWNLOAD_URL_TEMPLATE` (`{version}` is substituted).
 - Don't raise `compatibility.verified` in `module.json` without a completed `docs/SMOKE-TEST.md` run (see `docs/RELEASING.md`).
 

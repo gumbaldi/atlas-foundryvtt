@@ -95,12 +95,13 @@ jobs:
 
       - name: Update module.json in branch
         id: update_manifest
-        if: github.event_name == 'push'
+        # Only main commits the manifest. test and dev would otherwise diverge from main in
+        # module.json on every push, and every test -> main merge would conflict on it.
+        if: github.event_name == 'push' && github.ref_name == 'main'
         env:
           BRANCH: ${{ github.ref_name }}
         run: |
-          # The test-channel build above rewrites package.json (npm pkg set). Drop
-          # those build-time edits so the tree is clean for the rebase below.
+          # Make sure the tree is clean for the rebase below.
           git restore .
           cp release/module.json module.json
 
