@@ -11,6 +11,8 @@ import { KIND_ICONS, cascadeOffset, popupBody, popupTitle, type PopupInvitation,
 import type { AtlasMessage } from '../atlas-types';
 
 const POPUP_WIDTH = 420;
+/** The session-log invitation carries a picture plus text next to it, so it gets more room. */
+const INVITATION_POPUP_WIDTH = 480;
 const POPUP_APPROX_HEIGHT = 320;
 const POPUP_MIN_TOP = 40;
 
@@ -47,12 +49,13 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
 
   constructor(message: AtlasMessage | null, layout: PopupLayout, index: number, onClosed: () => void, invitation?: PopupInvitation) {
     const offset = cascadeOffset(index);
+    const width = layout === 'invitation' ? INVITATION_POPUP_WIDTH : POPUP_WIDTH;
     super({
       id: message ? `atlas-notification-popup-${message.id}` : `atlas-diary-invitation-${invitation?.sessionLog.id ?? 'unknown'}`,
       ...(layout === 'invitation' ? { window: { title: 'ATLASFOUNDRY.Diary.InviteTitle', icon: 'fa-solid fa-book-bookmark', resizable: false } } : {}),
       position: {
-        width: POPUP_WIDTH,
-        left: Math.max(0, Math.round((window.innerWidth - POPUP_WIDTH) / 2) + offset),
+        width,
+        left: Math.max(0, Math.round((window.innerWidth - width) / 2) + offset),
         top: Math.max(POPUP_MIN_TOP, Math.round((window.innerHeight - POPUP_APPROX_HEIGHT) / 2) + offset),
       },
     });
@@ -168,13 +171,13 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
   }
 
   /**
-   * Opens the session log on its diary tab. The "new session log" notification (this window's own
+   * Opens the session log itself in Atlas. The "new session log" notification (this window's own
    * or an unread one in the store) is acknowledged with it, so the bell keeps no second pending item.
    */
   private openLogAndAcknowledge(): void {
     const log = this.invitation?.sessionLog;
     if (!log) return;
-    void openInAtlas({ moduleType: 'session-logs', documentId: log.id, tab: 'diary' });
+    void openInAtlas({ moduleType: 'session-logs', documentId: log.id });
 
     const ids = new Set(unreadSessionLogMessageIds(notificationStore.getState().items, log.id));
     if (this.message) ids.add(this.message.id);

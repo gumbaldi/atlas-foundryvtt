@@ -204,7 +204,7 @@
     },
     "Diary": {
       "InviteTitle": "Neues Sitzungslog",
-      "InviteText": "Es gibt ein neues Sitzungslog, und du hast dazu noch keinen Tagebucheintrag geschrieben. Lies es doch und hinterlasse deinen eigenen Tagebucheintrag!",
+      "InviteText": "Für dieses neue Sitzungslog gibt es noch keinen Tagebucheintrag von dir. Lies das Log und schreibe deinen eigenen Tagebucheintrag.",
       "InviteRealDate": "Gespielt am {date}",
       "InviteInWorldDate": "In der Spielwelt: {date}",
       "InviteOpen": "Log lesen und Tagebucheintrag schreiben",

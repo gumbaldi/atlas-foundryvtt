@@ -1302,11 +1302,13 @@ body.atlas-foundry-hud-off .atlas-foundry-hud-right {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* min-width: 0 undoes `.atlas-foundry`'s 420px minimum, which pushed the padded content past the window edge. */
 .atlas-foundry-notification-popup-content {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   padding: 0.75rem;
+  min-width: 0;
 }
 
 .atlas-foundry-notification-popup-head {
