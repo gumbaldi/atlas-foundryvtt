@@ -110,13 +110,15 @@ manual pre-release checklist. The end-to-end permission checks against a live ba
 
 - **Pull requests** into `main` must raise the version in `package.json`.
 - **Every run** lints, typechecks, runs the unit and contract tests, and builds the package.
-- **Pushes** make the bot commit the regenerated `module.json` back to the branch
-  (`chore: update Foundry manifest`), rebasing onto the branch head first. The `version` and
-  `download` fields in `module.json` can therefore lag behind `package.json`.
-- **Push to `main`** creates the GitHub release `foundry-v<version>` with the Zip and `module.json`.
+- **Push to `main`** makes the bot commit the regenerated `module.json` back to `main`
+  (`chore: update Foundry manifest`), then creates the GitHub release `foundry-v<version>` with the Zip
+  and `module.json`. The `version` and `download` fields in `module.json` can therefore lag behind
+  `package.json`.
 - **Push to `test`** refreshes the rolling `foundry-test` prerelease, version `<version>-test.<run>`.
   The build there rewrites `package.json` on the runner only; that edit is discarded and never committed.
-- **Push to `dev`** runs the checks and updates the manifest, but publishes nothing.
+  It does not commit `module.json`, so `test` stays free of manifest commits and merging `test` into
+  `main` does not conflict on `module.json`.
+- **Push to `dev`** runs the checks and publishes nothing.
 
 ## Foundry API Grounding
 

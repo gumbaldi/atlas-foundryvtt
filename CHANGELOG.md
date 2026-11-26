@@ -10,6 +10,8 @@ before `compatibility.verified` in `module.json` is raised — see
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-11-26
+
 ### Added
 - A friendly invitation window: when you enter the world and have not written a diary entry for the
   latest session log yet, it shows the log (picture, number, title, real and in-world date) and invites
