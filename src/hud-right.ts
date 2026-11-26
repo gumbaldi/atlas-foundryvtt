@@ -16,6 +16,25 @@ let observer: ResizeObserver | null = null;
 const observed = new WeakSet<Element>();
 
 /**
+ * Pure: the top of the column. The first sidebar tab wins, then the tab strip,
+ * then the sidebar itself; `null` when nothing is measurable. Never negative.
+ */
+export function resolveHudTop(input: { firstTabTop: number | null; tabsTop: number | null; sidebarTop: number | null }): number | null {
+  const top = input.firstTabTop ?? input.tabsTop ?? input.sidebarTop;
+  return top === null ? null : Math.max(0, top);
+}
+
+/** Top edge of the first visible tab button of the sidebar tab strip (the Chat tab), or `null`. */
+function measureFirstTabTop(tabs: HTMLElement | null): number | null {
+  if (!tabs || typeof tabs.querySelectorAll !== 'function') return null;
+  for (const el of Array.from(tabs.querySelectorAll<HTMLElement>('button, [data-tab], li'))) {
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0) return rect.top;
+  }
+  return null;
+}
+
+/**
  * Pins the column to the visible right-hand sidebar: left of the open panel, or
  * left of the tab strip when collapsed. `#ui-right` is wider than what is
  * visible, so the CSS `right: 100%` rule alone lands too far left. Without a
@@ -38,9 +57,21 @@ function placeRightHud(hud: HTMLElement): void {
   }
 
   const left = Math.min(...edges.map((rect) => rect.left));
-  const top = sidebar.getBoundingClientRect().top;
+  const tabs = document.getElementById('sidebar-tabs');
+  const top = resolveHudTop({
+    firstTabTop: measureFirstTabTop(tabs),
+    tabsTop: tabs && typeof tabs.getBoundingClientRect === 'function' ? tabs.getBoundingClientRect().top : null,
+    sidebarTop: sidebar.getBoundingClientRect().top,
+  });
+  if (top === null) {
+    hud.style.position = '';
+    hud.style.top = '';
+    hud.style.right = '';
+    hud.style.margin = '';
+    return;
+  }
   hud.style.position = 'fixed';
-  hud.style.top = `${Math.max(0, top) + GAP_PX}px`;
+  hud.style.top = `${top}px`;
   hud.style.right = `${window.innerWidth - left + GAP_PX}px`;
   hud.style.margin = '0';
 }

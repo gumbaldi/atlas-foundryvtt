@@ -1,3 +1,38 @@
+- batchNumber: 6
+  batch: 006-2026-11-22-hud-deadlines-and-live-notifications
+  branch: cfq/006-2026-11-22-hud-deadlines-and-live-notifications
+  base: test
+  started: 2026-11-23
+  status: done
+  finished: 2026-11-23
+  phases:
+    - phase: "01-trim-token-hud-and-rename-links-section"
+      status: "green"
+      summary: "Removed the token HUD link buttons (token-hud.ts, registration, CSS, lang keys) and renamed the Links heading to Documents/Dokumente; docs and changelog updated"
+    - phase: "02-align-hud-column-and-add-dashboard-button"
+      status: "green"
+      summary: "HUD column top now aligns to the first sidebar tab via resolveHudTop; dashboard button before the search field using the new shared openCampaignDashboard helper"
+    - phase: "03-deadline-data-layer"
+      status: "green"
+      summary: "Deadline overview zod schemas, refs parsing, grouping/sorting logic, cached API call (404 -> null) and the world setting deadlineDocuments with getter/setter and change hook"
+    - phase: "04-deadline-hud-section"
+      status: "green"
+      summary: "Deadlines HUD section (src/deadlines/deadline-section.ts) wired into init and session reset, tab option for openInAtlas, pill icon, CSS order and styles, lang keys and Hud.* rewording, changelog entry"
+    - phase: "05-deadline-documents-manager"
+      status: "green"
+      summary: "GM-only window to add/remove documents whose deadlines all players see, opened from a pencil in the Deadlines heading and an atlasDeadlineDocs scene-controls tool; pure add/remove list state with spec; session-reset close; lang, css, changelog"
+    - phase: "06-notification-arrival-detection-and-fast-polling"
+      status: "green"
+      summary: "Pure detectArrivals, seen-set seeding and notificationArrived hook in the notification store, quiet poll resync, 30 s fallback poll interval"
+    - phase: "07-notification-popup-windows"
+      status: "green"
+      summary: "A NotificationPopupApp window per arriving notification (text or large image layout, Open in Atlas / dashboard and Acknowledge buttons, max 3 cascaded, quiet-mode and session aware); the old toast and its language key are removed"
+    - phase: "08-diary-invitation"
+      status: "green"
+      summary: "Diary invitation: schema, fixture and contract cases, diary API and pure model, dismissed-list setting, invitation layout in the popup window, login trigger and arrival hook (resolveArrivalLayout), session reset, language keys, styles and changelog"
+    - phase: "09-smoke-test-and-docs"
+      status: "green"
+      summary: "Smoke test updated for token HUD, Documents heading, Deadlines section, HUD alignment/dashboard checks, notification windows and diary invitation; CLAUDE.md names deadlines/ and diary/, popup windows and 30 s poll; CHANGELOG deadline entries merged"
 - batchNumber: 5
   batch: 005-2026-11-18-foundry-ui-rework
   branch: cfq/005-2026-11-18-foundry-ui-rework

@@ -93,6 +93,45 @@ describe('main.ts start-up', () => {
     expect((harness.handlers['getSceneControlButtons'] ?? []).length).toBeGreaterThan(0);
   });
 
+  it('registers the deadline section listeners in init', async () => {
+    await import('./main');
+    expect(harness.handlers['atlas-foundry.deadlineDocumentsChanged']).toBeUndefined();
+    harness.fire('init');
+
+    expect((harness.handlers['atlas-foundry.deadlineDocumentsChanged'] ?? []).length).toBeGreaterThan(0);
+    expect((harness.handlers['atlas-foundry.authChanged'] ?? []).length).toBeGreaterThan(0);
+  });
+
+  it('registers the notification popup listener in init', async () => {
+    await import('./main');
+    expect(harness.handlers['atlas-foundry.notificationArrived']).toBeUndefined();
+    harness.fire('init');
+
+    expect((harness.handlers['atlas-foundry.notificationArrived'] ?? []).length).toBeGreaterThan(0);
+  });
+
+  it('registers the diary invitation in init', async () => {
+    const registerDiaryInvitation = vi.fn(() => {
+      Hooks.on('atlas-foundry.authChanged', () => undefined);
+    });
+    vi.doMock('./diary/diary-invitation', () => ({
+      registerDiaryInvitation,
+      resolveArrivalLayout: vi.fn(),
+      clearDiaryInvitation: vi.fn(),
+    }));
+    try {
+      await import('./main');
+      expect(registerDiaryInvitation).not.toHaveBeenCalled();
+      const before = (harness.handlers['atlas-foundry.authChanged'] ?? []).length;
+      harness.fire('init');
+
+      expect(registerDiaryInvitation).toHaveBeenCalledOnce();
+      expect((harness.handlers['atlas-foundry.authChanged'] ?? []).length).toBeGreaterThan(before);
+    } finally {
+      vi.doUnmock('./diary/diary-invitation');
+    }
+  });
+
   it('offers only the connect tool in the Atlas control group while signed out', async () => {
     await import('./main');
     harness.fire('init');
@@ -117,9 +156,27 @@ describe('main.ts start-up', () => {
     harness.fire('getSceneControlButtons', controls);
 
     expect(Object.keys(controls.atlas.tools)).toEqual(
-      expect.arrayContaining(['atlasSearch', 'atlasHudToggle', 'atlasNotifications', 'atlasSceneLinks']),
+      expect.arrayContaining(['atlasSearch', 'atlasHudToggle', 'atlasNotifications', 'atlasSceneLinks', 'atlasDeadlineDocs']),
     );
     expect(controls.atlas.tools.atlasConnect).toBeUndefined();
+  });
+
+  it('offers the deadline documents tool to the GM only', async () => {
+    game.user.id = 'u1';
+    vi.mocked(game.settings.get).mockImplementation((_ns: string, key: string) =>
+      key === 'userTokens' ? { u1: { token: 'device-token', tokenId: 'tok-1' } } : undefined,
+    );
+    await import('./main');
+    harness.fire('init');
+
+    const gmControls: Record<string, any> = { tokens: { tools: {} as Record<string, unknown> } };
+    harness.fire('getSceneControlButtons', gmControls);
+    expect(gmControls.atlas.tools.atlasDeadlineDocs).toBeDefined();
+
+    game.user.isGM = false;
+    const playerControls: Record<string, any> = { tokens: { tools: {} as Record<string, unknown> } };
+    harness.fire('getSceneControlButtons', playerControls);
+    expect(playerControls.atlas.tools.atlasDeadlineDocs).toBeUndefined();
   });
 
   it('hooks the V14 scene context menu and not the removed getSceneNavigationContext', async () => {
@@ -128,6 +185,15 @@ describe('main.ts start-up', () => {
 
     expect((harness.handlers['getSceneContextOptions'] ?? []).length).toBeGreaterThan(0);
     expect(harness.handlers['getSceneNavigationContext']).toBeUndefined();
+  });
+
+  it('registers the scene bar, sheet header and scene context hooks but no renderTokenHUD listener', async () => {
+    await import('./main');
+    harness.fire('init');
+
+    expect(harness.handlers['renderTokenHUD']).toBeUndefined();
+    expect((harness.handlers['getHeaderControlsApplicationV2'] ?? []).length).toBeGreaterThan(0);
+    expect((harness.handlers['getSceneContextOptions'] ?? []).length).toBeGreaterThan(0);
   });
 
   it('registers the GM settings as an official module menu and no renderSettings button', async () => {

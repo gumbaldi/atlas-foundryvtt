@@ -7,13 +7,15 @@ import { atlasSocket } from './socket/atlas-socket';
 import { openSearch, SearchApp } from './search/search-app';
 import { registerLinkEntryPoints } from './links/link-entry-points';
 import { registerSceneLinksBar, renderSceneLinksBarNow } from './links/scene-links-bar';
-import { registerTokenHud } from './links/token-hud';
 import { pickLinkTarget } from './links/link-pick-target';
 import { registerQuestTracker } from './quests/quest-tracker';
+import { registerDeadlineSection } from './deadlines/deadline-section';
 import { registerHudPanels, toggleHudPanels } from './hud-panels';
 import { registerSearchHud } from './search/search-hud';
 import { notificationStore } from './notifications/notification-store';
 import { registerBell } from './notifications/bell';
+import { registerDiaryInvitation } from './diary/diary-invitation';
+import { registerNotificationPopups } from './notifications/notification-popups';
 import { openNotificationCenter, registerGmBroadcastReceiver, registerNotificationsControl } from './notifications/notification-center-app';
 import { resetSessionData } from './session-reset';
 import { MODULE_ID } from './constants';
@@ -98,10 +100,12 @@ Hooks.once('init', () => {
   Hooks.on('atlas-foundry.sessionReset', resetSessionData);
   registerLinkEntryPoints();
   registerSceneLinksBar();
-  registerTokenHud();
   registerQuestTracker();
+  registerDeadlineSection();
   registerHudPanels();
   registerNotificationsControl();
+  registerNotificationPopups();
+  registerDiaryInvitation();
 });
 
 // Runtime work only: auth state, DOM, game.socket, network.

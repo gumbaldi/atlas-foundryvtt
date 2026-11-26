@@ -62,6 +62,60 @@ export const AtlasDocumentDetailSchema = AtlasDocumentSummarySchema.extend({
 });
 export type AtlasDocumentDetail = z.infer<typeof AtlasDocumentDetailSchema>;
 
+/** One running (or finished) deadline of a document, as returned by the deadlines overview. */
+export const AtlasDeadlineEntrySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  imageUrl: z.string().optional(),
+  deadlineState: DeadlineStateSchema,
+  dueDate: DeadlineDaySchema.optional(),
+  /** Negative when overdue, `null` when it cannot be derived. */
+  daysRemaining: z.number().nullable().optional(),
+  calendarName: z.string().optional(),
+});
+export type AtlasDeadlineEntry = z.infer<typeof AtlasDeadlineEntrySchema>;
+
+export const AtlasDeadlineGroupSchema = z.object({
+  /** `account-character`: the caller's own character; `selected`: a document the GM picked. */
+  source: z.enum(['account-character', 'selected']),
+  document: z.object({
+    id: z.string(),
+    moduleType: ModuleTypeOrCustomSchema,
+    name: z.string(),
+    sessionNumber: z.number().nullable().optional(),
+    imageUrl: z.string().optional(),
+    customModuleId: z.string().optional(),
+  }),
+  deadlines: z.array(AtlasDeadlineEntrySchema),
+});
+export type AtlasDeadlineGroup = z.infer<typeof AtlasDeadlineGroupSchema>;
+
+export const AtlasDeadlineOverviewSchema = z.object({
+  groups: z.array(AtlasDeadlineGroupSchema),
+});
+export type AtlasDeadlineOverview = z.infer<typeof AtlasDeadlineOverviewSchema>;
+
+/**
+ * The latest session log and whether the caller already wrote a diary entry for it. `sessionLog`
+ * is `null` when the campaign has no session log yet.
+ */
+export const AtlasDiaryInvitationSchema = z.object({
+  sessionLog: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      sessionNumber: z.number().nullable().optional(),
+      imageUrl: z.string().optional(),
+      /** ISO date of the real-world session. */
+      sessionDate: z.string().optional(),
+      inWorldDate: DeadlineDaySchema.optional(),
+      calendarName: z.string().optional(),
+    })
+    .nullable(),
+  hasDiaryEntry: z.boolean(),
+});
+export type AtlasDiaryInvitation = z.infer<typeof AtlasDiaryInvitationSchema>;
+
 export const AtlasNotificationPayloadSchema = z.object({
   campaignId: z.string(),
   body: z.string(),

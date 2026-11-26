@@ -113,23 +113,20 @@ describe('NotificationStore', () => {
     expect(listMessages).not.toHaveBeenCalled();
   });
 
-  it('resyncs and shows a toast on a notification:new wakeup, unless quietMode is on', async () => {
+  it('resyncs exactly once on a notification:new wakeup', async () => {
     const store = freshStore();
     store.start();
     await vi.advanceTimersByTimeAsync(0);
     vi.mocked(fetchUnreadCount).mockResolvedValue(1);
+    vi.mocked(listMessages).mockClear();
     vi.mocked(listMessages).mockResolvedValue([makeMessage()]);
 
     Hooks.callAll('atlas-foundry.socketEvent', 'notification:new', { messageId: 'm1', campaignId: 'camp-1', subject: 'Hello' });
     await vi.advanceTimersByTimeAsync(0);
 
     expect(store.getState().unreadCount).toBe(1);
-    expect(ui.notifications.info).toHaveBeenCalledTimes(1);
-
-    vi.mocked(getQuietMode).mockReturnValue(true);
-    Hooks.callAll('atlas-foundry.socketEvent', 'notification:new', { messageId: 'm2', campaignId: 'camp-1', subject: 'Quiet' });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(ui.notifications.info).toHaveBeenCalledTimes(1); // still 1 — suppressed while quiet
+    expect(listMessages).toHaveBeenCalledTimes(1);
+    expect(ui.notifications.info).not.toHaveBeenCalled();
   });
 
   it('ignores unrelated socket events', async () => {
@@ -237,7 +234,7 @@ describe('NotificationStore', () => {
     });
   });
 
-  it('polls every 10 minutes while the socket is connected, every 3 minutes while degraded', async () => {
+  it('polls every 10 minutes while the socket is connected, every 30 seconds while degraded or disconnected', async () => {
     vi.mocked(atlasSocket.getStatus).mockReturnValue('connected');
     const store = freshStore();
     store.start();
@@ -249,14 +246,116 @@ describe('NotificationStore', () => {
     await vi.advanceTimersByTimeAsync(1 * 60_000 + 1);
     expect(listMessages).toHaveBeenCalledTimes(1);
 
-    vi.mocked(atlasSocket.getStatus).mockReturnValue('degraded');
-    Hooks.callAll('atlas-foundry.socketStatusChanged', 'degraded');
-    vi.mocked(listMessages).mockClear();
+    for (const status of ['degraded', 'disconnected'] as const) {
+      vi.mocked(atlasSocket.getStatus).mockReturnValue(status);
+      Hooks.callAll('atlas-foundry.socketStatusChanged', status);
+      vi.mocked(listMessages).mockClear();
 
-    await vi.advanceTimersByTimeAsync(2 * 60_000);
-    expect(listMessages).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(1 * 60_000 + 1);
-    expect(listMessages).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(29_000);
+      expect(listMessages).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1_000 + 1);
+      expect(listMessages).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  describe('arrival detection', () => {
+    function arrivedCalls() {
+      return vi.mocked(Hooks.callAll).mock.calls.filter((c) => c[0] === 'atlas-foundry.notificationArrived');
+    }
+
+    it('seeds on the first sync, then emits each new unread message once', async () => {
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'old' })]);
+      const store = freshStore();
+      store.start();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(arrivedCalls()).toHaveLength(0);
+
+      const fresh = makeMessage({ id: 'new' });
+      vi.mocked(listMessages).mockResolvedValue([fresh, makeMessage({ id: 'old' })]);
+      await store.resync();
+      expect(arrivedCalls()).toHaveLength(1);
+      expect(arrivedCalls()[0]![1]).toEqual(fresh);
+
+      await store.resync();
+      expect(arrivedCalls()).toHaveLength(1);
+    });
+
+    it('seeds again after a reset (sign-out) and a later active resync', async () => {
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'old' })]);
+      const store = freshStore();
+      store.start();
+      await vi.advanceTimersByTimeAsync(0);
+
+      Hooks.callAll('atlas-foundry.authChanged', { state: 'loggedOut' });
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'old' }), makeMessage({ id: 'other' })]);
+      Hooks.callAll('atlas-foundry.authChanged', { state: 'active' });
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(arrivedCalls()).toHaveLength(0);
+    });
+
+    it('emits arrivals after the state notification', async () => {
+      const store = freshStore();
+      store.start();
+      await vi.advanceTimersByTimeAsync(0);
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'new' })]);
+      vi.mocked(Hooks.callAll).mockClear();
+
+      await store.resync();
+      const hooks = vi.mocked(Hooks.callAll).mock.calls.map((c) => c[0]);
+      expect(hooks.lastIndexOf('atlas-foundry.notificationsChanged')).toBeLessThan(
+        hooks.indexOf('atlas-foundry.notificationArrived'),
+      );
+    });
+  });
+
+  describe('quiet resync', () => {
+    function changedCount() {
+      return vi.mocked(Hooks.callAll).mock.calls.filter((c) => c[0] === 'atlas-foundry.notificationsChanged').length;
+    }
+
+    it('does not notify before the answer when items are loaded, and notifies once after a change', async () => {
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'a' })]);
+      const store = freshStore();
+      store.start();
+      await vi.advanceTimersByTimeAsync(0);
+
+      let release!: (items: AtlasMessage[]) => void;
+      vi.mocked(listMessages).mockReturnValue(new Promise((resolve) => (release = resolve)));
+      vi.mocked(Hooks.callAll).mockClear();
+
+      const pending = store.resync({ quiet: true });
+      expect(changedCount()).toBe(0);
+      expect(store.getState().status).toBe('idle');
+
+      release([makeMessage({ id: 'a' }), makeMessage({ id: 'b' })]);
+      await pending;
+      expect(changedCount()).toBe(1);
+    });
+
+    it('does not notify at all when nothing changed', async () => {
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'a' })]);
+      const store = freshStore();
+      store.start();
+      await vi.advanceTimersByTimeAsync(0);
+      vi.mocked(Hooks.callAll).mockClear();
+
+      await store.resync({ quiet: true });
+      expect(changedCount()).toBe(0);
+    });
+
+    it('the poll timer resyncs quietly', async () => {
+      vi.mocked(atlasSocket.getStatus).mockReturnValue('degraded');
+      vi.mocked(listMessages).mockResolvedValue([makeMessage({ id: 'a' })]);
+      const store = freshStore();
+      store.start();
+      await vi.advanceTimersByTimeAsync(0);
+      vi.mocked(Hooks.callAll).mockClear();
+
+      await vi.advanceTimersByTimeAsync(30_000 + 1);
+      expect(listMessages).toHaveBeenCalledTimes(2);
+      expect(changedCount()).toBe(0);
+    });
   });
 
   it('markRead optimistically flips isRead and decrements unreadCount, committing on success', async () => {

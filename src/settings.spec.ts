@@ -6,6 +6,11 @@ import {
   getBaseUrl,
   getCampaignId,
   getCampaignSlug,
+  getDeadlineDocuments,
+  getDismissedDiaryInvitations,
+  registerSettings,
+  setDismissedDiaryInvitations,
+  setDeadlineDocuments,
   getRecentSearchList,
   setRecentSearchList,
   getUserToken,
@@ -143,6 +148,73 @@ describe('settings helpers', () => {
   it('round-trips campaignSlug', async () => {
     await setCampaignSlug('dvl');
     expect(getCampaignSlug()).toBe('dvl');
+  });
+});
+
+describe('deadlineDocuments setting', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = {};
+    mockGame(store);
+    globalThis.Hooks = { callAll: vi.fn() } as unknown as HooksStatic;
+  });
+
+  it('is registered world-scoped and hidden from the settings screen', () => {
+    registerSettings();
+    const call = vi.mocked(game.settings.register).mock.calls.find(([, key]) => key === 'deadlineDocuments');
+    expect(call?.[2]).toMatchObject({ scope: 'world', config: false, type: Array, default: [] });
+    call?.[2]?.onChange?.(undefined);
+    expect(Hooks.callAll).toHaveBeenCalledWith('atlas-foundry.deadlineDocumentsChanged');
+  });
+
+  it('round-trips ids and module types only', async () => {
+    await setDeadlineDocuments([{ documentId: 'a', moduleType: 'locations', name: 'Fortress' } as never]);
+    expect(store.deadlineDocuments).toEqual([{ documentId: 'a', moduleType: 'locations' }]);
+    expect(getDeadlineDocuments()).toEqual([{ documentId: 'a', moduleType: 'locations' }]);
+  });
+
+  it('reads a malformed stored value as []', () => {
+    store.deadlineDocuments = 'garbage';
+    expect(getDeadlineDocuments()).toEqual([]);
+    store.deadlineDocuments = [{ documentId: 3 }, null];
+    expect(getDeadlineDocuments()).toEqual([]);
+    delete store.deadlineDocuments;
+    expect(getDeadlineDocuments()).toEqual([]);
+  });
+});
+
+describe('dismissedDiaryInvitations setting', () => {
+  let store: Record<string, unknown>;
+
+  beforeEach(() => {
+    store = {};
+    mockGame(store);
+    globalThis.Hooks = { callAll: vi.fn() } as unknown as HooksStatic;
+  });
+
+  it('is registered client-scoped and hidden from the settings screen', () => {
+    registerSettings();
+    const call = vi.mocked(game.settings.register).mock.calls.find(([, key]) => key === 'dismissedDiaryInvitations');
+    expect(call?.[2]).toMatchObject({ scope: 'client', config: false, type: Array, default: [] });
+  });
+
+  it('round-trips the stored keys', async () => {
+    await setDismissedDiaryInvitations(['u1:log-1']);
+    expect(store.dismissedDiaryInvitations).toEqual(['u1:log-1']);
+    expect(getDismissedDiaryInvitations()).toEqual(['u1:log-1']);
+  });
+
+  it('reads a non-array stored value as []', () => {
+    store.dismissedDiaryInvitations = 'garbage';
+    expect(getDismissedDiaryInvitations()).toEqual([]);
+    delete store.dismissedDiaryInvitations;
+    expect(getDismissedDiaryInvitations()).toEqual([]);
+  });
+
+  it('keeps only the string entries of an array', () => {
+    store.dismissedDiaryInvitations = ['u1:log-1', 3, null];
+    expect(getDismissedDiaryInvitations()).toEqual(['u1:log-1']);
   });
 });
 

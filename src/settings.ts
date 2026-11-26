@@ -1,5 +1,6 @@
 import { MODULE_ID } from './constants';
 import { t } from './i18n';
+import { parseDeadlineRefs, type DeadlineRef } from './deadlines/deadline-refs';
 
 /** Strips trailing slashes / whitespace. Pure, no Foundry globals — kept testable. */
 export function normalizeBaseUrl(url: string): string {
@@ -86,6 +87,23 @@ export function registerSettings(): void {
     type: String,
     default: '',
   });
+  // The documents the GM picked so every player sees their deadlines: ids and module types only
+  // (no names, nothing secret in a setting every client can read); names come from the backend.
+  game.settings.register(MODULE_ID, 'deadlineDocuments', {
+    scope: 'world',
+    config: false,
+    type: Array,
+    default: [],
+    onChange: () => Hooks.callAll('atlas-foundry.deadlineDocumentsChanged'),
+  });
+  // Client-scoped: "<foundry user id>:<session log id>" of the diary invitations the player
+  // opted out of (ids only, at most 50, see diary/invitation-model.ts).
+  game.settings.register(MODULE_ID, 'dismissedDiaryInvitations', {
+    scope: 'client',
+    config: false,
+    type: Array,
+    default: [],
+  });
   // Client-scoped (per browser/localStorage, never synced to other clients) —
   // see the P3 plan's token storage risk assessment. Only the long-lived
   // Foundry user token lives here; the short-lived exchange JWT stays in memory.
@@ -166,6 +184,25 @@ export function registerSettings(): void {
     default: true,
     onChange: () => Hooks.callAll('atlas-foundry.showBellChanged'),
   });
+}
+
+/** The GM's picked deadline documents; a malformed stored value reads as `[]`. */
+export function getDeadlineDocuments(): DeadlineRef[] {
+  return parseDeadlineRefs(game.settings.get<unknown>(MODULE_ID, 'deadlineDocuments'));
+}
+
+export async function setDeadlineDocuments(refs: DeadlineRef[]): Promise<unknown> {
+  return game.settings.set(MODULE_ID, 'deadlineDocuments', parseDeadlineRefs(refs));
+}
+
+/** The dismissed diary invitations (`"<user id>:<log id>"`); a malformed stored value reads as `[]`. */
+export function getDismissedDiaryInvitations(): string[] {
+  const stored = game.settings.get<unknown>(MODULE_ID, 'dismissedDiaryInvitations');
+  return Array.isArray(stored) ? stored.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+export async function setDismissedDiaryInvitations(keys: string[]): Promise<unknown> {
+  return game.settings.set(MODULE_ID, 'dismissedDiaryInvitations', keys);
 }
 
 export function getBaseUrl(): string {

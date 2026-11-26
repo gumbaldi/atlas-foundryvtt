@@ -1,0 +1,48 @@
+{
+  "groups": [
+    {
+      "source": "account-character",
+      "document": {
+        "id": "6af153b44755e79bfcd90d91",
+        "moduleType": "characters",
+        "name": "Contract Hero",
+        "imageUrl": "/api/v1/files/contract-hero.png"
+      },
+      "deadlines": [
+        {
+          "id": "6af153b44755e79bfcd90d92",
+          "name": "Contract Deadline One",
+          "deadlineState": "upcoming",
+          "dueDate": { "year": 1492, "month": 3, "day": 7 },
+          "daysRemaining": 3,
+          "calendarName": "Contract Calendar"
+        },
+        {
+          "id": "6af153b44755e79bfcd90d93",
+          "name": "Contract Deadline Two",
+          "imageUrl": "/api/v1/files/contract-deadline.png",
+          "deadlineState": "due",
+          "dueDate": { "year": 1492, "month": 3, "day": 1 },
+          "daysRemaining": -2,
+          "calendarName": "Contract Calendar"
+        }
+      ]
+    },
+    {
+      "source": "selected",
+      "document": {
+        "id": "6af153b44755e79bfcd90d94",
+        "moduleType": "locations",
+        "name": "Contract Fortress"
+      },
+      "deadlines": [
+        {
+          "id": "6af153b44755e79bfcd90d95",
+          "name": "Contract Construction",
+          "deadlineState": "upcoming",
+          "daysRemaining": null
+        }
+      ]
+    }
+  ]
+}

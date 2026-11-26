@@ -1,10 +1,14 @@
+import { closeDeadlineDocsManager } from './deadlines/deadline-docs-app';
 import { documentCache } from './api/cache';
 import { clearInFlightGets } from './api/client';
 import { linkVisibility } from './links/link-visibility';
 import { clearQuestTracker } from './quests/quest-tracker';
+import { clearDeadlineSection } from './deadlines/deadline-section';
 import { closeSearch } from './search/search-app';
 import { closeAllLinkManagers } from './links/link-manager-app';
 import { clearRecentSearches } from './search/recent-searches';
+import { clearDiaryInvitation } from './diary/diary-invitation';
+import { closeAllNotificationPopups } from './notifications/notification-popups';
 
 /**
  * Runs on `atlas-foundry.sessionReset` (sign-in, sign-out, revoked token,
@@ -16,8 +20,12 @@ export function resetSessionData(): void {
   clearInFlightGets();
   linkVisibility.clear();
   clearQuestTracker();
+  clearDeadlineSection();
   closeSearch();
   closeAllLinkManagers();
+  closeDeadlineDocsManager();
+  closeAllNotificationPopups();
+  clearDiaryInvitation();
   // The typed search texts may reveal what a previous user looked for on a shared browser.
   void clearRecentSearches();
 }
