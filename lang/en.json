@@ -204,7 +204,7 @@
     },
     "Diary": {
       "InviteTitle": "New session log",
-      "InviteText": "There is a new session log, and you have not written a diary entry for it yet. Why not read it and leave your own diary entry?",
+      "InviteText": "There is a new session log and you have not written a diary entry for it yet. Read the log and write your own diary entry.",
       "InviteRealDate": "Played on {date}",
       "InviteInWorldDate": "In-world: {date}",
       "InviteOpen": "Read the log and write a diary entry",
