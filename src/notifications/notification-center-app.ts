@@ -5,7 +5,7 @@ import { SOCKET_EVENT, type ModuleType } from '../constants';
 import { authManager } from '../auth/auth-manager';
 import { getAutoOpenGmSuggestions } from '../settings';
 import { notificationStore } from './notification-store';
-import { KIND_ICONS } from './notification-popup-model';
+import { KIND_ICONS, notificationTitle } from './notification-popup-model';
 import { notificationAtlasTarget, openCampaignDashboard, openInAtlas } from '../links/open-in-atlas';
 import type { AtlasMessage } from '../atlas-types';
 
@@ -102,8 +102,7 @@ export class NotificationCenterApp extends foundry.applications.api.ApplicationV
     row.dataset.messageId = item.id;
 
     const icon = KIND_ICONS[item.kind] ?? 'fa-solid fa-bell';
-    const documentTitle = item.documentName ? formatDocumentTitle(item.documentModuleType ?? '', item.documentName) : undefined;
-    const title = item.subject || documentTitle || t('ATLASFOUNDRY.Notifications.NoSubject');
+    const title = notificationTitle(item, t('ATLASFOUNDRY.Notifications.NoSubject'));
     const canBroadcast = game.user.isGM && !!item.documentId && !!item.documentModuleType;
 
     row.innerHTML = `

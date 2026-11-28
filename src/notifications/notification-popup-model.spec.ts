@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { KIND_ICONS, POPUP_MAX_OPEN, canOpenAnother, cascadeOffset, popupBody, popupLayout, popupTitle } from './notification-popup-model';
+import { KIND_ICONS, POPUP_MAX_OPEN, canOpenAnother, cascadeOffset, notificationTitle, popupBody, popupLayout } from './notification-popup-model';
 import type { AtlasMessage } from '../atlas-types';
 
 function msg(overrides: Partial<AtlasMessage> = {}): AtlasMessage {
@@ -36,18 +36,36 @@ describe('popupLayout', () => {
   });
 });
 
-describe('popupTitle', () => {
-  it('prefers the subject', () => {
-    expect(popupTitle(msg({ subject: 'Hello', documentName: 'Doc', documentModuleType: 'characters' }), 'Notification')).toBe('Hello');
+describe('notificationTitle', () => {
+  it('shows the subject alone when there is no document', () => {
+    expect(notificationTitle(msg({ subject: 'Hello' }), 'Notification')).toBe('Hello');
   });
 
-  it('falls back to the formatted document title', () => {
-    expect(popupTitle(msg({ documentName: 'Session 3 - Fire', documentModuleType: 'session-logs' }), 'Notification')).toBe('#3 - Fire');
-    expect(popupTitle(msg({ documentName: 'Doc', documentModuleType: 'characters' }), 'Notification')).toBe('Doc');
+  it('appends the document name to the generic subject', () => {
+    expect(
+      notificationTitle(msg({ subject: 'New document unlocked', documentName: 'The Tavern', documentModuleType: 'locations' }), 'Notification'),
+    ).toBe('New document unlocked: The Tavern');
+  });
+
+  it('does not repeat the document name when the subject already contains it', () => {
+    expect(notificationTitle(msg({ subject: 'The Tavern is ready', documentName: 'The Tavern', documentModuleType: 'locations' }), 'Notification')).toBe(
+      'The Tavern is ready',
+    );
+  });
+
+  it('uses the formatted document title without a subject', () => {
+    expect(notificationTitle(msg({ documentName: 'Session 3 - Fire', documentModuleType: 'session-logs' }), 'Notification')).toBe('#3 - Fire');
+    expect(notificationTitle(msg({ documentName: 'Doc', documentModuleType: 'characters' }), 'Notification')).toBe('Doc');
+  });
+
+  it('formats the session number inside the appended name', () => {
+    expect(
+      notificationTitle(msg({ subject: 'New document unlocked', documentName: 'Session 3 - Fire', documentModuleType: 'session-logs' }), 'Notification'),
+    ).toBe('New document unlocked: #3 - Fire');
   });
 
   it('falls back to the given text', () => {
-    expect(popupTitle(msg(), 'Notification')).toBe('Notification');
+    expect(notificationTitle(msg(), 'Notification')).toBe('Notification');
   });
 });
 

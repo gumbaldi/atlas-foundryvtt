@@ -32,10 +32,15 @@ export function popupLayout(message: Pick<AtlasMessage, 'kind'>, imageSrc: strin
   return message.kind === 'document-media' && imageSrc ? 'image' : 'text';
 }
 
-export function popupTitle(message: Pick<AtlasMessage, 'subject' | 'documentName' | 'documentModuleType'>, fallback: string): string {
-  if (message.subject) return message.subject;
-  if (message.documentName) return formatDocumentTitle(message.documentModuleType ?? '', message.documentName);
-  return fallback;
+/**
+ * Headline of a notification. The backend's `subject` is only the generic kind label
+ * (e.g. "New document unlocked"), so the document's name is appended to it. A subject
+ * that already contains the name is shown as it is.
+ */
+export function notificationTitle(message: Pick<AtlasMessage, 'subject' | 'documentName' | 'documentModuleType'>, fallback: string): string {
+  const documentTitle = message.documentName ? formatDocumentTitle(message.documentModuleType ?? '', message.documentName) : '';
+  if (message.subject && documentTitle && !message.subject.includes(documentTitle)) return `${message.subject}: ${documentTitle}`;
+  return message.subject || documentTitle || fallback;
 }
 
 /** Plain text only; the HTML `body` is never shown here. */

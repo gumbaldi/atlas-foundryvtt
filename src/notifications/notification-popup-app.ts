@@ -7,7 +7,7 @@ import { formatDocumentTitle } from '../render/document-title';
 import { MODULE_TYPE_ICONS } from '../constants';
 import { formatInWorldDate, formatRealDate, unreadSessionLogMessageIds } from '../diary/invitation-model';
 import { notificationStore } from './notification-store';
-import { KIND_ICONS, cascadeOffset, popupBody, popupTitle, type PopupInvitation, type PopupLayout } from './notification-popup-model';
+import { KIND_ICONS, cascadeOffset, notificationTitle, popupBody, type PopupInvitation, type PopupLayout } from './notification-popup-model';
 import type { AtlasMessage } from '../atlas-types';
 
 const POPUP_WIDTH = 420;
@@ -71,7 +71,7 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
     const esc = foundry.utils.escapeHTML;
     const message = this.message;
     if (!message) return document.createElement('section');
-    const title = popupTitle(message, t('ATLASFOUNDRY.Notifications.NoSubject'));
+    const title = notificationTitle(message, t('ATLASFOUNDRY.Notifications.NoSubject'));
     const body = popupBody(message);
     const imageSrc = safeImageUrl(message.documentImageUrl, getBaseUrl());
     const target = notificationAtlasTarget(message);
@@ -153,7 +153,7 @@ export class NotificationPopupApp extends foundry.applications.api.ApplicationV2
     const title = this.invitation
       ? formatDocumentTitle('session-logs', this.invitation.sessionLog.name, this.invitation.sessionLog.sessionNumber)
       : this.message
-        ? popupTitle(this.message, t('ATLASFOUNDRY.Notifications.NoSubject'))
+        ? notificationTitle(this.message, t('ATLASFOUNDRY.Notifications.NoSubject'))
         : '';
     content.querySelector<HTMLElement>('[data-action="zoom"]')?.addEventListener('click', (event) => {
       openImageLightbox((event.currentTarget as HTMLImageElement).src, title);
