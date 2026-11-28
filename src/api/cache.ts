@@ -65,7 +65,7 @@ export const documentCache = new TtlCache();
 
 /**
  * Self-invalidating: any incoming Atlas socket event that names a document
- * (currently `foundry:notification`, see P8) drops that document's detail
+ * (`document:changed` and `notification:new`, see docs/SOCKET-EVENTS.md) drops that document's detail
  * entry plus every cached list, since we can't know which list queries
  * included it. Event-name-agnostic on purpose so future event types work
  * without touching this file.

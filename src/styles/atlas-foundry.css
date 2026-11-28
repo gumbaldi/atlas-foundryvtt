@@ -710,9 +710,9 @@ button.atlas-foundry-hud-heading-link i {
   border-color: var(--color-border-highlight, #6c9ef8);
 }
 
-/* Shared expand/collapse switch for quests and links: a chevron, or a pill with the entry count while collapsed. */
+/* Shared expand/collapse switch for quests, deadlines and links: a chevron at the top of the column, or a pill with a chevron and the entry counts while collapsed. */
 .atlas-foundry-hud-toggle {
-  order: 6;
+  order: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -735,8 +735,12 @@ button.atlas-foundry-hud-heading-link i {
   cursor: pointer;
 }
 
+/* Collapsed: grows with its content (chevron plus one part per panel), never narrower than the expanded chevron. */
 .atlas-foundry-hud-toggle-collapsed {
   gap: 0.6rem;
+  width: auto;
+  min-width: 7rem;
+  padding: 0 0.6rem;
 }
 
 /* One icon plus count per panel that has entries, side by side. */

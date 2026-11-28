@@ -7,9 +7,10 @@ import { getShowHud, getShowHudPanels, setShowHud, setShowHudPanels } from './se
 /**
  * One shared expand/collapse switch for the quest, deadline and document panels of the
  * right HUD column. Each panel reports how many entries it has; the toggle at the
- * bottom of the column exists while at least one entry exists, as a chevron
- * when expanded and, when collapsed, as one pill with an icon and the count for
- * each panel that has entries. The panels draw themselves only while expanded.
+ * top of the column exists while at least one entry exists, as a chevron up
+ * when expanded and, when collapsed, as one pill that starts with a chevron down
+ * and then shows an icon and the count for each panel that has entries. The panels
+ * draw themselves only while expanded.
  * A separate master switch hides the whole column.
  */
 
@@ -74,7 +75,9 @@ export function renderHudToggle(): void {
     icon.className = 'fa-solid fa-chevron-up';
     button.replaceChildren(icon);
   } else {
-    button.replaceChildren();
+    const chevron = document.createElement('i');
+    chevron.className = 'fa-solid fa-chevron-down';
+    button.replaceChildren(chevron);
     for (const [name, iconClass] of SECTION_ICONS) {
       const count = counts.get(name);
       if (!count) continue;

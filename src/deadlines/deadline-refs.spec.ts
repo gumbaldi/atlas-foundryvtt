@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { parseDeadlineRefs, refsToQuery } from './deadline-refs';
+import { isDeadlineRelevantChange, parseDeadlineRefs, refsToQuery } from './deadline-refs';
+
+describe('isDeadlineRelevantChange', () => {
+  const picked = [{ documentId: 'loc-1', moduleType: 'locations' }];
+
+  it('counts any change to a character or a deadline entry', () => {
+    expect(isDeadlineRelevantChange({ moduleType: 'characters', documentId: 'c-9' }, [])).toBe(true);
+    expect(isDeadlineRelevantChange({ moduleType: 'deadlines', documentId: 'd-9' }, [])).toBe(true);
+  });
+
+  it('counts a change to a GM-picked document only, not to other documents of the same type', () => {
+    expect(isDeadlineRelevantChange({ moduleType: 'locations', documentId: 'loc-1' }, picked)).toBe(true);
+    expect(isDeadlineRelevantChange({ moduleType: 'locations', documentId: 'loc-2' }, picked)).toBe(false);
+  });
+
+  it('ignores unrelated types such as quests', () => {
+    expect(isDeadlineRelevantChange({ moduleType: 'quests', documentId: 'q-1' }, picked)).toBe(false);
+  });
+});
 
 describe('parseDeadlineRefs', () => {
   it('keeps valid entries', () => {

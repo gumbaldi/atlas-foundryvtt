@@ -15,6 +15,9 @@ before `compatibility.verified` in `module.json` is raised — see
   latest session log yet, it shows the log (picture, number, title, real and in-world date) and invites
   you to read it and write an entry; "Don't remind me again for this log" silences it per log. A new
   session log notification uses the same window instead of a second one. Needs the matching Atlas backend.
+- Deadlines and quests refresh within about a second when Atlas reports a change to a document
+  (`document:changed` socket event, only for documents you may read); the 5-minute poll stays as the
+  fallback. Needs the matching Atlas backend; see [docs/SOCKET-EVENTS.md](docs/SOCKET-EVENTS.md).
 - A "Deadlines" section in the Atlas HUD column, between the quests and the documents: the running
   deadlines of your own characters first, then of the documents the game master picked, each with the
   days left; a click opens the entry or the document's deadlines tab in Atlas. Needs the matching

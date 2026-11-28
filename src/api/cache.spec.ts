@@ -91,7 +91,7 @@ describe('socket-driven invalidation', () => {
     await documentCache.getOrFetch(`${DOC_CACHE_PREFIX}doc-1`, 60_000, async () => 'detail');
     await documentCache.getOrFetch(`${LIST_CACHE_PREFIX}q`, 30_000, async () => 'list');
 
-    Hooks.callAll('atlas-foundry.socketEvent', 'foundry:notification', { documentId: 'doc-1' });
+    Hooks.callAll('atlas-foundry.socketEvent', 'document:changed', { documentId: 'doc-1' });
 
     const docFetcher = vi.fn(async () => 'detail-2');
     const listFetcher = vi.fn(async () => 'list-2');

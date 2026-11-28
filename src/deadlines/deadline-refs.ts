@@ -28,3 +28,12 @@ export function parseDeadlineRefs(raw: unknown): DeadlineRef[] {
 export function refsToQuery(refs: DeadlineRef[]): string {
   return refs.map((ref) => `${ref.moduleType}:${ref.documentId}`).join(',');
 }
+
+/** Module types whose change can move a deadline: the account characters' own deadlines, and the deadline entries themselves. */
+const DEADLINE_SOURCE_TYPES: ReadonlySet<string> = new Set(['characters', 'deadlines']);
+
+/** Pure: does this document change possibly affect the Deadlines section? Any change to a GM-picked document counts. */
+export function isDeadlineRelevantChange(change: { moduleType: string; documentId: string }, refs: DeadlineRef[]): boolean {
+  if (DEADLINE_SOURCE_TYPES.has(change.moduleType)) return true;
+  return refs.some((ref) => ref.moduleType === change.moduleType && ref.documentId === change.documentId);
+}

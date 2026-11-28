@@ -74,14 +74,15 @@ describe('HUD toggle', () => {
     reportHudSection('links', 3);
     expect(toggle.className).toContain('collapsed');
     expect(toggle.title).toBe('ATLASFOUNDRY.Hud.Expand:5');
-    const parts = toggle.children.map((part) => ({ icon: part.children[0]?.className, count: part.children[1]?.textContent }));
+    expect(toggle.children[0]?.className).toBe('fa-solid fa-chevron-down');
+    const parts = toggle.children.slice(1).map((part) => ({ icon: part.children[0]?.className, count: part.children[1]?.textContent }));
     expect(parts).toEqual([
       { icon: 'fa-solid fa-scroll', count: '2' },
       { icon: 'fa-solid fa-link', count: '3' },
     ]);
 
     reportHudSection('quests', 0);
-    expect(toggle.children.map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-link']);
+    expect(toggle.children.slice(1).map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-link']);
   });
 
   it('lists the deadline part after the quest part and drops it at a count of 0', async () => {
@@ -90,13 +91,13 @@ describe('HUD toggle', () => {
     reportHudSection('deadlines', 3);
     reportHudSection('quests', 2);
     const toggle = hud.children.find((c) => c.id === HUD_TOGGLE_ID)!;
-    expect(toggle.children.map((part) => ({ icon: part.children[0]?.className, count: part.children[1]?.textContent }))).toEqual([
+    expect(toggle.children.slice(1).map((part) => ({ icon: part.children[0]?.className, count: part.children[1]?.textContent }))).toEqual([
       { icon: 'fa-solid fa-scroll', count: '2' },
       { icon: 'fa-solid fa-hourglass-half', count: '3' },
     ]);
 
     reportHudSection('deadlines', 0);
-    expect(toggle.children.map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-scroll']);
+    expect(toggle.children.slice(1).map((part) => part.children[0]?.className)).toEqual(['fa-solid fa-scroll']);
   });
 
   it('is removed once no panel has entries any more, or when signed out', async () => {

@@ -11,9 +11,14 @@ import { fetchDeadlineOverview, refreshDeadlineOverview } from './deadlines-api'
 import { openDeadlineDocsManager } from './deadline-docs-app';
 import { ensureAtlasGroup } from '../controls';
 import { buildDeadlineGroups, countDeadlines, type DeadlineGroup, type DeadlineRow } from './deadline-overview';
+import { isDeadlineRelevantChange } from './deadline-refs';
+import { debounce } from '../socket/debounce';
+import type { DocumentChange } from '../atlas-types';
 
 const SECTION_ID = 'atlas-foundry-deadline-section';
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
+/** A bulk change (e.g. an import) arrives as many events; one refresh after the burst is enough. */
+const RELOAD_DEBOUNCE_MS = 1000;
 
 let groups: DeadlineGroup[] = [];
 let loaded = false;
@@ -21,6 +26,7 @@ let loaded = false;
 // load in a burst — only the most recent one may write the result.
 let loadToken = 0;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+const reloadSoon = debounce(() => void load(true), RELOAD_DEBOUNCE_MS);
 
 function removeSection(): void {
   document.getElementById(SECTION_ID)?.remove();
@@ -160,6 +166,7 @@ export function renderDeadlineSection(): void {
 }
 
 function clearSection(): void {
+  reloadSoon.cancel();
   loadToken++;
   groups = [];
   loaded = false;
@@ -195,8 +202,8 @@ export function clearDeadlineSection(): void {
 
 /**
  * Hook wiring (call from `init`; no setting is read here): the refresh
- * triggers. The `socketEvent` hook is best-effort — the 5-minute poll is the
- * real update path while expanded.
+ * triggers. Document changes from the socket refresh the section within about a
+ * second; the 5-minute poll stays as the fallback while expanded.
  */
 export function registerDeadlineSection(): void {
   Hooks.on('atlas-foundry.authChanged', (payload: { state: string }) => {
@@ -205,9 +212,8 @@ export function registerDeadlineSection(): void {
   });
   Hooks.on('atlas-foundry.sessionReset', clearSection);
   Hooks.on('atlas-foundry.deadlineDocumentsChanged', () => void load(true));
-  Hooks.on('atlas-foundry.socketEvent', (_event: string, payload: unknown) => {
-    const moduleType = (payload as { documentModuleType?: string } | null)?.documentModuleType;
-    if (moduleType === 'deadlines') void load(true);
+  Hooks.on('atlas-foundry.documentChanged', (change: DocumentChange) => {
+    if (isDeadlineRelevantChange(change, getDeadlineDocuments())) reloadSoon.call();
   });
   const onVisibilityChanged = (): void => {
     renderDeadlineSection();

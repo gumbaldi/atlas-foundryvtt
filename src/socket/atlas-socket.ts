@@ -2,6 +2,7 @@ import { io, type Socket } from 'socket.io-client';
 import { getBaseUrl } from '../settings';
 import { authManager } from '../auth/auth-manager';
 import { log } from '../log';
+import { DOCUMENT_CHANGED_EVENT, parseDocumentChange } from './document-changes';
 
 export type SocketStatus = 'disconnected' | 'connecting' | 'connected' | 'degraded';
 
@@ -48,6 +49,10 @@ class AtlasSocket {
     // can subscribe via Hooks instead of importing this module directly.
     this.socket.onAny((event: string, payload: unknown) => {
       Hooks.callAll('atlas-foundry.socketEvent', event, payload);
+      if (event !== DOCUMENT_CHANGED_EVENT) return;
+      const change = parseDocumentChange(payload);
+      if (change) Hooks.callAll('atlas-foundry.documentChanged', change);
+      else log.warn('Atlas Foundry: ignoring malformed document:changed event');
     });
   }
 

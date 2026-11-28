@@ -7,12 +7,15 @@ import { openInAtlas } from '../links/open-in-atlas';
 import { getShowHud, getShowHudPanels } from '../settings';
 import { fetchQuests, refreshQuests } from './quests-api';
 import { countTrackedQuests, selectTrackedQuests } from './quest-selection';
-import type { AtlasQuest } from '../atlas-types';
+import type { AtlasQuest, DocumentChange } from '../atlas-types';
+import { debounce } from '../socket/debounce';
 
 export { selectTrackedQuests };
 
 const TRACKER_ID = 'atlas-foundry-quest-tracker';
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
+/** A bulk change (e.g. an import) arrives as many events; one refresh after the burst is enough. */
+const RELOAD_DEBOUNCE_MS = 1000;
 
 let quests: AtlasQuest[] = [];
 let moduleLabel: { de: string; en: string } | undefined;
@@ -21,6 +24,7 @@ let loaded = false;
 // burst — only the most recent one may write the result.
 let loadToken = 0;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+const reloadSoon = debounce(() => void load(true), RELOAD_DEBOUNCE_MS);
 
 function removeTracker(): void {
   document.getElementById(TRACKER_ID)?.remove();
@@ -126,6 +130,7 @@ export function renderQuestTracker(): void {
 }
 
 function clearTracker(): void {
+  reloadSoon.cancel();
   loadToken++;
   quests = [];
   moduleLabel = undefined;
@@ -162,9 +167,8 @@ export function clearQuestTracker(): void {
 
 /**
  * Hook wiring (call from `init`; no setting is read here): the refresh
- * triggers. The `socketEvent` hook is best-effort — no backend event carries
- * `documentModuleType` for quests yet — so the 5-minute poll is the real update
- * path while expanded.
+ * triggers. Quest changes arrive as `document:changed` and refresh the tracker
+ * within about a second; the 5-minute poll stays as the fallback while expanded.
  */
 export function registerQuestTracker(): void {
   Hooks.on('atlas-foundry.authChanged', (payload: { state: string }) => {
@@ -172,9 +176,8 @@ export function registerQuestTracker(): void {
     else clearTracker();
   });
   Hooks.on('atlas-foundry.sessionReset', clearTracker);
-  Hooks.on('atlas-foundry.socketEvent', (_event: string, payload: unknown) => {
-    const moduleType = (payload as { documentModuleType?: string } | null)?.documentModuleType;
-    if (moduleType === 'quests') void load(true);
+  Hooks.on('atlas-foundry.documentChanged', (change: DocumentChange) => {
+    if (change.moduleType === 'quests') reloadSoon.call();
   });
   const onVisibilityChanged = (): void => {
     renderQuestTracker();

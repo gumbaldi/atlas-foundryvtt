@@ -131,6 +131,21 @@ export const AtlasNotificationPayloadSchema = z.object({
 });
 export type AtlasNotificationPayload = z.infer<typeof AtlasNotificationPayloadSchema>;
 
+/**
+ * Payload of the `document:changed` socket event. Thin on purpose: ids, type and
+ * change kind only, never content or titles. The server sends it only to users who
+ * may read the document; the client refetches through the REST API to get the data.
+ */
+export const DocumentChangeSchema = z.object({
+  campaignId: z.string(),
+  moduleType: ModuleTypeOrCustomSchema,
+  documentId: z.string().min(1),
+  customModuleId: z.string().optional(),
+  change: z.enum(['created', 'updated', 'deleted']),
+  updatedAt: z.string(),
+});
+export type DocumentChange = z.infer<typeof DocumentChangeSchema>;
+
 export const TokenExchangeResponseSchema = z.object({
   accessToken: z.string(),
   tokenType: z.literal('Bearer'),
